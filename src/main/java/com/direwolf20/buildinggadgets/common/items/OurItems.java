@@ -3,8 +3,10 @@ package com.direwolf20.buildinggadgets.common.items;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.blocks.OurBlocks;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.registries.Registries;
 
 public final class OurItems {
 
@@ -21,15 +23,15 @@ public final class OurItems {
     public static final Item TEMPLATE_MANGER_ITEM = new BlockItem(OurBlocks.TEMPLATE_MANGER_BLOCK, OurItems.itemProperties());
 
     private static Item.Properties itemProperties() {
-        return new Item.Properties().tab(BuildingGadgets.CREATIVE_TAB);
+        return new Item.Properties();
     }
 
     public static void registerItems() {
-        Registry.register(Registry.ITEM, BuildingGadgets.id("gadget_building"), BUILDING_GADGET_ITEM);
-        Registry.register(Registry.ITEM, BuildingGadgets.id("gadget_exchanging"), EXCHANGING_GADGET_ITEM);
-        Registry.register(Registry.ITEM, BuildingGadgets.id("gadget_copy_paste"), COPY_PASTE_GADGET_ITEM);
-        Registry.register(Registry.ITEM, BuildingGadgets.id("gadget_destruction"), DESTRUCTION_GADGET_ITEM);
-        Registry.register(Registry.ITEM, BuildingGadgets.id("template"), TEMPLATE_ITEM);
-        Registry.register(Registry.ITEM, BuildingGadgets.id("template_manager"), TEMPLATE_MANGER_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_building"), BUILDING_GADGET_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_exchanging"), EXCHANGING_GADGET_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_copy_paste"), COPY_PASTE_GADGET_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_destruction"), DESTRUCTION_GADGET_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("template"), TEMPLATE_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("template_manager"), TEMPLATE_MANGER_ITEM);
     }
 }

@@ -25,7 +25,7 @@ public class PacketUndo implements ServerPlayNetworking.PlayChannelHandler {
             ItemStack stack = AbstractGadget.getGadget(player);
 
             if (!(stack.isEmpty() || stack.getItem() instanceof GadgetExchanger)) {
-                ((AbstractGadget) stack.getItem()).undo(player.level, player, stack);
+                ((AbstractGadget) stack.getItem()).undo(player.level(), player, stack);
             }
         });
     }

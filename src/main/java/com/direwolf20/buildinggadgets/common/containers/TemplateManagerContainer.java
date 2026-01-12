@@ -24,7 +24,7 @@ public class TemplateManagerContainer extends BaseContainer {
         super(OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE, windowId);
         BlockPos pos = extraData.readBlockPos();
 
-        this.be = (TemplateManagerTileEntity) playerInventory.player.level.getBlockEntity(pos);
+        this.be = (TemplateManagerTileEntity) playerInventory.player.level().getBlockEntity(pos);
         addOwnSlots();
         addPlayerSlots(playerInventory, 8, 82);
     }

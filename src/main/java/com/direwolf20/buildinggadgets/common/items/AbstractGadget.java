@@ -23,6 +23,7 @@ import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -55,8 +56,9 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
     public AbstractGadget(Properties builder, ResourceLocation whiteListTag, ResourceLocation blackListTag) {
         super(builder.defaultDurability(0));
 
-        this.whiteList = TagKey.create(Registry.BLOCK_REGISTRY, whiteListTag);
-        this.blackList = TagKey.create(Registry.BLOCK_REGISTRY, blackListTag);
+        this.whiteList = TagKey.create(BuiltInRegistries.BLOCK.key(), whiteListTag);
+        this.blackList = TagKey.create(BuiltInRegistries.BLOCK.key(), blackListTag);
+
     }
 
     public abstract long getEnergyCapacity();
@@ -99,12 +101,12 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
         return blackList;
     }
 
-    @Override
+
     public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        super.fillItemCategory(group, items);
+        /*super.fillItemCategory(group, items);
         if (!allowedIn(group)) {
             return;
-        }
+        }*/  //TODO check this since update to 1.20.1
 
         ItemStack charged = new ItemStack(this);
         charged.getOrCreateTag().putDouble(NBTKeys.ENERGY, this.getEnergyCapacity());
@@ -119,7 +121,7 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
     public boolean isAllowedBlock(Block block) {
         if(block.defaultBlockState().is(ConventionalBlockTags.MOVEMENT_RESTRICTED))
             return false;
-        if(!Registry.BLOCK.getTagOrEmpty(getWhiteList()).iterator().hasNext()) {
+        if(!BuiltInRegistries.BLOCK.getTagOrEmpty(getWhiteList()).iterator().hasNext()) {
             return !block.defaultBlockState().is(getBlackList());
         }
         return block.defaultBlockState().is(getWhiteList());
@@ -187,7 +189,7 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
     public final void onAnchor(ItemStack stack, Player player) {
         if (getAnchor(stack) == null) {
             BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
-            if ((player.level.isEmptyBlock(lookingAt.getBlockPos()))) {
+            if ((player.level().isEmptyBlock(lookingAt.getBlockPos()))) {
                 return;
             }
             onAnchorSet(stack, player, lookingAt);
@@ -310,6 +312,6 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
     }
 
     protected static boolean mayInteract(ServerPlayer player, BlockPos pos) {
-        return player.mayInteract(player.level, pos) && GOMLCompat.canUse(player, pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
+        return player.mayInteract(player.level(), pos) && GOMLCompat.canUse(player, pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
     }
 }

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 final class AllowPlayerOverrideManager {
     private final Cache<UUID, Boolean> allowPlayerOverrideCache;
@@ -66,16 +67,23 @@ final class AllowPlayerOverrideManager {
             return 0;
         }
         toggleAllowOverride(player);
-        context.getSource().sendSuccess(toggledTranslation.componentTranslation(player.getDisplayName(), mayOverride(player))
-                .setStyle(Styles.AQUA), true);
+        context.getSource().sendSuccess(
+                () -> toggledTranslation.componentTranslation(player.getDisplayName(), mayOverride(player))
+                        .setStyle(Styles.AQUA),
+                true
+        );
+
         return 1;
     }
 
     int executeList(CommandContext<CommandSourceStack> context) {
         for (Map.Entry<UUID, Boolean> entry : allowPlayerOverrideCache.asMap().entrySet()) {
-            MutableComponent component = listTranslation.componentTranslation(entry.getKey(), entry.getValue());
-            component = (entry.getValue() ? component.setStyle(Styles.BLUE) : component.setStyle(Styles.DK_GREEN));
-            context.getSource().sendSuccess(component, true);
+            context.getSource().sendSuccess(() -> {
+                MutableComponent component = listTranslation.componentTranslation(entry.getKey(), entry.getValue());
+                component = entry.getValue() ? component.setStyle(Styles.BLUE) : component.setStyle(Styles.DK_GREEN);
+                return component;
+            }, true);
+
         }
         return 1;
     }

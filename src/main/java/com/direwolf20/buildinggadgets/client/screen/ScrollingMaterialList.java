@@ -16,11 +16,16 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -144,8 +149,7 @@ class ScrollingMaterialList extends EntryList<Entry> {
             this.widthAmount = Minecraft.getInstance().font.width(amount);
         }
 
-        @Override
-        public void render(PoseStack matrices, int index, int topY, int leftX, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float particleTicks) {
+        public void render(GuiGraphics guiGraphics, int index, int topY, int leftX, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float particleTicks) {
             // Weird render issue with GuiSlot where the right border is slightly offset
             // MARGIN * 2 is just a magic number that made it look nice
             int right = leftX + entryWidth - MARGIN * 2;
@@ -155,49 +159,74 @@ class ScrollingMaterialList extends EntryList<Entry> {
             int slotX = leftX + MARGIN;
             int slotY = topY + MARGIN;
 
-            drawIcon(matrices, stack, slotX, slotY);
-            drawTextOverlay(matrices, right, topY, bottom, slotX);
+            drawIcon(guiGraphics.pose(), stack, slotX, slotY);
+            drawTextOverlay(guiGraphics, right, topY, bottom, slotX);
             drawHoveringText(stack, slotX, slotY, mouseX, mouseY);
         }
 
-        private void drawTextOverlay(PoseStack matrices, int right, int top, int bottom, int slotX) {
+        private void drawTextOverlay(GuiGraphics guiGraphics, int right, int top, int bottom, int slotX) {
             int itemNameX = slotX + SLOT_SIZE + MARGIN;
-            // -1 because the bottom x coordinate is exclusive
-            renderTextVerticalCenter(matrices, itemName, itemNameX, top, bottom, Color.WHITE.getRGB());
-            renderTextHorizontalRight(matrices, amount, right, getYForAlignedCenter(top, bottom, Minecraft.getInstance().font.lineHeight), getTextColor());
-
-            drawGuidingLine(right, top, bottom, itemNameX, widthItemName, widthAmount);
+            renderTextVerticalCenter(guiGraphics, itemName, itemNameX, top, bottom, Color.WHITE.getRGB());
+            int amountY = getYForAlignedCenter(top, bottom, Minecraft.getInstance().font.lineHeight);
+            renderTextHorizontalRight(guiGraphics, amount, right, amountY, getTextColor());
+            drawGuidingLine(guiGraphics, right, top, bottom, itemNameX, widthItemName, widthAmount);
         }
 
-        private void drawGuidingLine(int right, int top, int bottom, int itemNameX, int widthItemName, int widthAmount) {
+
+        private void drawGuidingLine(GuiGraphics guiGraphics, int right, int top, int bottom, int itemNameX, int widthItemName, int widthAmount) {
             if (!isSelected()) {
                 int lineXStart = itemNameX + widthItemName + LINE_SIDE_MARGIN;
                 int lineXEnd = right - widthAmount - LINE_SIDE_MARGIN;
                 int lineY = getYForAlignedCenter(top, bottom - 1, 1);
-                RenderSystem.enableBlend();
-                RenderSystem.disableTexture();
-                RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                RenderSystem.setShaderColor(255, 255, 255, 34);
 
-//                glLineWidth(1);
-//                glBegin(GL_LINES);
-//                glVertex3f(lineXStart, lineY, 0);
-//                glVertex3f(lineXEnd, lineY, 0);
-//                glEnd();
-
-                RenderSystem.enableTexture();
+                int lineColor = 0x22FFFFFF;
+                guiGraphics.fill(lineXStart, lineY, lineXEnd, lineY + 1, lineColor);
             }
         }
 
+
         private void drawHoveringText(ItemStack item, int slotX, int slotY, int mouseX, int mouseY) {
-            if (isPointInBox(mouseX, mouseY, slotX, slotY, 18, 18))
-                parent.gui.setTaskHoveringText(mouseX, mouseY, parent.gui.getTooltipFromItem(item));
+            if (isPointInBox(mouseX, mouseY, slotX, slotY, 18, 18)) {
+                Minecraft mc = Minecraft.getInstance();
+                List tooltip = (List) item.getTooltipLines(
+                        mc.player,
+                        mc.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL
+                );
+                parent.gui.setTaskHoveringText(mouseX, mouseY, (java.util.List<Component>) tooltip);
+            }
         }
 
+
         private void drawIcon(PoseStack matrices, ItemStack item, int slotX, int slotY) {
+            if (item.isEmpty()) return;
+
+            Minecraft mc = Minecraft.getInstance();
+            ItemRenderer itemRenderer = mc.getItemRenderer();
+
             Lighting.setupForFlatItems();
-            Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, slotX, slotY);
-//            RenderSystem.color3f(1, 1, 1);
+
+            PoseStack poseStack = matrices;
+
+            poseStack.pushPose();
+            poseStack.translate(slotX, slotY, 0);
+
+            itemRenderer.renderStatic(
+                    null,
+                    item,
+                    ItemDisplayContext.GUI,
+                    false,
+                    poseStack,
+                    mc.renderBuffers().bufferSource(),
+                    mc.level,
+                    0xF000F0,
+                    OverlayTexture.NO_OVERLAY,
+                    0
+            );
+
+            mc.renderBuffers().bufferSource().endBatch();
+
+            poseStack.popPose();
+
             Lighting.setupFor3DItems();
         }
 

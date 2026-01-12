@@ -38,7 +38,7 @@ public class PacketTemplateManagerTemplateCreated implements ServerPlayNetworkin
         BlockPos pos = buf.readBlockPos();
 
         server.execute(() -> {
-            Level level = player.level;
+            Level level = player.level();
             if (level.hasChunkAt(pos)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof TemplateManagerTileEntity manager) {

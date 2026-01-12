@@ -42,8 +42,10 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import net.minecraft.client.gui.GuiGraphics;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
@@ -112,50 +114,74 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     @Override
     public void init() {
         super.init();
-        this.nameField = new EditBox(this.font, this.leftPos + 8, topPos + 6, imageWidth - 90, this.font.lineHeight + 3, GuiTranslation.TEMPLATE_NAME_TIP.componentTranslation());
+
+        this.nameField = new EditBox(
+                this.font,
+                this.leftPos + 8,
+                topPos + 6,
+                imageWidth - 90,
+                this.font.lineHeight + 3,
+                GuiTranslation.TEMPLATE_NAME_TIP.componentTranslation()
+        );
 
         int x = leftPos + 182;
-        buttonSave = addRenderableWidget(new Button(x, topPos + 41, 60, 20, GuiTranslation.BUTTON_SAVE.componentTranslation(), b -> onSave()));
-        buttonLoad = addRenderableWidget(new Button(x, topPos + 63, 60, 20, GuiTranslation.BUTTON_LOAD.componentTranslation(), b -> onLoad()));
-        buttonCopy = addRenderableWidget(new Button(x, topPos + 90, 60, 20, GuiTranslation.BUTTON_COPY.componentTranslation(), b -> onCopy()));
-        buttonPaste = addRenderableWidget(new Button(x, topPos + 112, 60, 20, GuiTranslation.BUTTON_PASTE.componentTranslation(), b -> onPaste()));
+
+        buttonSave = addRenderableWidget(Button.builder(
+                GuiTranslation.BUTTON_SAVE.componentTranslation(),
+                b -> onSave()
+        ).bounds(x, topPos + 41, 60, 20).build());
+
+        buttonLoad = addRenderableWidget(Button.builder(
+                GuiTranslation.BUTTON_LOAD.componentTranslation(),
+                b -> onLoad()
+        ).bounds(x, topPos + 63, 60, 20).build());
+
+        buttonCopy = addRenderableWidget(Button.builder(
+                GuiTranslation.BUTTON_COPY.componentTranslation(),
+                b -> onCopy()
+        ).bounds(x, topPos + 90, 60, 20).build());
+
+        buttonPaste = addRenderableWidget(Button.builder(
+                GuiTranslation.BUTTON_PASTE.componentTranslation(),
+                b -> onPaste()
+        ).bounds(x, topPos + 112, 60, 20).build());
 
         this.nameField.setMaxLength(50);
         this.nameField.setVisible(true);
         addRenderableWidget(nameField);
     }
 
-    @Override
-    public void render(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
-        super.render(matrices, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrices, mouseX, mouseY);
 
-        drawString(matrices, font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFF);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+
+        guiGraphics.drawString(font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFF);
         if (this.template != null) {
-            renderRequirement(matrices, mouseX, mouseY);
+            renderRequirement(guiGraphics, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderBg(PoseStack matrices, float partialTicks, int mouseX, int mouseY) {
-        renderBackground(matrices);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        renderBackground(guiGraphics);
 
         RenderSystem.setShaderTexture(0, background);
-        blit(matrices, leftPos, topPos, 0, 0, 176, 192);
-        blit(matrices, leftPos + 176, topPos + 29, 176, 28, 76, 113);
+        guiGraphics.blit(background, leftPos, topPos, 0, 0, 176, 192);
+        guiGraphics.blit(background, leftPos + 176, topPos + 29, 176, 28, 76, 113);
 
         if (!buttonCopy.isHoveredOrFocused() && !buttonPaste.isHoveredOrFocused()) {
             int x = (leftPos + imageWidth) - 98;
             int y = topPos + 49;
 
             if (buttonLoad.isHoveredOrFocused())
-                blit(matrices, x, y, 176, 0, 17, 24);
+                guiGraphics.blit(background,x, y, 176, 0, 17, 24);
             else
-                blit(matrices, x, y, 193, 0, 16, 24);
+                guiGraphics.blit(background,x, y, 193, 0, 16, 24);
         }
 
-        this.nameField.render(matrices, mouseX, mouseY, partialTicks);
-        fill(matrices, leftPos + panel.getX() - 1, topPos + panel.getY() - 1, leftPos + panel.getX() + panel.getWidth() + 1, topPos + panel.getY() + panel.getHeight() + 1, 0xFF8A8A8A);
+        this.nameField.render(guiGraphics, mouseX, mouseY, partialTicks);
+        guiGraphics.fill(leftPos + panel.getX() - 1, topPos + panel.getY() - 1, leftPos + panel.getX() + panel.getWidth() + 1, topPos + panel.getY() + panel.getHeight() + 1, 0xFF8A8A8A);
 
     }
 
@@ -258,52 +284,49 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 //        }
     }
 
-    private void renderRequirement(PoseStack matrices, int mouseX, int mouseY) {
+    private void renderRequirement(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         MaterialList requirements = this.template.getHeaderAndForceMaterials(BuildContext.builder().build(getWorld())).getRequiredItems();
-        if (requirements == null)
-            return;
+        if (requirements == null) return;
 
         Lighting.setupForFlatItems();
-        PoseStack modelViewStack = RenderSystem.getModelViewStack();
 
-        modelViewStack.pushPose();
-        modelViewStack.translate(leftPos - 30, topPos - 5, 200);
-        modelViewStack.scale(.8f, .8f, .8f);
+        PoseStack poseStack = guiGraphics.pose(); // get the PoseStack
 
-        matrices.pushPose();
-        matrices.translate(leftPos - 30, topPos - 5, 200);
+        poseStack.pushPose();
+        poseStack.translate(leftPos - 30, topPos - 5, 200);
+        poseStack.scale(0.8f, 0.8f, 0.8f);
 
-        String title = "Requirements"; // Todo lang;
-        drawString(matrices, getMinecraft().font, title, 5 - (font.width(title)), 0, Color.WHITE.getRGB());
+        String title = "Requirements"; // TODO: use localization
+        guiGraphics.drawString(getMinecraft().font, title, 5 - getMinecraft().font.width(title), 0, Color.WHITE.getRGB());
 
-        matrices.popPose();
-        // The things you have to do to get anything from this system is just stupid.
         MatchResult list;
-
         try (Transaction transaction = Transaction.openOuter()) {
             list = InventoryHelper.CREATIVE_INDEX.match(requirements, transaction);
         }
 
         ImmutableMultiset<ItemVariant> foundItems = list.getFoundItems();
 
-        // Reverse sorted list of items required.
-        List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(Comparator
-                .<Multiset.Entry<ItemVariant>, Integer>comparing(Multiset.Entry::getCount)
-                .reversed(), list.getChosenOption().entrySet());
+        List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(
+                Comparator.<Multiset.Entry<ItemVariant>, Integer>comparing(Multiset.Entry::getCount).reversed(),
+                list.getChosenOption().entrySet()
+        );
 
         int index = 0, column = 0;
         for (Multiset.Entry<ItemVariant> e : sortedEntries) {
             ItemStack stack = e.getElement().toStack();
-            int x = (-20 - (column * 25)), y = (20 + (index * 25));
+            int x = -20 - (column * 25);
+            int y = 20 + (index * 25);
 
-            itemRenderer.renderAndDecorateItem(stack, x + 4, y + 4);
-            itemRenderer.renderGuiItemDecorations(Minecraft.getInstance().font, stack, x + 4, y + 4, GadgetUtils.withSuffix(foundItems.count(e.getElement())));
+            // Render the item
+            guiGraphics.renderItem(stack, x + 4, y + 4);
+            guiGraphics.renderItemDecorations(getMinecraft().font, stack, x + 4, y + 4, GadgetUtils.withSuffix(foundItems.count(e.getElement())));
 
             int space = (int) (25 - (.2f * 25));
-            int zoneX = ((leftPos - 32) + (-15 - (column * space))), zoneY = (topPos - 9) + (20 + (index * space));
+            int zoneX = (leftPos - 32) + (-15 - (column * space));
+            int zoneY = (topPos - 9) + (20 + (index * space));
 
             if (mouseX > zoneX && mouseX < (zoneX + space) && mouseY > zoneY && mouseY < (zoneY + space)) {
-                renderTooltip(matrices, Lists.transform(stack.getTooltipLines(this.getMinecraft().player, TooltipFlag.Default.NORMAL), Component::getVisualOrderText), x + 15, y + 25);
+                guiGraphics.renderTooltip(getMinecraft().font, (Component) stack.getTooltipLines(getMinecraft().player, TooltipFlag.Default.NORMAL), mouseX, mouseY);
             }
 
             index++;
@@ -314,8 +337,9 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         }
 
         Lighting.setupFor3DItems();
-        modelViewStack.popPose();
+        poseStack.popPose();
     }
+
 
     private void pasteTemplateToStack(Level world, ItemStack stack, Template newTemplate, boolean replaced) {
         BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) ->
@@ -397,7 +421,9 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         pose.pushPose();
         pose.setIdentity();
 
-        pose.mulPoseMatrix(Matrix4f.perspective(60, (float) panel.getWidth() / panel.getHeight(), 0.01F, 4000));
+        Matrix4f perspectiveMatrix = new Matrix4f();
+        perspectiveMatrix.perspective(60f, (float) panel.getWidth() / panel.getHeight(), 0.01f, 4000f);
+        pose.mulPoseMatrix(perspectiveMatrix);
         RenderSystem.viewport((int) Math.round((leftPos + panel.getX()) * scale),
                 (int) Math.round(getMinecraft().getWindow().getHeight() - (topPos + panel.getY() + panel.getHeight()) * scale),
                 (int) Math.round(panel.getWidth() * scale),
@@ -409,15 +435,17 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         pose.scale((float) sc, (float) sc, (float) sc);
         int moveX = startPos.getX() - endPos.getX();
 
-        pose.mulPose(Vector3f.YP.rotation(30));
+        float radians = (float) Math.toRadians(30);
+        Quaternionf rot = new Quaternionf().rotateAxis(radians, 0, 1, 0);
+        pose.mulPose(rot);
         if (startPos.getX() >= endPos.getX())
             moveX--;
 
         pose.translate((moveX) / 1.75, -Math.abs(startPos.getY() - endPos.getY()) / 1.75, 0);
         pose.translate(panX, -panY, 0);
         pose.translate(((startPos.getX() - endPos.getX()) / 2f) * -1, ((startPos.getY() - endPos.getY()) / 2f) * -1, ((startPos.getZ() - endPos.getZ()) / 2f) * -1);
-        pose.mulPose(Vector3f.XP.rotation(-rotX));
-        pose.mulPose(Vector3f.YP.rotation(rotY));
+        pose.mulPose(new Quaternionf().rotateX((float)Math.toRadians(-rotX)));
+        pose.mulPose(new Quaternionf().rotateY((float)Math.toRadians(rotY)));
         pose.translate(((startPos.getX() - endPos.getX()) / 2f), ((startPos.getY() - endPos.getY()) / 2f), ((startPos.getZ() - endPos.getZ()) / 2f));
 
         RenderSystem.disableDepthTest();
@@ -483,8 +511,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         return this.nameField.isFocused() ? this.nameField.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_) : super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
     }
 
-    @Override
-    protected void renderLabels(PoseStack matrices, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrices, int mouseX, int mouseY, GuiGraphics guiGraphics) {
         if (panelClicked) {
             if (clickButton == 0) {
                 float prevRotX = rotX;
@@ -505,19 +532,30 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         momentumX *= momentumDampening;
         momentumY *= momentumDampening;
 
-        if (!nameField.isFocused() && nameField.getValue().isEmpty())
-            getMinecraft().font.draw(matrices, GuiTranslation.TEMPLATE_PLACEHOLDER.format(), nameField.x - leftPos + 4, (nameField.y + 2) - topPos, -10197916);
+        if (!nameField.isFocused() && nameField.getValue().isEmpty()) {
+            guiGraphics.drawString(
+                    getMinecraft().font,
+                    GuiTranslation.TEMPLATE_PLACEHOLDER.format(),
+                    nameField.getX() - leftPos + 4,
+                    nameField.getY() - topPos + 2,
+                    0xFF666666
+            );
+        }
 
-        if (buttonSave.isHoveredOrFocused() || buttonLoad.isHoveredOrFocused() || buttonPaste.isHoveredOrFocused())
-            drawSlotOverlay(matrices, buttonLoad.isHoveredOrFocused() ? container.getSlot(0) : container.getSlot(1));
+        // Draw slot overlays if buttons hovered
+        if (buttonSave.isHoveredOrFocused() || buttonLoad.isHoveredOrFocused() || buttonPaste.isHoveredOrFocused()) {
+            Slot slotToHighlight = buttonLoad.isHoveredOrFocused() ? container.getSlot(0) : container.getSlot(1);
+            drawSlotOverlay(matrices, slotToHighlight, guiGraphics);
+        }
     }
 
-    private void drawSlotOverlay(PoseStack matrices, Slot slot) {
+    private void drawSlotOverlay(PoseStack matrices, Slot slot, GuiGraphics guiGraphics) {
         matrices.pushPose();
         matrices.translate(0, 0, 1000);
-        fill(matrices, slot.x, slot.y, slot.x + 16, slot.y + 16, -1660903937);
+        guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x9E000000); // -1660903937 == 0x9E000000
         matrices.popPose();
     }
+
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {

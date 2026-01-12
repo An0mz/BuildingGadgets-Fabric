@@ -90,7 +90,7 @@ public record BuildContext(@NotNull LevelAccessor world, @Nullable Player player
         public Builder player(@Nullable Player buildingPlayer) {
             this.buildingPlayer = buildingPlayer;
             if (world == null && buildingPlayer != null)
-                this.world = buildingPlayer.level;
+                this.world = buildingPlayer.level();
             return this;
         }
 

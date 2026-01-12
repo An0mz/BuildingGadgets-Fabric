@@ -8,6 +8,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 
 import java.util.Comparator;
 
@@ -20,7 +22,7 @@ public class EventUtil {
     public static final Comparator<Multiset.Entry<ItemVariant>> ENTRY_COMPARATOR = Comparator
             .<Multiset.Entry<ItemVariant>, Integer>comparing(Entry::getCount)
             .reversed()
-            .thenComparing(e -> Registry.ITEM.getKey(e.getElement().getItem()));
+            .thenComparing(e -> BuiltInRegistries.ITEM.getKey(e.getElement().getItem()));
 
     public static final int STACKS_PER_LINE = 8;
 }

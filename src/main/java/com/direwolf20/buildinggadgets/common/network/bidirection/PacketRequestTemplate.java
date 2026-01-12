@@ -61,8 +61,8 @@ public class PacketRequestTemplate {
         public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
             UUID id = buf.readUUID();
 
-            server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level).ifPresent(provider -> {
-                provider.requestRemoteUpdate(new TemplateKey(id), player.level);
+            server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
+                provider.requestRemoteUpdate(new TemplateKey(id), player.level());
             }));
         }
     }

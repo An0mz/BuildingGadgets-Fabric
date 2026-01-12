@@ -46,7 +46,7 @@ public class PacketCopyCoords implements ServerPlayNetworking.PlayChannelHandler
             Optional<Region> regionOpt = GadgetCopyPaste.getSelectedRegion(heldItem);
             if (regionOpt.isEmpty()) //notify of single copy
                 player.displayClientMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN), true);
-            regionOpt.ifPresent(region -> ((GadgetCopyPaste) heldItem.getItem()).tryCopy(heldItem, player.level, player, region));
+            regionOpt.ifPresent(region -> ((GadgetCopyPaste) heldItem.getItem()).tryCopy(heldItem, player.level(), player, region));
         });
     }
 }

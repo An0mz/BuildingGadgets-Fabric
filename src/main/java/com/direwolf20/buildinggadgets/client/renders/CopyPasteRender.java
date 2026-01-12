@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -104,7 +104,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     }
 
     private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem) {
-        Level world = player.level;
+        Level world = player.level();
 
         // Check the template cap from the world
         // Fetch the template key (because for some reason this is it's own cap)
@@ -221,7 +221,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                 Objects.requireNonNull(rt);
                 Objects.requireNonNull(builder);
 
-                VertexBuffer vbo = new VertexBuffer();
+                VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vbo.bind();
                 vbo.upload(builder.end());
                 return vbo;

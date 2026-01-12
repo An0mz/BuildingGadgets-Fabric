@@ -65,7 +65,7 @@ public class InventoryHelper {
     static Storage<ItemVariant> getHandlers(ItemStack stack, Player player) {
         List<Storage<ItemVariant>> handlers = new ArrayList<>();
 
-        InventoryLinker.getLinkedInventory(player.level, stack).ifPresent(handlers::add);
+        InventoryLinker.getLinkedInventory(player.level(), stack).ifPresent(handlers::add);
         handlers.add(PlayerInventoryStorage.of(player));
 
         return new CombinedStorage<>(handlers);
@@ -77,7 +77,7 @@ public class InventoryHelper {
     }
 
     public static Optional<BlockData> getSafeBlockData(Player player, BlockPos pos, BlockPlaceContext useContext) {
-        Level world = player.level;
+        Level world = player.level();
         boolean isCopyPasteGadget = (AbstractGadget.getGadget(player).getItem() instanceof GadgetCopyPaste);
         BlockState state = world.getBlockState(pos);
         if (state.getBlock() instanceof LiquidBlock)

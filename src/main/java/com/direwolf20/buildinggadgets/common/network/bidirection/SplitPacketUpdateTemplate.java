@@ -139,7 +139,7 @@ public class SplitPacketUpdateTemplate {
             try {
                 Template template = readTemplate(accumulator);
 
-                server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level).ifPresent(provider -> {
+                server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
                     provider.setTemplate(new TemplateKey(id), template);
                 }));
             } catch (TemplateReadException e) {

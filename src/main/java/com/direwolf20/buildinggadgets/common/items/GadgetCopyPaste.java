@@ -104,7 +104,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performRotate(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level).flatMap(provider ->
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).flatMap(provider ->
                 BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).map(key -> {
                     Template template = provider.getTemplateForKey(key);
                     provider.setTemplate(key, template.rotate(Rotation.CLOCKWISE_90));
@@ -115,7 +115,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performMirror(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level).flatMap(provider ->
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).flatMap(provider ->
                 BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).map(key -> {
                     Template template = provider.getTemplateForKey(key);
                     provider.setTemplate(key, template.mirror(player.getDirection().getAxis()));
@@ -389,7 +389,7 @@ public class GadgetCopyPaste extends AbstractGadget {
         }
 
         ITemplateKey key = BGComponent.TEMPLATE_KEY_COMPONENT.get(stack);
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level).ifPresent(provider -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
             provider.setTemplate(key, newTemplate);
             provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
         });

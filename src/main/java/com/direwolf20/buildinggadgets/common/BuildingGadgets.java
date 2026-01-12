@@ -21,7 +21,9 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -48,11 +50,14 @@ public final class BuildingGadgets implements ModInitializer {
      * building gadget to remove the damage / energy indicator from the creative
      * tabs icon.
      */
-    public static final CreativeModeTab CREATIVE_TAB = FabricItemGroupBuilder.build(BuildingGadgets.id("tab"), () -> {
-        ItemStack stack = new ItemStack(OurItems.BUILDING_GADGET_ITEM);
-        SimpleBatteryItem.setStoredEnergyUnchecked(stack, getConfig().gadgets.gadgetBuilding.maxEnergy);
-        return stack;
-    });
+    public static final CreativeModeTab CREATIVE_TAB = FabricItemGroup.builder()
+            .title(Component.translatable("itemGroup." + Reference.MODID))
+            .icon(() -> {
+                ItemStack stack = new ItemStack(OurItems.BUILDING_GADGET_ITEM);
+                SimpleBatteryItem.setStoredEnergyUnchecked(stack, getConfig().gadgets.gadgetBuilding.maxEnergy);
+                return stack;
+            })
+            .build();
 
     public static ResourceLocation id(String path) {
         return new ResourceLocation(Reference.MODID, path);
@@ -65,6 +70,7 @@ public final class BuildingGadgets implements ModInitializer {
     @Override
     public void onInitialize() {
         AutoConfig.register(Config.class, GsonConfigSerializer::new);
+        net.minecraft.core.Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("tab"), CREATIVE_TAB);
         OurBlocks.registerBlocks();
         OurItems.registerItems();
 
@@ -81,9 +87,9 @@ public final class BuildingGadgets implements ModInitializer {
         PacketHandler.registerMessages();
         OurSounds.initSounds();
         OurTileEntities.initBE();
-        OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE = Registry.register(Registry.MENU, BuildingGadgets.id("template_manager_container"), new ExtendedScreenHandlerType<>(TemplateManagerContainer::new));
+        OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE = Registry.register(BuiltInRegistries.MENU, BuildingGadgets.id("template_manager_container"), new ExtendedScreenHandlerType<>(TemplateManagerContainer::new));
 
-        Registry.register(Registry.ENCHANTMENT, id("silk_touch"), GadgetSilkTouch.GADGET_SILKTOUCH);
+        Registry.register(BuiltInRegistries.ENCHANTMENT, id("silk_touch"), GadgetSilkTouch.GADGET_SILKTOUCH);
 
         GOMLCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("goml");
         FLANCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("flan");

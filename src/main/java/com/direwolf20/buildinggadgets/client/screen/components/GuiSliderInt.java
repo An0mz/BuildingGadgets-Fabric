@@ -6,6 +6,7 @@ import com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -71,7 +72,7 @@ public class GuiSliderInt extends AbstractSliderButton {
 
     @Override
     protected void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
-        this.setValue((mouseX - this.x - 4) / (this.width - 8));
+        this.setValue((mouseX - this.getX() - 4) / (this.width - 8));
     }
 
     @Override
@@ -83,20 +84,21 @@ public class GuiSliderInt extends AbstractSliderButton {
         BuildingGadgetsClient.playSound(SoundEvents.DISPENSER_FAIL, 2F);
     }
 
-    @Override
-    public void render(PoseStack matrices, int mouseX, int mouseY, float partial) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
         if (!visible) {
             return;
         }
 
         Minecraft mc = Minecraft.getInstance();
-        isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-        fill(matrices, x, y, x + width, y + height, colorBackground);
-        renderBg(matrices, mc, mouseX, mouseY);
-        renderText(matrices, mc, this);
+        isHovered = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
+        isHovered = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
+        guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, colorBackground);
+        renderBg(guiGraphics, mc, mouseX, mouseY);
+        renderText(guiGraphics, mc, this);
+
     }
 
-    private void renderText(PoseStack matrices, Minecraft mc, AbstractWidget component) {
+    private void renderText(GuiGraphics guiGraphics, Minecraft mc, AbstractWidget component) {
         int color = !active ? 10526880 : (isHovered ? 16777120 : -1);
         String buttonText = component.getMessage().getString();
         int strWidth = mc.font.width(buttonText);
@@ -106,54 +108,52 @@ public class GuiSliderInt extends AbstractSliderButton {
             buttonText = mc.font.plainSubstrByWidth(buttonText, component.getWidth() - 6 - ellipsisWidth).trim() + "...";
         }
 
-        drawCenteredString(matrices, mc.font, buttonText, component.x + component.getWidth() / 2, component.y + (component.getHeight() - 8) / 2, color);
+        guiGraphics.drawCenteredString(mc.font, buttonText, component.getX() + component.getWidth() / 2, component.getY() + (component.getHeight() - 8) / 2, color);
     }
 
     @Override
     public void playDownSound(SoundManager p_playDownSound_1_) {
     }
 
-    @Override
-    protected void renderBg(PoseStack matrices, Minecraft mc, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, Minecraft mc, int mouseX, int mouseY) {
         if (!visible) {
             return;
         }
 
-        drawBorderedRect(matrices, (int) (x + (value * (width - 8))), y, 8, height);
+        drawBorderedRect(guiGraphics, (int) (getX() + (value * (width - 8))), getY(), 8, height);
     }
 
-    private void drawBorderedRect(PoseStack matrices, int x, int y, int width, int height) {
-        fill(matrices, x, y, x + width, y + height, colorSliderBackground);
-        fill(matrices, ++x, ++y, x + width - 2, y + height - 2, colorSlider);
+    private void drawBorderedRect(GuiGraphics guiGraphics, int x, int y, int width, int height) {
+        guiGraphics.fill(x, y, x + width, y + height, colorSliderBackground);
+        guiGraphics.fill(++x, ++y, x + width - 2, y + height - 2, colorSlider);
     }
 
     public Collection<AbstractWidget> getComponents() {
         return ImmutableSet.of(
-            this,
-            new GuiButtonIncrement(this, x - height, y, height, height, Component.literal("-"), b -> increment.accept(this, -1)),
-            new GuiButtonIncrement(this, x + width, y, height, height, Component.literal("+"), b -> increment.accept(this, 1)
-        ));
+                this,
+                new GuiButtonIncrement(this, getX() - height, getY(), height, height, Component.literal("-"), b -> increment.accept(this, -1)),
+                new GuiButtonIncrement(this, getX() + width, getY(), height, height, Component.literal("+"), b -> increment.accept(this, 1)
+                ));
     }
 
     private static class GuiButtonIncrement extends Button {
         private final GuiSliderInt parent;
 
         public GuiButtonIncrement(GuiSliderInt parent, int x, int y, int width, int height, Component buttonText, OnPress action) {
-            super(x, y, width, height, buttonText, action);
+            super(x, y, width, height, buttonText, action, DEFAULT_NARRATION);
             this.parent = parent;
         }
 
-        @Override
-        public void render(PoseStack matrices, int mouseX, int mouseY, float partial) {
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
             if (!visible) {
                 return;
             }
 
             Minecraft mc = Minecraft.getInstance();
-            isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-            fill(matrices, x, y, x + width, y + height, parent.colorBackground);
-            parent.drawBorderedRect(matrices, x, y, width, height);
-            parent.renderText(matrices, mc, this);
+            isHovered = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
+            guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, parent.colorBackground);
+            parent.drawBorderedRect(guiGraphics, getX(), getY(), width, height);
+            parent.renderText(guiGraphics, mc, this);
         }
 
         @Override

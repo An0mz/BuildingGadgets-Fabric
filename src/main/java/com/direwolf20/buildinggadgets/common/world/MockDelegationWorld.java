@@ -19,6 +19,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.biome.Biome;
@@ -127,6 +128,11 @@ public class MockDelegationWorld implements LevelAccessor {
 
     @Override
     public RegistryAccess registryAccess() {
+        return null;
+    }
+
+    @Override
+    public FeatureFlagSet enabledFeatures() {
         return null;
     }
 

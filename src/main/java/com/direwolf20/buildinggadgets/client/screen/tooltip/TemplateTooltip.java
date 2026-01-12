@@ -20,11 +20,14 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
@@ -81,8 +84,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
         return count;
     }
 
-    @Override
-    public void renderImage(Font font, int xin, int yin, PoseStack poseStack, ItemRenderer itemRenderer, int k) {
+    public void renderImage(GuiGraphics guiGraphics, Font font, int xin, int yin, int k) {
         if (!Screen.hasShiftDown())
             return;
 
@@ -123,50 +125,100 @@ public class TemplateTooltip implements ClientTooltipComponent {
             for (Multiset.Entry<ItemVariant> entry : sortedEntries) {
                 int x = xin + (j % EventUtil.STACKS_PER_LINE) * 18;
                 int y = yin + (j / EventUtil.STACKS_PER_LINE) * 20;
-                totalMissing += renderRequiredBlocks(poseStack, entry.getElement().toStack(), font, itemRenderer, x, y, existing.count(entry.getElement()), entry.getCount());
+                totalMissing += renderRequiredBlocks(
+                        guiGraphics,
+                        entry.getElement().toStack(),
+                        font,
+                        x,
+                        y,
+                        existing.count(entry.getElement()),
+                        entry.getCount()
+                );
                 j++;
             }
         }));
     }
 
-    private int renderRequiredBlocks(PoseStack matrices, ItemStack itemStack, Font font, ItemRenderer render, int x, int y, int count, int req) {
+    private int renderRequiredBlocks(
+            GuiGraphics guiGraphics,
+            ItemStack itemStack,
+            Font font,
+            int x,
+            int y,
+            int count,
+            int req
+    ) {
+        if (itemStack.isEmpty()) return 0;
+        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         String s1 = req == Integer.MAX_VALUE ? "\u221E" : Integer.toString(req);
         int w1 = font.width(s1);
 
         boolean hasReq = req > 0;
 
+        // Render the item
+        itemRenderer.renderStatic(
+                null,
+                itemStack,
+                ItemDisplayContext.GUI,
+                false,
+                guiGraphics.pose(),
+                guiGraphics.bufferSource(),
+                Minecraft.getInstance().level,
+                0xF000F0,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
 
-        // TODO: fix this, this isn't correct
-        render.renderAndDecorateItem(itemStack, x, y);
-        render.renderGuiItemDecorations(font, itemStack, x, y);
+        // Render item overlay (count, etc.)
+        guiGraphics.renderItemDecorations(font, itemStack, x, y);
 
-        matrices.pushPose();
-        matrices.translate(x + 8 - w1 / 4f, y + (hasReq ? 12 : 14), 500f + render.blitOffset);
-        matrices.scale(.5f, .5f, 0);
-        MultiBufferSource.BufferSource irendertypebuffer$impl = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-        font.drawInBatch(s1, 0, 0, 0xFFFFFF, true, matrices.last().pose(), irendertypebuffer$impl, false, 0, 15728880);
-        matrices.popPose();
-
+        // Render required count
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14), 500f);
+        guiGraphics.pose().scale(0.5f, 0.5f, 1f);
+        font.drawInBatch(
+                s1,
+                0f,
+                0f,
+                0xFFFFFF,
+                true,
+                guiGraphics.pose().last().pose(),
+                guiGraphics.bufferSource(),
+                Font.DisplayMode.NORMAL,
+                0,
+                15728880
+        );
+        guiGraphics.pose().popPose();
 
         int missingCount = 0;
-        if (hasReq) {
-            if (count < req) {
-                String fs = Integer.toString(req - count);
-                String s2 = "(" + fs + ")";
-                int w2 = font.width(s2);
 
-                matrices.pushPose();
-                matrices.translate(x + 8 - w2 / 4f, y + 17, 500f + render.blitOffset);
-                matrices.scale(.5f, .5f, 0);
-                font.drawInBatch(s2, 0, 0, 0xFF0000, true, matrices.last().pose(), irendertypebuffer$impl, false, 0, 15728880);
-                matrices.popPose();
+        if (hasReq && count < req) {
+            String s2 = "(" + (req - count) + ")";
+            int w2 = font.width(s2);
 
-                missingCount = (req - count);
-            }
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(x + 8 - w2 / 2f, y + 17, 500f);
+            guiGraphics.pose().scale(0.5f, 0.5f, 1f);
+            font.drawInBatch(
+                    s2,
+                    0f,
+                    0f,
+                    0xFF0000,
+                    true,
+                    guiGraphics.pose().last().pose(),
+                    guiGraphics.bufferSource(),
+                    Font.DisplayMode.NORMAL,
+                    0,
+                    15728880
+            );
+            guiGraphics.pose().popPose();
+
+            missingCount = req - count;
         }
 
-        irendertypebuffer$impl.endBatch();
         return missingCount;
     }
+
+
 }

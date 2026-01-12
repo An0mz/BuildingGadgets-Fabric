@@ -72,7 +72,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 inbt -> NbtUtils.readBlockPos((CompoundTag) inbt),
                 inbt -> BlockInfo.deserialize((CompoundTag) inbt, dataReverseObjectIncrementer, itemSetReverseObjectIncrementer));
 
-        ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
+        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, new ResourceLocation(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
         Region bounds = Region.deserializeFrom(nbt.getCompound(NBTKeys.WORLD_SAVE_UNDO_BOUNDS));
         return new Undo(dim, map, bounds);
     }

@@ -34,6 +34,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -150,7 +151,7 @@ public class GadgetExchanger extends AbstractGadget {
             if (player.isShiftKeyDown()) {
                 InteractionResultHolder<Block> result = selectBlock(itemstack, player);
                 if (!result.getResult().consumesAction()) {
-                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(Registry.BLOCK.getKey(result.getObject())).setStyle(Styles.AQUA), true);
+                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(result.getObject())).setStyle(Styles.AQUA), true);
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
@@ -190,7 +191,7 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     private void exchange(ServerPlayer player, ItemStack stack, TransactionContext transactionContext) {
-        ServerLevel world = player.getLevel();
+        ServerLevel world = (ServerLevel) player.level();
         ItemStack heldItem = getGadget(player);
         if (heldItem.isEmpty())
             return;
@@ -200,7 +201,7 @@ public class GadgetExchanger extends AbstractGadget {
         // Don't attempt to do anything if we can't actually do it.
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
         BlockEntity tileEntity = world.getBlockEntity(lookingAt.getBlockPos());
-        BlockState lookingAtState = player.level.getBlockState(lookingAt.getBlockPos());
+        BlockState lookingAtState = player.level().getBlockState(lookingAt.getBlockPos());
         Block lookAtBlock = lookingAtState.getBlock();
         if (blockData.getState() == Blocks.AIR.defaultBlockState()
             || lookAtBlock == OurBlocks.EFFECT_BLOCK
@@ -222,7 +223,7 @@ public class GadgetExchanger extends AbstractGadget {
         IItemIndex index = InventoryHelper.index(stack, player);
 
         //TODO replace fakeWorld
-        fakeWorld.setWorldAndState(player.level, blockData.getState(), coords); // Initialize the fake world's blocks
+        fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords); // Initialize the fake world's blocks
         for (BlockPos coordinate : coords) {
             //Get the extended block state in the fake world Disabled to fix Chisel
             //state = state.getBlock().getExtendedState(state, fakeWorld, coordinate);

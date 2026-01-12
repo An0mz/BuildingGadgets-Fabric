@@ -4,8 +4,8 @@ package com.direwolf20.buildinggadgets.client.renderer;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -24,7 +24,7 @@ public class OurRenderTypes extends RenderType {
             DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, false,
             RenderType.CompositeState.builder()
 //                    .setShadeModelState(SMOOTH_SHADE)
-                    .setShaderState(RenderStateShard.BLOCK_SHADER)
+                    .setShaderState(RenderStateShard.RENDERTYPE_SOLID_SHADER)
                     .setLightmapState(LIGHTMAP)
                     .setTextureState(BLOCK_SHEET_MIPPED) //BLOCK_SHEET_MIPPED (mcp) = BLOCK_SHEET_MIPPED (yarn)
                     .setLayeringState(VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
@@ -66,7 +66,7 @@ public class OurRenderTypes extends RenderType {
     public static final RenderType CopyPasteRenderBlock = create("CopyPasteRenderBlock",
             DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, false,
             RenderType.CompositeState.builder()
-                    .setShaderState(RenderStateShard.BLOCK_SHADER)
+                    .setShaderState(RenderStateShard.RENDERTYPE_SOLID_SHADER)
 //                    .setShadeModelState(SMOOTH_SHADE)
                     .setLightmapState(LIGHTMAP)
                     .setTextureState(BLOCK_SHEET_MIPPED) //BLOCK_SHEET_MIPPED (mcp) = BLOCK_SHEET_MIPPED (yarn)

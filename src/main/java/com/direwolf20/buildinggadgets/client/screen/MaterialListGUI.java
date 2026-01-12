@@ -13,6 +13,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
@@ -74,18 +75,39 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         this.addRenderableWidget(scrollingList);
 
         int buttonY = getWindowBottomY() - (ScrollingMaterialList.BOTTOM / 2 + BUTTON_HEIGHT / 2);
-        Button buttonClose = new Button(0, buttonY, 0, BUTTON_HEIGHT, MaterialListTranslation.BUTTON_CLOSE.componentTranslation(), b -> Minecraft.getInstance().player.closeContainer());
-        this.buttonSortingModes = new Button(0, buttonY, 0, BUTTON_HEIGHT, scrollingList.getSortingMode().getTranslationProvider().componentTranslation(), (button) -> {
-            scrollingList.setSortingMode(scrollingList.getSortingMode().next());
-            buttonSortingModes.setMessage(scrollingList.getSortingMode().getTranslationProvider().componentTranslation());
-        });
+        Button buttonClose = Button.builder(
+                        MaterialListTranslation.BUTTON_CLOSE.componentTranslation(),
+                        b -> Minecraft.getInstance().player.closeContainer()
+                )
+                .bounds(backgroundX + 10, buttonY, 60, BUTTON_HEIGHT)
+                .build();
+        this.addRenderableWidget(buttonClose);
+        this.buttonSortingModes = Button.builder(
+                        scrollingList.getSortingMode().getTranslationProvider().componentTranslation(),
+                        b -> {
+                            scrollingList.setSortingMode(scrollingList.getSortingMode().next());
+                            buttonSortingModes.setMessage(scrollingList.getSortingMode().getTranslationProvider().componentTranslation());
+                        }
+                )
+                .bounds(backgroundX + 80, buttonY, 120, BUTTON_HEIGHT)
+                .build();
+        this.addRenderableWidget(this.buttonSortingModes);
 
-        this.buttonCopyList = new Button(0, buttonY, 0, BUTTON_HEIGHT, MaterialListTranslation.BUTTON_COPY.componentTranslation(), (button) -> {
-            Minecraft.getInstance().keyboardHandler.setClipboard(getJson());
-
-            if (Minecraft.getInstance().player != null)
-                Minecraft.getInstance().player.displayClientMessage(Component.translatable(MaterialListTranslation.MESSAGE_COPY_SUCCESS.getTranslationKey()), true);
-        });
+        this.buttonCopyList = Button.builder(
+                        MaterialListTranslation.BUTTON_COPY.componentTranslation(),
+                        b -> {
+                            Minecraft.getInstance().keyboardHandler.setClipboard(getJson());
+                            if (Minecraft.getInstance().player != null) {
+                                Minecraft.getInstance().player.displayClientMessage(
+                                        Component.translatable(MaterialListTranslation.MESSAGE_COPY_SUCCESS.getTranslationKey()),
+                                        true
+                                );
+                            }
+                        }
+                )
+                .bounds(backgroundX + 210, buttonY, 60, BUTTON_HEIGHT)
+                .build();
+        this.addRenderableWidget(this.buttonCopyList);
 
         // Buttons will be placed left to right in this order
         this.addRenderableWidget(buttonSortingModes);
@@ -115,24 +137,32 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         return header;
     }
 
-    @Override
-    public void render(PoseStack matrices, int mouseX, int mouseY, float particleTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float particleTicks) {
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        blit(matrices, backgroundX, backgroundY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT); // TODO: Might be wrong
+        guiGraphics.blit(BACKGROUND_TEXTURE, backgroundX, backgroundY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
 
-        scrollingList.render(matrices, mouseX, mouseY, particleTicks);
-        drawString(matrices, font, title, titleLeft, titleTop, Color.WHITE.getRGB());
-        super.render(matrices, mouseX, mouseY, particleTicks);
+
+        scrollingList.render(guiGraphics, mouseX, mouseY, particleTicks);
+        guiGraphics.drawString(font, title, titleLeft, titleTop, Color.WHITE.getRGB());
+        super.render(guiGraphics, mouseX, mouseY, particleTicks);
 
         if (buttonCopyList.isMouseOver(mouseX, mouseY)) {
-            renderTooltip(matrices, Lists.transform(ImmutableList.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()), Component::getVisualOrderText), mouseX, mouseY);
-//            GuiUtils.drawHoveringText(matrices, ImmutableList.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()), mouseX, mouseY, width, height, Integer.MAX_VALUE, textRenderer);
+            guiGraphics.renderTooltip(
+                    this.font,
+                    (Component) List.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()),
+                    mouseX,
+                    mouseY
+            );
         } else if (hoveringText != null) {
-            renderTooltip(matrices, Lists.transform(hoveringText, Component::getVisualOrderText), mouseX, mouseY);
-
-//            GuiUtils.drawHoveringText(matrices, hoveringText, hoveringTextX, hoveringTextY, width, height, Integer.MAX_VALUE, textRenderer);
+            guiGraphics.renderTooltip(
+                    this.font,
+                    (Component) hoveringText,
+                    mouseX,
+                    mouseY
+            );
             hoveringText = null;
         }
+
     }
 
     private void calculateButtonsWidthAndX() {
@@ -149,7 +179,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         for (GuiEventListener widget : children()) {
             if (widget instanceof Button btn) {
                 btn.setWidth(buttonWidth);
-                btn.x = nextX;
+                btn.setX(nextX);
                 nextX += buttonWidth + BUTTONS_PADDING;
             }
         }
@@ -253,18 +283,16 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         return top + (bottom - top) / 2 - height / 2;
     }
 
-    public static void renderTextVerticalCenter(PoseStack matrices, String text, int leftX, int top, int bottom, int color) {
-        Font fontRenderer = Minecraft.getInstance().font;
-        int y = getYForAlignedCenter(top, bottom, fontRenderer.lineHeight);
-        RenderSystem.enableTexture();
-        fontRenderer.draw(matrices, text, leftX, y, color);
+    public static void renderTextVerticalCenter(GuiGraphics guiGraphics, String text, int leftX, int top, int bottom, int color) {
+        Font font = Minecraft.getInstance().font;
+        int y = getYForAlignedCenter(top, bottom, font.lineHeight);
+        guiGraphics.drawString(font, text, leftX, y, color);
     }
 
-    public static void renderTextHorizontalRight(PoseStack matrices, String text, int right, int y, int color) {
-        Font fontRenderer = Minecraft.getInstance().font;
-        int x = getXForAlignedRight(right, fontRenderer.width(text));
-        RenderSystem.enableTexture();
-        fontRenderer.draw(matrices, text, x, y, color);
+    public static void renderTextHorizontalRight(GuiGraphics guiGraphics, String text, int right, int y, int color) {
+        Font font = Minecraft.getInstance().font;
+        int x = getXForAlignedRight(right, font.width(text));
+        guiGraphics.drawString(font, text, x, y, color);
     }
 
     public static boolean isPointInBox(double x, double y, int bx, int by, int width, int height) {

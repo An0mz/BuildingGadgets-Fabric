@@ -23,20 +23,25 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
@@ -234,9 +239,9 @@ public class ModeRadialMenu extends Screen {
             button.setWidth(dim);
             //button.setHeight(dim);
             if (isDestruction)
-                button.y = height / 2 + (isRight ? 10 : -button.getHeight() - 10);
+                button.setY(height / 2 + (isRight ? 10 : -button.getHeight() - 10));
             else
-                button.x = width / 2 + offset;
+                button.setX(width / 2 + offset);
         }
         posRight = resetPos(tool, padding, posRight);
         posLeft = resetPos(tool, padding, posLeft);
@@ -249,9 +254,9 @@ public class ModeRadialMenu extends Screen {
             boolean isRight = button.position == right;
             int pos = isRight ? posRight : posLeft;
             if (isDestruction)
-                button.x = pos;
+                button.setX(pos);
             else
-                button.y = pos;
+                button.setY(pos);
 
             if (isRight)
                 posRight += dim + padding;
@@ -269,8 +274,7 @@ public class ModeRadialMenu extends Screen {
         return AbstractGadget.getGadget(Minecraft.getInstance().player);
     }
 
-    @Override
-    public void render(PoseStack matrices, int mx, int my, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         float stime = 5F;
         float fract = Math.min(stime, timeIn + partialTicks) / stime;
         int x = width / 2;
@@ -278,7 +282,7 @@ public class ModeRadialMenu extends Screen {
 
         int radiusMin = 26;
         int radiusMax = 60;
-        double dist = new Vec3(x, y, 0).distanceTo(new Vec3(mx, my, 0));
+        double dist = new Vec3(x, y, 0).distanceTo(new Vec3(mouseX, mouseY, 0));
         boolean inRange = false;
         if (segments != 0) {
             inRange = dist > radiusMin && dist < radiusMax;
@@ -288,18 +292,17 @@ public class ModeRadialMenu extends Screen {
             }
         }
 
-        matrices.pushPose();
-        matrices.translate((1 - fract) * x, (1 - fract) * y, 0);
-        matrices.scale(fract, fract, fract);
-        super.render(matrices, mx, my, partialTicks);
-        matrices.popPose();
+        PoseStack stack = guiGraphics.pose();
+        stack.pushPose();
+        stack.translate((1 - fract) * x, (1 - fract) * y, 0);
+        stack.scale(fract, fract, fract);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        stack.popPose();
 
         if (segments == 0)
             return;
 
-        RenderSystem.disableTexture();
-
-        float angle = mouseAngle(x, y, mx, my);
+        float angle = mouseAngle(x, y, mouseX, mouseY);
 
         RenderSystem.enableBlend();
 //        RenderSystem.shadeModel(GL11.GL_SMOOTH);
@@ -331,11 +334,11 @@ public class ModeRadialMenu extends Screen {
         BufferBuilder bufferBuilder = tessellator.getBuilder();
 
         RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
         int indexBottom = segments / 4;
@@ -379,11 +382,10 @@ public class ModeRadialMenu extends Screen {
         }
 
         tessellator.end();
-        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
 
         for (int i = 0; i < nameData.size(); i++) {
-            matrices.pushPose();
+            stack.pushPose();
             NameDisplayData data = nameData.get(i);
             int xp = data.getX();
             int yp = data.getY();
@@ -407,7 +409,7 @@ public class ModeRadialMenu extends Screen {
 
             Color color = i == modeIndex ? Color.GREEN : Color.WHITE;
             if (data.isSelected())
-                font.drawShadow(matrices, name, xsp + (data.isCentralized() ? width / 2f - 4 : 0), ysp, color.getRGB());
+                guiGraphics.drawString(font, name, xsp, ysp, color.getRGB(), true);
 
             double mod = 0.7;
             int xdp = (int) ((xp - x) * mod + x);
@@ -416,19 +418,35 @@ public class ModeRadialMenu extends Screen {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1);
             RenderSystem.setShaderTexture(0, signs.get(i));
-            blit(matrices, xdp - 8, ydp - 8, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(signs.get(i), xdp - 8, ydp - 8, 0, 0, 16, 16, 16, 16);
 
-            matrices.popPose();
+            stack.popPose();
         }
 
         float s = 2.25F * fract;
 
-        PoseStack stack = RenderSystem.getModelViewStack();
+        Minecraft mc = Minecraft.getInstance();
+        ItemRenderer itemRenderer = mc.getItemRenderer();
+
+        Lighting.setupForFlatItems();
         stack.pushPose();
         stack.scale(s, s, s);
         stack.translate(x / s - (tool.getItem() instanceof GadgetCopyPaste ? 8 : 8.5), y / s - 8, 0);
-        this.itemRenderer.renderAndDecorateItem(tool, 0, 0);
+        itemRenderer.renderStatic(
+                null,
+                tool,
+                ItemDisplayContext.GUI,
+                false,
+                stack,
+                mc.renderBuffers().bufferSource(),
+                mc.level,
+                0xF000F0,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+        mc.renderBuffers().bufferSource().endBatch();
         stack.popPose();
+        Lighting.setupFor3DItems();
     }
 
     private boolean isCursorInSlice(float angle, float totalDeg, float degPer, boolean inRange) {
@@ -453,7 +471,7 @@ public class ModeRadialMenu extends Screen {
             Minecraft.getInstance().player.displayClientMessage(MessageTranslation.MODE_SET.componentTranslation(mode).setStyle(Styles.AQUA), true);
 
             PacketToggleMode.send(slotSelected);
-            OurSounds.BEEP.playSound();
+            OurSounds.playSound();
         }
     }
 

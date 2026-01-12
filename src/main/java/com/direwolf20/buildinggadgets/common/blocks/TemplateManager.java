@@ -23,7 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +30,7 @@ public class TemplateManager extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public TemplateManager() {
-        super(Block.Properties.of(Material.STONE).strength(2f));
+        super(Block.Properties.of().strength(2f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.SOUTH));
     }
 
@@ -69,14 +68,13 @@ public class TemplateManager extends BaseEntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (!worldIn.isClientSide && worldIn.getBlockEntity(pos) instanceof TemplateManagerTileEntity be) {
-            ITemplateProvider templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.getNullable(worldIn);
+            ITemplateProvider templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.get(worldIn);
 
             for (ItemStack item : be.getItems()) {
-                ITemplateKey key = BGComponent.TEMPLATE_KEY_COMPONENT.getNullable(item);
-
-                if (key != null) {
+                // CCA 5.x API: use maybeGet() which returns Optional
+                BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(item).ifPresent(key -> {
                     templateProvider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
-                }
+                });
             }
 
             MenuProvider menuProvider = state.getMenuProvider(worldIn, pos);

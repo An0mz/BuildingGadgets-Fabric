@@ -50,7 +50,7 @@ public class PacketSetRemoteInventoryCache {
             server.execute(() -> data.either.ifRight(hand -> {
                 Multiset<ItemVariant> items = HashMultiset.create();
 
-                InventoryLinker.getLinkedInventory(player.level, player.getItemInHand(hand)).ifPresent(inventory -> {
+                InventoryLinker.getLinkedInventory(player.level(), player.getItemInHand(hand)).ifPresent(inventory -> {
                     try (Transaction transaction = Transaction.openOuter()) {
                         for (StorageView<ItemVariant> view : inventory) {
                             if (!view.isResourceBlank()) {

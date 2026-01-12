@@ -10,6 +10,7 @@ import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
@@ -49,7 +50,7 @@ record SimpleMaterialListEntry(
 
     private static class Serializer implements MaterialListEntry.Serializer<SimpleMaterialListEntry> {
         private static final Comparator<Entry<ItemVariant>> COMPARATOR = Comparator
-                .<Entry<ItemVariant>, ResourceLocation>comparing(e -> Registry.ITEM.getKey(e.getElement().getItem()))
+                .<Entry<ItemVariant>, ResourceLocation>comparing(e -> BuiltInRegistries.ITEM.getKey(e.getElement().getItem()))
                 .thenComparingInt(Entry::getCount);
 
         @Override

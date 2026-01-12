@@ -16,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.Shapes;
 
 import java.util.Comparator;
@@ -65,15 +64,15 @@ public abstract class AbstractMode {
             return false;
 
         return BuildingGadgets.getConfig().general.allowOverwriteBlocks
-                ? context.getWorldState(pos).getMaterial().isReplaceable()
-                : context.getWorldState(pos).getMaterial() != Material.AIR;
+                ? context.getWorldState(pos).canBeReplaced(context.createBlockUseContext(player))
+                : !context.getWorldState(pos).isAir();
     }
 
     private boolean exchangingValidator(BlockPos pos, BlockState lookingAtState, UseContext context) {
         BlockState worldBlockState = context.getWorldState(pos);
         BlockEntity be = context.getWorld().getBlockEntity(pos);
         // No air! or water
-        if (worldBlockState.getMaterial() == Material.AIR || worldBlockState.getMaterial().isLiquid())
+        if (worldBlockState.isAir() || !worldBlockState.getFluidState().isEmpty())
             return false;
 
         // No effect blocks and don't try with the same block as you're trying to exchange with

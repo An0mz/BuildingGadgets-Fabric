@@ -8,6 +8,7 @@ import com.direwolf20.buildinggadgets.common.util.lang.GuiTranslation;
 import com.direwolf20.buildinggadgets.common.util.lang.MessageTranslation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -45,19 +46,28 @@ public class DestructionGUI extends Screen {
         int x = width / 2;
         int y = height / 2;
 
-        this.addRenderableWidget(confirm = new Button((x - 30) + 32, y + 65, 60, 20, Component.translatable(GuiMod.getLangKeySingle("confirm")), b -> {
-            if (Minecraft.getInstance().player == null) {
-                return;
-            }
+        this.addRenderableWidget(
+                Button.builder(Component.translatable(GuiMod.getLangKeySingle("confirm")), b -> {
+                            if (Minecraft.getInstance().player == null) return;
 
-            if (isWithinBounds()) {
-                PacketDestructionGUI.send(left.getValueInt(), right.getValueInt(), up.getValueInt(), down.getValueInt(), depth.getValueInt());
-                this.onClose();
-            } else
-                Minecraft.getInstance().player.displayClientMessage(MessageTranslation.DESTRCUT_TOO_LARGE.componentTranslation(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize), true);
-        }));
+                            if (isWithinBounds()) {
+                                PacketDestructionGUI.send(left.getValueInt(), right.getValueInt(), up.getValueInt(), down.getValueInt(), depth.getValueInt());
+                                this.onClose();
+                            } else {
+                                Minecraft.getInstance().player.displayClientMessage(
+                                        MessageTranslation.DESTRCUT_TOO_LARGE.componentTranslation(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize),
+                                        true
+                                );
+                            }
+                        }).bounds((x - 30) + 32, y + 65, 60, 20)
+                        .build()
+        );
 
-        this.addRenderableWidget(new Button((x - 30) - 32, y + 65, 60, 20, Component.translatable(GuiMod.getLangKeySingle("cancel")), b -> onClose()));
+        this.addRenderableWidget(
+                Button.builder(Component.translatable(GuiMod.getLangKeySingle("cancel")), b -> onClose())
+                        .bounds((x - 30) - 32, y + 65, 60, 20)
+                        .build()
+        );
 
         sliders.clear();
         sliders.add(depth = new GuiDestructionSlider(x - (GuiDestructionSlider.width / 2), y - (GuiDestructionSlider.height / 2), GuiTranslation.SINGLE_DEPTH.format() + ":", GadgetDestruction.getToolValue(destructionTool, "depth")));
@@ -107,13 +117,12 @@ public class DestructionGUI extends Screen {
         this.sizeString = getSizeString();
     }
 
-    @Override
-    public void render(@NotNull PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
-        super.render(matrices, mouseX, mouseY, partialTicks);
+    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        drawCenteredString(matrices, font, this.sizeString, width / 2, (height / 2) + 40, this.isValidSize ? 0x00FF00 : 0xFF2000);
+        guiGraphics.drawCenteredString(font, this.sizeString, width / 2, (height / 2) + 40, this.isValidSize ? 0x00FF00 : 0xFF2000);
         if (!this.isValidSize) {
-            drawCenteredString(matrices, font, MessageTranslation.DESTRCUT_TOO_LARGE.format(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize), width / 2, (height / 2) + 50, 0xFF2000);
+            guiGraphics.drawCenteredString(font, MessageTranslation.DESTRCUT_TOO_LARGE.format(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize), width / 2, (height / 2) + 50, 0xFF2000);
         }
     }
 

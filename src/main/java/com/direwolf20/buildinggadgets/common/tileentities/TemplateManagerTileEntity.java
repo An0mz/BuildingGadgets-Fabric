@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TemplateManagerTileEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplContainer {
-    public static final TagKey<Item> TEMPLATE_CONVERTIBLES = TagKey.create(Registry.ITEM_REGISTRY, ItemReference.TAG_TEMPLATE_CONVERTIBLE);
+    public static final TagKey<Item> TEMPLATE_CONVERTIBLES = TagKey.create(Registries.ITEM, ItemReference.TAG_TEMPLATE_CONVERTIBLE);
+
 
     public static final int SIZE = 2;
 

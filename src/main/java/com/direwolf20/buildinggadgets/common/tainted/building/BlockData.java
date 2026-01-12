@@ -10,6 +10,7 @@ import com.direwolf20.buildinggadgets.common.tainted.registry.Registries;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.google.common.base.Preconditions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -49,7 +50,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
     public static BlockData tryDeserialize(@Nullable CompoundTag tag, @Nullable IntFunction<ITileDataSerializer> serializerProvider, boolean readDataPersisted) {
         if (tag == null || !(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA)))
             return null;
-        BlockState state = NbtUtils.readBlockState(tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
@@ -81,7 +82,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         Preconditions.checkNotNull(tag, "Cannot deserialize from a null tag compound");
         Preconditions.checkArgument(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA),
                 "Given NBTTagCompound does not contain a valid BlockData instance. Missing NBT-Keys in Tag {}!", tag.toString());
-        BlockState state = NbtUtils.readBlockState(tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)

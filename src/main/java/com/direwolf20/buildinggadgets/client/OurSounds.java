@@ -1,35 +1,35 @@
 package com.direwolf20.buildinggadgets.client;
 
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
-import net.minecraft.core.Registry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.Registry;
 
 public class OurSounds {
 
-    public static OurSounds BEEP;
+    public static SoundEvent BEEP;
 
     public static void initSounds() {
-        BEEP = new OurSounds("beep");
+        ResourceLocation loc = new ResourceLocation(Reference.MODID, "beep");
+
+        // Use factory method instead of constructor
+        BEEP = SoundEvent.createVariableRangeEvent(loc);
+
+        // Register the sound
+        Registry.register(BuiltInRegistries.SOUND_EVENT, loc, BEEP);
     }
 
-    private final SoundEvent sound;
-
-    public OurSounds(String name) {
-        ResourceLocation loc = new ResourceLocation(Reference.MODID, name);
-        sound = new SoundEvent(loc);
-        Registry.register(Registry.SOUND_EVENT, loc, sound);
-    }
-
-    public SoundEvent getSound() {
-        return sound;
-    }
-
-    public void playSound() {
+    public static void playSound() {
         playSound(1.0F);
     }
 
-    public void playSound(float pitch) {
-        BuildingGadgetsClient.playSound(sound, pitch);
+    public static void playSound(float pitch) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null && BEEP != null) {
+            mc.player.playSound(BEEP, 1.0F, pitch);
+        }
     }
+
 }

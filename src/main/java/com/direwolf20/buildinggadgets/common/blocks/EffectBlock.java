@@ -20,8 +20,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -85,7 +83,6 @@ public class EffectBlock extends BaseEntityBlock {
      * As the effect block is effectively air it needs to have a material just like Air.
      * We don't use Material.AIR as this is replaceable.
      */
-    private static final Material EFFECT_BLOCK_MATERIAL = new Material.Builder(MaterialColor.NONE).nonSolid().build();
 
     public static void spawnUndoBlock(BuildContext context, PlacementTarget target) {
         BlockState state = context.getWorld().getBlockState(target.getPos());
@@ -128,8 +125,9 @@ public class EffectBlock extends BaseEntityBlock {
     }
 
     public EffectBlock() {
-        super(Block.Properties.of(EFFECT_BLOCK_MATERIAL)
+        super(Block.Properties.of()
                 .strength(20f)
+                .noCollission()  // Replaces Material.nonSolid()
                 .noLootTable());
     }
 
@@ -162,21 +160,7 @@ public class EffectBlock extends BaseEntityBlock {
         return true;
     }
 
-    /**
-     * This gets a complete list of items dropped from this block.
-     *
-     * @param p_220076_1_ Current state
-     */
-    @Override
-    public List<ItemStack> getDrops(BlockState p_220076_1_, LootContext.Builder p_220076_2_) {
-        return new ArrayList<>();
-    }
 
-    @Override
-    @Deprecated
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.BLOCK;
-    }
 
     @Override
     public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {

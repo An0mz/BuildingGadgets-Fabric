@@ -9,7 +9,7 @@ import com.google.common.collect.Multiset;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.client.Minecraft;
@@ -52,7 +52,7 @@ public abstract class BaseRenderer {
             return;
         }
 
-        if (!player.level.dimension().equals(dataFromStack.level())) {
+        if (!player.level().dimension().equals(dataFromStack.level())) {
             return;
         }
 

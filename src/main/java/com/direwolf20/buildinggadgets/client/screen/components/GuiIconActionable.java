@@ -6,6 +6,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -35,7 +36,7 @@ public class GuiIconActionable extends Button {
 
     public GuiIconActionable(int x, int y, String texture, Component message, boolean isSelectable, Predicate<Boolean> action) {
         super(x, y, 25, 25, message, (b) -> {
-        });
+        }, Button.DEFAULT_NARRATION);
         this.activeColor = deselectedColor;
         this.isSelectable = isSelectable;
         this.action = action;
@@ -71,7 +72,7 @@ public class GuiIconActionable extends Button {
 
     @Override
     public void playDownSound(SoundManager soundHandler) {
-        soundHandler.play(SimpleSoundInstance.forUI(OurSounds.BEEP.getSound(), selected ? .6F : 1F));
+        soundHandler.play(SimpleSoundInstance.forUI(OurSounds.BEEP, selected ? .6F : 1F));
     }
 
     @Override
@@ -85,8 +86,7 @@ public class GuiIconActionable extends Button {
         this.setSelected(!this.selected);
     }
 
-    @Override
-    public void render(PoseStack matrices, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!visible)
             return;
 
@@ -100,15 +100,36 @@ public class GuiIconActionable extends Button {
 //        RenderSystem.enableTexture();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(activeColor.getRed() / 255f, activeColor.getGreen() / 255f, activeColor.getBlue() / 255f, .15f);
-        fill(matrices, this.x, this.y, this.x + this.width, this.y + this.height, -1873784752);
+        guiGraphics.fill(
+                this.getX(),
+                this.getY(),
+                this.getX() + this.width,
+                this.getY() + this.height,
+                -1873784752
+        );
 //
         RenderSystem.setShaderTexture(0, selected ? selectedTexture : deselectedTexture);
         RenderSystem.setShaderColor(activeColor.getRed() / 255f, activeColor.getGreen() / 255f, activeColor.getBlue() / 255f, alpha);
 
-        blit(matrices, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
+        guiGraphics.blit(
+                selected ? selectedTexture : deselectedTexture,
+                this.getX(), this.getY(),
+                0, 0,
+                this.width, this.height,
+                this.width, this.height
+        );
 
-        if (mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height)
-            drawString(matrices, Minecraft.getInstance().font, this.getMessage().getString(), mouseX > (Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2) ? mouseX + 2 : mouseX - Minecraft.getInstance().font.width(getMessage().getString()), mouseY - 10, activeColor.getRGB());
+        if (mouseX >= getX() && mouseY >= getY()
+                && mouseX < getX() + width && mouseY < getY() + height) {
+            guiGraphics.drawString(
+                    Minecraft.getInstance().font,
+                    this.getMessage(),
+                    mouseX > (Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2)
+                            ? mouseX + 2 : mouseX - Minecraft.getInstance().font.width(getMessage()),
+                    mouseY - 10,
+                    activeColor.getRGB()
+            );
+        }
 
         RenderSystem.disableBlend();
     }
