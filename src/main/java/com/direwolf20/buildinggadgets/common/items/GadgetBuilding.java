@@ -267,4 +267,19 @@ public class GadgetBuilding extends AbstractGadget {
         GadgetUtils.rotateOrMirrorToolBlock(stack, player, PacketRotateMirror.Operation.MIRROR);
         return true;
     }
+
+    @Override
+    public long getEnergyCapacity(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxInput(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxOutput(ItemStack stack) {
+        return 0;
+    }
 }

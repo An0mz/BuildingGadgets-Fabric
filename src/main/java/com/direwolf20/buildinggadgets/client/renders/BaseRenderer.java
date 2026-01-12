@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import team.reborn.energy.api.base.SimpleBatteryItem;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 public abstract class BaseRenderer {
 
@@ -79,7 +79,7 @@ public abstract class BaseRenderer {
         if (player.isCreative() || !(heldItem.getItem() instanceof AbstractGadget))
             return Integer.MAX_VALUE;
 
-        return SimpleBatteryItem.getStoredEnergyUnchecked(heldItem);
+        return SimpleEnergyItem.getStoredEnergyUnchecked(heldItem);
     }
 
     protected static void renderMissingBlock(Matrix4f matrix, VertexConsumer builder, BlockPos pos) {

@@ -7,7 +7,8 @@
   "authors": [
     "ProjectET",
     "ramidzkh",
-    "Direwolf20"
+    "Direwolf20",
+    "Anomz"
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/structure-tools",
@@ -46,9 +47,9 @@
     "buildinggadgets.mixins.json"
   ],
   "depends": {
-    "minecraft": "1.19.*",
-    "fabricloader": ">=0.12.0",
-    "fabric": ">=0.51.0",
+    "minecraft": "1.20.*",
+    "fabricloader": ">=0.18.0",
+    "fabric": ">=0.90.0",
     "cloth-config2": ">=6.0.42",
     "cardinal-components-base": ">=5.0.0-beta.1"
   },

@@ -274,4 +274,18 @@ public class GadgetDestruction extends AbstractGadget {
         return stack;
     }
 
+    @Override
+    public long getEnergyCapacity(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxInput(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxOutput(ItemStack stack) {
+        return 0;
+    }
 }

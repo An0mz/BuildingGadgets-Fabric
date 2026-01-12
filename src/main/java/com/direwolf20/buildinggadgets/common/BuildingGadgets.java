@@ -39,7 +39,7 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import team.reborn.energy.api.EnergyStorageUtil;
-import team.reborn.energy.api.base.SimpleBatteryItem;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 public final class BuildingGadgets implements ModInitializer {
 
@@ -54,7 +54,7 @@ public final class BuildingGadgets implements ModInitializer {
             .title(Component.translatable("itemGroup." + Reference.MODID))
             .icon(() -> {
                 ItemStack stack = new ItemStack(OurItems.BUILDING_GADGET_ITEM);
-                SimpleBatteryItem.setStoredEnergyUnchecked(stack, getConfig().gadgets.gadgetBuilding.maxEnergy);
+                SimpleEnergyItem.setStoredEnergyUnchecked(stack, getConfig().gadgets.gadgetBuilding.maxEnergy);
                 return stack;
             })
             .build();

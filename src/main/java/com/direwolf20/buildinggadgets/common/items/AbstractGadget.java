@@ -40,7 +40,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.base.SimpleBatteryItem;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +48,7 @@ import java.util.UUID;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.withSuffix;
 
-public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
+public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     private final TagKey<Block> whiteList;
     private final TagKey<Block> blackList;
@@ -83,12 +83,10 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
         return (int) (13.0F - (getEnergyCapacity() - (float) getStoredEnergy(itemStack)) * 13.0F / (float) getEnergyCapacity());
     }
 
-    @Override
     public long getEnergyMaxInput() {
         return 10000;
     }
 
-    @Override
     public long getEnergyMaxOutput() {
         return 0;
     }
@@ -143,7 +141,7 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
             return true;
         }
 
-        return getEnergyCost(tool) <= SimpleBatteryItem.getStoredEnergyUnchecked(tool);
+        return getEnergyCost(tool) <= SimpleEnergyItem.getStoredEnergyUnchecked(tool);
     }
 
     public boolean useEnergy(ItemStack tool, ServerPlayer player) {
@@ -159,7 +157,7 @@ public abstract class AbstractGadget extends Item implements SimpleBatteryItem {
             return;
         }
 
-        if (stack.getItem() instanceof SimpleBatteryItem) {
+        if (stack.getItem() instanceof SimpleEnergyItem) {
             tooltip.add(TooltipTranslation.GADGET_ENERGY
                     .componentTranslation(withSuffix((int) getStoredEnergy(stack)), withSuffix((int) getEnergyCapacity()))
                     .setStyle(Styles.GRAY));

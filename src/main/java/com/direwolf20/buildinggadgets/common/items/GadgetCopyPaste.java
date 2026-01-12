@@ -65,6 +65,21 @@ import java.util.Optional;
 
 public class GadgetCopyPaste extends AbstractGadget {
 
+    @Override
+    public long getEnergyCapacity(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxInput(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public long getEnergyMaxOutput(ItemStack stack) {
+        return 0;
+    }
+
     public enum ToolMode {
         COPY(ModeTranslation.COPY),
         PASTE(ModeTranslation.PASTE);
