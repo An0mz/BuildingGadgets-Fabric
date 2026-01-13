@@ -13,7 +13,7 @@ repositories {
     }
 
     maven {
-        url "https://maven.shedaniel.me/"
+        url = "https://maven.shedaniel.me/"
         content {
             includeGroup "me.shedaniel"
             includeGroup "me.shedaniel.cloth"
@@ -32,7 +32,7 @@ repositories {
 
     maven {
         name = "Curse Maven"
-        url "https://cursemaven.com"
+        url = "https://cursemaven.com"
         content {
             includeGroup "curse.maven"
         }
@@ -76,21 +76,21 @@ repositories {
 
     maven {
         name = "Flemmli97"
-        url "https://gitlab.com/api/v4/projects/21830712/packages/maven"
+        url = "https://gitlab.com/api/v4/projects/21830712/packages/maven"
     }
 
-    maven { url 'https://jitpack.io' }
+    maven { url = 'https://jitpack.io' }
 
     maven {
-        url "https://maven.saps.dev/minecraft"
+        url = "https://maven.saps.dev/minecraft"
         content {
             includeGroup "dev.ftb.mods"
         }
     }
 
     maven {
-        url "https://maven.nucleoid.xyz/"
-        name "Nucleoid"
+        url = "https://maven.nucleoid.xyz/"
+        name = "Nucleoid"
     }
 
     maven {

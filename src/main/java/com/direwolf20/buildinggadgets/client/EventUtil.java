@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 
 import java.util.Comparator;
 

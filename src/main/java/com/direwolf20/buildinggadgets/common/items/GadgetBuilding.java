@@ -270,16 +270,16 @@ public class GadgetBuilding extends AbstractGadget {
 
     @Override
     public long getEnergyCapacity(ItemStack stack) {
-        return 0;
+        return getEnergyCapacity();
     }
 
     @Override
     public long getEnergyMaxInput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxInput();
     }
 
     @Override
     public long getEnergyMaxOutput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxOutput();
     }
 }

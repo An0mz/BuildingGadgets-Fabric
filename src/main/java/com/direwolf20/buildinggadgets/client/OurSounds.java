@@ -14,10 +14,7 @@ public class OurSounds {
     public static void initSounds() {
         ResourceLocation loc = new ResourceLocation(Reference.MODID, "beep");
 
-        // Use factory method instead of constructor
         BEEP = SoundEvent.createVariableRangeEvent(loc);
-
-        // Register the sound
         Registry.register(BuiltInRegistries.SOUND_EVENT, loc, BEEP);
     }
 

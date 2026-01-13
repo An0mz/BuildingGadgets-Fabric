@@ -10,13 +10,6 @@ public class ASMEarlyRiser implements Runnable{
         MappingResolver resolver = FabricLoader.getInstance().getMappingResolver();
         String enchantmentTarget = resolver.mapClassName("intermediary", "net.minecraft.class_1886");
 
-        ClassTinkerers
-                .enumBuilder(enchantmentTarget, new Class<?>[0])
-                .addEnumSubclass(
-                        "EXCHANGE",
-                        "com.direwolf20.buildinggadgets.common.enchants.ExchangeEnchantmentCategory"
-                )
-                .build();
-
+        ClassTinkerers.enumBuilder(enchantmentTarget).addEnumSubclass("EXCHANGE", "com.direwolf20.buildinggadgets.common.enchants.ExchangeEnchantmentCategory").build();
     }
 }
