@@ -7,6 +7,7 @@ import com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpda
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
 import com.direwolf20.buildinggadgets.common.tainted.template.Template;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -107,7 +108,7 @@ public final class SaveTemplateProvider implements ITemplateProvider {
     }
 
     @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag)  {
         save.load(tag);
     }
 

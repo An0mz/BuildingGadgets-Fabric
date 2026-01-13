@@ -1,5 +1,6 @@
 package com.direwolf20.buildinggadgets.common.tainted.template;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
