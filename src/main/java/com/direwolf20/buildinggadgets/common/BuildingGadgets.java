@@ -22,6 +22,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -32,6 +33,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -73,6 +75,36 @@ public final class BuildingGadgets implements ModInitializer {
         net.minecraft.core.Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("tab"), CREATIVE_TAB);
         OurBlocks.registerBlocks();
         OurItems.registerItems();
+
+        ItemGroupEvents.modifyEntriesEvent(ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), id("tab"))).register(entries -> {
+            // Building Gadget - empty and charged
+            entries.accept(OurItems.BUILDING_GADGET_ITEM);
+            ItemStack buildingGadgetCharged = new ItemStack(OurItems.BUILDING_GADGET_ITEM);
+            SimpleEnergyItem.setStoredEnergyUnchecked(buildingGadgetCharged, getConfig().gadgets.gadgetBuilding.maxEnergy);
+            entries.accept(buildingGadgetCharged);
+
+            // Exchanging Gadget - empty and charged
+            entries.accept(OurItems.EXCHANGING_GADGET_ITEM);
+            ItemStack exchangingGadgetCharged = new ItemStack(OurItems.EXCHANGING_GADGET_ITEM);
+            SimpleEnergyItem.setStoredEnergyUnchecked(exchangingGadgetCharged, getConfig().gadgets.gadgetExchanger.maxEnergy);
+            entries.accept(exchangingGadgetCharged);
+
+            // Copy Paste Gadget - empty and charged
+            entries.accept(OurItems.COPY_PASTE_GADGET_ITEM);
+            ItemStack copyPasteGadgetCharged = new ItemStack(OurItems.COPY_PASTE_GADGET_ITEM);
+            SimpleEnergyItem.setStoredEnergyUnchecked(copyPasteGadgetCharged, getConfig().gadgets.gadgetCopyPaste.maxEnergy);
+            entries.accept(copyPasteGadgetCharged);
+
+            // Destruction Gadget - empty and charged
+            entries.accept(OurItems.DESTRUCTION_GADGET_ITEM);
+            ItemStack destructionGadgetCharged = new ItemStack(OurItems.DESTRUCTION_GADGET_ITEM);
+            SimpleEnergyItem.setStoredEnergyUnchecked(destructionGadgetCharged, getConfig().gadgets.gadgetDestruction.maxEnergy);
+            entries.accept(destructionGadgetCharged);
+
+            // Add non-energy items
+            entries.accept(OurItems.TEMPLATE_ITEM);
+            entries.accept(OurItems.TEMPLATE_MANGER_ITEM);
+        });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> server.getCommands().getDispatcher()
                 .register(Commands.literal(Reference.MODID)
