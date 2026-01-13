@@ -34,6 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.Level;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,6 +82,8 @@ public class BuildRender extends BaseRenderer {
             );
         });
 
+        BlockPos targetPos = lookingAt.getBlockPos();
+        coordinates.sort(Comparator.comparingDouble(pos -> pos.distSqr(targetPos)));
         // Sort them on a new line for readability
 //        coordinates = SortingHelper.Blocks.byDistance(coordinates, player);
 

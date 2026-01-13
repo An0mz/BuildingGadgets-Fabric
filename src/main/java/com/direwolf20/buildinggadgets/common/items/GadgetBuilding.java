@@ -45,6 +45,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.*;
@@ -189,9 +190,9 @@ public class GadgetBuilding extends AbstractGadget {
             return;
         }
 
-        if (coords.size() == 0) {  //If we don't have an anchor, build in the current spot
+        if (coords.size() == 0) {  // If we don't have an anchor, build in the current spot
             BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
-            if (world.isEmptyBlock(lookingAt.getBlockPos())) //If we aren't looking at anything, exit
+            if (world.isEmptyBlock(lookingAt.getBlockPos())) // If we aren't looking at anything, exit
                 return;
 
             Direction sideHit = lookingAt.getDirection();
@@ -199,18 +200,17 @@ public class GadgetBuilding extends AbstractGadget {
                     new AbstractMode.UseContext(world, blockData.getState(), lookingAt.getBlockPos(), heldItem, sideHit, placeAtop(stack), getConnectedArea(stack)),
                     player
             );
-        } else  //If we do have an anchor, erase it (Even if the build fails)
+        } else  // If we do have an anchor, erase it (Even if the build fails)
             setAnchor(stack);
+
+        BlockPos targetPos = VectorHelper.getLookingAt(player, stack).getBlockPos();
+        coords.sort(Comparator.comparingDouble(pos -> pos.distSqr(targetPos)));
 
         Undo.Builder builder = Undo.builder();
         IItemIndex index = InventoryHelper.index(stack, player);
 
-        //TODO replace with a better TileEntity supporting Fake IWorld
         fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords); // Initialize the fake world's blocks
         for (BlockPos coordinate : coords) {
-            //Get the extended block state in the fake world
-            //Disabled to fix Chisel
-            //state = state.getBlock().getExtendedState(state, fakeWorld, coordinate);
             placeBlock(world, player, index, builder, coordinate, blockData);
         }
 
