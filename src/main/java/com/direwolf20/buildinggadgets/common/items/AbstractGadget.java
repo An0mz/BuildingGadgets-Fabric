@@ -4,7 +4,7 @@ import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.commands.ForceUnloadedCommand;
 import com.direwolf20.buildinggadgets.common.compat.FLANCompat;
 import com.direwolf20.buildinggadgets.common.compat.FTBChunksCompat;
-import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
+//import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
 import com.direwolf20.buildinggadgets.common.items.modes.*;
 import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
@@ -310,6 +310,6 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     protected static boolean mayInteract(ServerPlayer player, BlockPos pos) {
-        return player.mayInteract(player.level(), pos) && GOMLCompat.canUse(player, pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
+        return player.mayInteract(player.level(), pos) /*&& GOMLCompat.canUse(player, pos)*/ && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
     }
 }

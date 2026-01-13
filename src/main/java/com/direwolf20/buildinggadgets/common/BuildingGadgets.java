@@ -7,7 +7,7 @@ import com.direwolf20.buildinggadgets.common.commands.OverrideBuildSizeCommand;
 import com.direwolf20.buildinggadgets.common.commands.OverrideCopySizeCommand;
 import com.direwolf20.buildinggadgets.common.compat.FLANCompat;
 import com.direwolf20.buildinggadgets.common.compat.FTBChunksCompat;
-import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
+//import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
 import com.direwolf20.buildinggadgets.common.config.Config;
 import com.direwolf20.buildinggadgets.common.containers.OurContainers;
 import com.direwolf20.buildinggadgets.common.containers.TemplateManagerContainer;
@@ -91,7 +91,7 @@ public final class BuildingGadgets implements ModInitializer {
 
         Registry.register(BuiltInRegistries.ENCHANTMENT, id("silk_touch"), GadgetSilkTouch.GADGET_SILKTOUCH);
 
-        GOMLCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("goml");
+        //GOMLCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("goml");
         FLANCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("flan");
         FTBChunksCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("ftbchunks");
     }
