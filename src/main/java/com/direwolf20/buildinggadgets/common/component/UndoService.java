@@ -2,8 +2,9 @@ package com.direwolf20.buildinggadgets.common.component;
 
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.tainted.save.Undo;
-import dev.onyxstudios.cca.api.v3.component.Component;
-import dev.onyxstudios.cca.api.v3.component.tick.ServerTickingComponent;
+import net.minecraft.core.HolderLookup;
+import org.ladysnake.cca.api.v3.component.Component;
+import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -43,8 +44,7 @@ public final class UndoService implements Component, ServerTickingComponent {
         return Optional.empty();
     }
 
-    @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         histories.clear();
 
         for (String key : tag.getAllKeys()) {
@@ -59,8 +59,7 @@ public final class UndoService implements Component, ServerTickingComponent {
         }
     }
 
-    @Override
-    public void writeToNbt(CompoundTag tag) {
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         histories.forEach((uuid, history) -> {
             ListTag list = new ListTag();
 

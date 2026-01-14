@@ -52,7 +52,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         int l = getY() + 4 - (int) getScrollAmount();
         renderHeader(guiGraphics, k, l);
 
-        renderList(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderListItems(guiGraphics, mouseX, mouseY, partialTicks);
         RenderSystem.disableDepthTest();
 
         int j1 = getMaxScroll();

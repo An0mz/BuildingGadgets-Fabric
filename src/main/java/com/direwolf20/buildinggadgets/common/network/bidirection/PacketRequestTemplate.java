@@ -8,20 +8,30 @@ import com.direwolf20.buildinggadgets.common.tainted.template.TemplateKey;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.UUID;
 
-public class PacketRequestTemplate {
+public record PacketRequestTemplate(UUID id) implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<PacketRequestTemplate> TYPE =
+            new CustomPacketPayload.Type<>(PacketHandler.PacketRequestTemplate);
+
+    public static final StreamCodec<FriendlyByteBuf, PacketRequestTemplate> CODEC = StreamCodec.of(
+            (buf, packet) -> buf.writeUUID(packet.id),
+            buf -> new PacketRequestTemplate(buf.readUUID())
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     public static void sendToTarget(Target target, UUID id) {
         if (target.flow() == PacketFlow.CLIENTBOUND) {
@@ -32,38 +42,34 @@ public class PacketRequestTemplate {
     }
 
     @Environment(EnvType.CLIENT)
-    public static class Client implements ClientPlayNetworking.PlayChannelHandler {
-
+    public static class Client {
         @Environment(EnvType.CLIENT)
         public static void send(UUID id) {
-            FriendlyByteBuf buf = PacketByteBufs.create();
-            buf.writeUUID(id);
-            ClientPlayNetworking.send(PacketHandler.PacketRequestTemplate, buf);
+            ClientPlayNetworking.send(new PacketRequestTemplate(id));
         }
 
-        @Override
-        public void receive(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender) {
-            UUID id = buf.readUUID();
-
-            client.execute(() -> BuildingGadgetsClient.CACHE_TEMPLATE_PROVIDER.requestRemoteUpdate(new TemplateKey(id), client.level));
+        @Environment(EnvType.CLIENT)
+        public static void handle(PacketRequestTemplate payload, ClientPlayNetworking.Context context) {
+            context.client().execute(() -> {
+                BuildingGadgetsClient.CACHE_TEMPLATE_PROVIDER.requestRemoteUpdate(
+                        new TemplateKey(payload.id),
+                        context.client().level
+                );
+            });
         }
     }
 
-    public static class Server implements ServerPlayNetworking.PlayChannelHandler {
-
+    public static class Server {
         public static void sendToClient(ServerPlayer player, UUID id) {
-            FriendlyByteBuf buf = PacketByteBufs.create();
-            buf.writeUUID(id);
-            ServerPlayNetworking.send(player, PacketHandler.PacketRequestTemplate, buf);
+            ServerPlayNetworking.send(player, new PacketRequestTemplate(id));
         }
 
-        @Override
-        public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-            UUID id = buf.readUUID();
-
-            server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
-                provider.requestRemoteUpdate(new TemplateKey(id), player.level());
-            }));
+        public static void handle(PacketRequestTemplate payload, ServerPlayNetworking.Context context) {
+            context.server().execute(() -> {
+                BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
+                    provider.requestRemoteUpdate(new TemplateKey(payload.id), context.player().level());
+                });
+            });
         }
     }
 }

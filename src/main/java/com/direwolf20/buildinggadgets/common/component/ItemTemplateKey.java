@@ -2,28 +2,40 @@ package com.direwolf20.buildinggadgets.common.component;
 
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
-import dev.onyxstudios.cca.api.v3.item.ItemComponent;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import org.ladysnake.cca.api.v3.component.Component;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public final class ItemTemplateKey extends ItemComponent implements ITemplateKey {
+public final class ItemTemplateKey implements Component, AutoSyncedComponent, ITemplateKey {
+
+    private UUID id;
 
     public ItemTemplateKey(ItemStack stack) {
-        super(stack);
+        // stack is provided by the component factory, you do NOT store it
     }
 
     @Override
     public UUID getOrComputeId(Supplier<UUID> freeIdAllocator) {
-        UUID id = getUuid(NBTKeys.TEMPLATE_KEY_ID);
-
         if (id == null) {
             id = freeIdAllocator.get();
-            putUuid(NBTKeys.TEMPLATE_KEY_ID, id);
-            BGComponent.TEMPLATE_KEY_COMPONENT.sync(stack);
         }
-
         return id;
+    }
+
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
+        if (tag.contains(NBTKeys.TEMPLATE_KEY_ID)) {
+            id = tag.getUUID(NBTKeys.TEMPLATE_KEY_ID);
+        }
+    }
+
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
+        if (id != null) {
+            tag.putUUID(NBTKeys.TEMPLATE_KEY_ID, id);
+        }
     }
 }

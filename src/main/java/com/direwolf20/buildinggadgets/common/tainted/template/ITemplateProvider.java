@@ -1,8 +1,8 @@
 package com.direwolf20.buildinggadgets.common.tainted.template;
 
 import com.direwolf20.buildinggadgets.common.network.Target;
-import dev.onyxstudios.cca.api.v3.component.Component;
 import net.minecraft.world.level.Level;
+import org.ladysnake.cca.api.v3.component.Component;
 
 import java.util.UUID;
 

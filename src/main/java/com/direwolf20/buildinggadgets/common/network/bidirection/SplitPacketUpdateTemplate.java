@@ -9,19 +9,16 @@ import com.direwolf20.buildinggadgets.common.tainted.template.TemplateIO;
 import com.direwolf20.buildinggadgets.common.tainted.template.TemplateKey;
 import com.direwolf20.buildinggadgets.common.util.exceptions.TemplateReadException;
 import com.direwolf20.buildinggadgets.common.util.exceptions.TemplateWriteException;
+import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,9 +26,26 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-public class SplitPacketUpdateTemplate {
+public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomPacketPayload {
 
     public static final int PAYLOAD_LIMIT = Short.MAX_VALUE;
+
+    public static final CustomPacketPayload.Type<SplitPacketUpdateTemplate> TYPE =
+            new CustomPacketPayload.Type<>(PacketHandler.SplitPacketUpdateTemplate);
+
+    public static final StreamCodec<FriendlyByteBuf, SplitPacketUpdateTemplate> CODEC = StreamCodec.of(
+            (buf, packet) -> buf.writeBytes(packet.data),
+            buf -> {
+                FriendlyByteBuf copy = new FriendlyByteBuf(Unpooled.buffer());
+                copy.writeBytes(buf);
+                return new SplitPacketUpdateTemplate(copy);
+            }
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     public static void sendToTarget(Target target, UUID id, Template template) {
         if (target.flow() == PacketFlow.CLIENTBOUND) {
@@ -60,34 +74,37 @@ public class SplitPacketUpdateTemplate {
     }
 
     @Environment(EnvType.CLIENT)
-    public static class Client implements ClientPlayNetworking.PlayChannelHandler {
+    public static class Client {
 
-        private FriendlyByteBuf accumulator;
+        private static FriendlyByteBuf accumulator;
 
+        @Environment(EnvType.CLIENT)
         public static void send(UUID id, Template template) {
-            FriendlyByteBuf buf = PacketByteBufs.create();
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             write(buf, id, template);
 
             while (buf.isReadable(PAYLOAD_LIMIT)) {
-                ClientPlayNetworking.send(PacketHandler.SplitPacketUpdateTemplate, PacketByteBufs.readBytes(buf, PAYLOAD_LIMIT));
+                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer());
+                buf.readBytes(chunk, PAYLOAD_LIMIT);
+                ClientPlayNetworking.send(new SplitPacketUpdateTemplate(chunk));
             }
 
             if (buf.isReadable()) {
-                ClientPlayNetworking.send(PacketHandler.SplitPacketUpdateTemplate, buf);
+                ClientPlayNetworking.send(new SplitPacketUpdateTemplate(buf));
             }
 
-            // todo: sentinel value when length == 0, probably should use another marker packet instead but cope
-            ClientPlayNetworking.send(PacketHandler.SplitPacketUpdateTemplate, PacketByteBufs.empty());
+            // Sentinel value when length == 0
+            ClientPlayNetworking.send(new SplitPacketUpdateTemplate(new FriendlyByteBuf(Unpooled.buffer())));
         }
 
-        @Override
-        public void receive(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender) {
-            if(accumulator == null) {
-                accumulator = PacketByteBufs.create();
+        @Environment(EnvType.CLIENT)
+        public static void handle(SplitPacketUpdateTemplate payload, ClientPlayNetworking.Context context) {
+            if (accumulator == null) {
+                accumulator = new FriendlyByteBuf(Unpooled.buffer());
             }
 
-            if (buf.isReadable()) {
-                accumulator.writeBytes(buf);
+            if (payload.data.isReadable()) {
+                accumulator.writeBytes(payload.data);
                 return;
             }
 
@@ -95,7 +112,7 @@ public class SplitPacketUpdateTemplate {
 
             try {
                 Template template = readTemplate(accumulator);
-                client.execute(() -> BuildingGadgetsClient.CACHE_TEMPLATE_PROVIDER.setTemplate(new TemplateKey(id), template));
+                context.client().execute(() -> BuildingGadgetsClient.CACHE_TEMPLATE_PROVIDER.setTemplate(new TemplateKey(id), template));
             } catch (TemplateReadException e) {
                 e.printStackTrace();
             }
@@ -105,32 +122,33 @@ public class SplitPacketUpdateTemplate {
         }
     }
 
-    public static class Server implements ServerPlayNetworking.PlayChannelHandler {
+    public static class Server {
 
-        private final Map<ServerPlayer, FriendlyByteBuf> buffers = new WeakHashMap<>();
+        private static final Map<ServerPlayer, FriendlyByteBuf> buffers = new WeakHashMap<>();
 
         public static void send(UUID id, Template template, ServerPlayer player) {
-            FriendlyByteBuf buf = PacketByteBufs.create();
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             write(buf, id, template);
 
             while (buf.isReadable(PAYLOAD_LIMIT)) {
-                ServerPlayNetworking.send(player, PacketHandler.SplitPacketUpdateTemplate, PacketByteBufs.readBytes(buf, PAYLOAD_LIMIT));
+                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer());
+                buf.readBytes(chunk, PAYLOAD_LIMIT);
+                ServerPlayNetworking.send(player, new SplitPacketUpdateTemplate(chunk));
             }
 
             if (buf.isReadable()) {
-                ServerPlayNetworking.send(player, PacketHandler.SplitPacketUpdateTemplate, buf);
+                ServerPlayNetworking.send(player, new SplitPacketUpdateTemplate(buf));
             }
 
-            // todo: sentinel value when length == 0, probably should use another marker packet instead but cope
-            ServerPlayNetworking.send(player, PacketHandler.SplitPacketUpdateTemplate, PacketByteBufs.empty());
+            // Sentinel value when length == 0
+            ServerPlayNetworking.send(player, new SplitPacketUpdateTemplate(new FriendlyByteBuf(Unpooled.buffer())));
         }
 
-        @Override
-        public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-            FriendlyByteBuf accumulator = buffers.computeIfAbsent(player, $ -> PacketByteBufs.create());
+        public static void handle(SplitPacketUpdateTemplate payload, ServerPlayNetworking.Context context) {
+            FriendlyByteBuf accumulator = buffers.computeIfAbsent(context.player(), $ -> new FriendlyByteBuf(Unpooled.buffer()));
 
-            if (buf.isReadable()) {
-                accumulator.writeBytes(buf);
+            if (payload.data.isReadable()) {
+                accumulator.writeBytes(payload.data);
                 return;
             }
 
@@ -139,14 +157,14 @@ public class SplitPacketUpdateTemplate {
             try {
                 Template template = readTemplate(accumulator);
 
-                server.execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
+                context.server().execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
                     provider.setTemplate(new TemplateKey(id), template);
                 }));
             } catch (TemplateReadException e) {
                 e.printStackTrace();
             }
 
-            buffers.remove(player).release();
+            buffers.remove(context.player()).release();
         }
     }
 }

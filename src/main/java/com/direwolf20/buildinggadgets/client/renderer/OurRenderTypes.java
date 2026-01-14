@@ -174,11 +174,6 @@ public class OurRenderTypes extends RenderType {
             }
 
             @Override
-            public VertexConsumer normal(Matrix3f matrixIn, float x, float y, float z) {
-                return inner.normal(matrixIn, x, y, z);
-            }
-
-            @Override
             public void endVertex() {
                 inner.endVertex();
             }

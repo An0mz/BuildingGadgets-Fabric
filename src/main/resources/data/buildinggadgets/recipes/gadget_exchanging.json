@@ -1,13 +1,15 @@
 {
+  "type": "minecraft:crafting_shaped",
   "result": {
-    "item": "buildinggadgets:gadget_exchanging"
+    "id": "buildinggadgets:gadget_exchanging",
+    "count": 1
   },
   "pattern": [
     "iri",
     "dld",
     "ili"
   ],
-  "type": "minecraft:crafting_shaped",
+
   "key": {
     "i": {
       "item": "minecraft:iron_ingot"

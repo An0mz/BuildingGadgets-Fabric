@@ -8,6 +8,7 @@ import com.direwolf20.buildinggadgets.common.commands.OverrideCopySizeCommand;
 import com.direwolf20.buildinggadgets.common.compat.FLANCompat;
 import com.direwolf20.buildinggadgets.common.compat.FTBChunksCompat;
 //import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.config.Config;
 import com.direwolf20.buildinggadgets.common.containers.OurContainers;
 import com.direwolf20.buildinggadgets.common.containers.TemplateManagerContainer;
@@ -23,12 +24,12 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Registry;
@@ -75,6 +76,7 @@ public final class BuildingGadgets implements ModInitializer {
         net.minecraft.core.Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("tab"), CREATIVE_TAB);
         OurBlocks.registerBlocks();
         OurItems.registerItems();
+        BGDataComponents.register();
 
         ItemGroupEvents.modifyEntriesEvent(ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), id("tab"))).register(entries -> {
             // Building Gadget - empty and charged
@@ -119,9 +121,14 @@ public final class BuildingGadgets implements ModInitializer {
         PacketHandler.registerMessages();
         OurSounds.initSounds();
         OurTileEntities.initBE();
-        OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE = Registry.register(BuiltInRegistries.MENU, BuildingGadgets.id("template_manager_container"), new ExtendedScreenHandlerType<>(TemplateManagerContainer::new));
-
-        Registry.register(BuiltInRegistries.ENCHANTMENT, id("silk_touch"), GadgetSilkTouch.GADGET_SILKTOUCH);
+        OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE = Registry.register(
+                BuiltInRegistries.MENU,
+                BuildingGadgets.id("template_manager_container"),
+                new ExtendedScreenHandlerType<>(
+                        TemplateManagerContainer::new,
+                        BlockPos.STREAM_CODEC
+                )
+        );
 
         //GOMLCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("goml");
         FLANCompat.MOD_LOADED = FabricLoader.getInstance().isModLoaded("flan");

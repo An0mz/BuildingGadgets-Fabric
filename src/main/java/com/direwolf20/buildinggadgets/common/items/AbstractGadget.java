@@ -4,27 +4,23 @@ import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.commands.ForceUnloadedCommand;
 import com.direwolf20.buildinggadgets.common.compat.FLANCompat;
 import com.direwolf20.buildinggadgets.common.compat.FTBChunksCompat;
-//import com.direwolf20.buildinggadgets.common.compat.GOMLCompat;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.items.modes.*;
 import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
 import com.direwolf20.buildinggadgets.common.tainted.concurrent.UndoScheduler;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.IItemIndex;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryHelper;
 import com.direwolf20.buildinggadgets.common.tainted.save.Undo;
-import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.direwolf20.buildinggadgets.common.util.lang.MessageTranslation;
 import com.direwolf20.buildinggadgets.common.util.lang.Styles;
 import com.direwolf20.buildinggadgets.common.util.lang.TooltipTranslation;
-import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.google.common.collect.ImmutableSortedSet;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,11 +50,10 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     private final TagKey<Block> blackList;
 
     public AbstractGadget(Properties builder, ResourceLocation whiteListTag, ResourceLocation blackListTag) {
-        super(builder.defaultDurability(0));
+        super(builder);
 
         this.whiteList = TagKey.create(BuiltInRegistries.BLOCK.key(), whiteListTag);
         this.blackList = TagKey.create(BuiltInRegistries.BLOCK.key(), blackListTag);
-
     }
 
     public abstract long getEnergyCapacity();
@@ -99,15 +94,9 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         return blackList;
     }
 
-
     public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        /*super.fillItemCategory(group, items);
-        if (!allowedIn(group)) {
-            return;
-        }*/  //TODO check this since update to 1.20.1
-
         ItemStack charged = new ItemStack(this);
-        charged.getOrCreateTag().putDouble(NBTKeys.ENERGY, this.getEnergyCapacity());
+        charged.set(BGDataComponents.ENERGY, this.getEnergyCapacity());
         items.add(charged);
     }
 
@@ -199,44 +188,47 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     protected void onAnchorSet(ItemStack stack, Player player, BlockHitResult lookingAt) {
-        GadgetUtils.writePOSToNBT(stack, lookingAt.getBlockPos(), NBTKeys.GADGET_ANCHOR);
+        stack.set(BGDataComponents.ANCHOR, lookingAt.getBlockPos());
     }
 
     protected void onAnchorRemoved(ItemStack stack, Player player) {
-        stack.getOrCreateTag().remove(NBTKeys.GADGET_ANCHOR);
+        stack.remove(BGDataComponents.ANCHOR);
     }
 
     @Nullable
     public BlockPos getAnchor(ItemStack stack) {
-        return GadgetUtils.getPOSFromNBT(stack, NBTKeys.GADGET_ANCHOR);
+        return stack.get(BGDataComponents.ANCHOR);
     }
 
     public static boolean getFuzzy(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(NBTKeys.GADGET_FUZZY);
+        return stack.getOrDefault(BGDataComponents.FUZZY, false);
     }
 
     public static void toggleFuzzy(Player player, ItemStack stack) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_FUZZY, !getFuzzy(stack));
-        player.displayClientMessage(MessageTranslation.FUZZY_MODE.componentTranslation(getFuzzy(stack)).setStyle(Styles.AQUA), true);
+        boolean current = getFuzzy(stack);
+        stack.set(BGDataComponents.FUZZY, !current);
+        player.displayClientMessage(MessageTranslation.FUZZY_MODE.componentTranslation(!current).setStyle(Styles.AQUA), true);
     }
 
     public static boolean getConnectedArea(ItemStack stack) {
-        return !stack.getOrCreateTag().getBoolean(NBTKeys.GADGET_UNCONNECTED_AREA);
+        return !stack.getOrDefault(BGDataComponents.UNCONNECTED_AREA, false);
     }
 
     public static void toggleConnectedArea(Player player, ItemStack stack) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_UNCONNECTED_AREA, getConnectedArea(stack));
+        boolean current = getConnectedArea(stack);
+        stack.set(BGDataComponents.UNCONNECTED_AREA, current);
         player.displayClientMessage((stack.getItem() instanceof GadgetDestruction ? MessageTranslation.CONNECTED_AREA : MessageTranslation.CONNECTED_SURFACE)
-                .componentTranslation(getConnectedArea(stack)).setStyle(Styles.AQUA), true);
+                .componentTranslation(!current).setStyle(Styles.AQUA), true);
     }
 
     public static boolean shouldRayTraceFluid(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(NBTKeys.GADGET_RAYTRACE_FLUID);
+        return stack.getOrDefault(BGDataComponents.RAYTRACE_FLUID, false);
     }
 
     public static void toggleRayTraceFluid(ServerPlayer player, ItemStack stack) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_RAYTRACE_FLUID, !shouldRayTraceFluid(stack));
-        player.displayClientMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(shouldRayTraceFluid(stack)).setStyle(Styles.AQUA), true);
+        boolean current = shouldRayTraceFluid(stack);
+        stack.set(BGDataComponents.RAYTRACE_FLUID, !current);
+        player.displayClientMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA), true);
     }
 
     public static void addInformationRayTraceFluid(List<Component> tooltip, ItemStack stack) {
@@ -247,13 +239,12 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     //this should only be called Server-Side!!!
     public UUID getUUID(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-
-        if (nbt.hasUUID(NBTKeys.GADGET_UUID)) {
-            return nbt.getUUID(NBTKeys.GADGET_UUID);
+        UUID existing = stack.get(BGDataComponents.GADGET_UUID);
+        if (existing != null) {
+            return existing;
         } else {
             UUID newId = UUID.randomUUID();
-            nbt.putUUID(NBTKeys.GADGET_UUID, newId);
+            stack.set(BGDataComponents.GADGET_UUID, newId);
             return newId;
         }
     }
@@ -261,8 +252,8 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     // Todo: tweak and fix.
     public static int getRangeInBlocks(int range, AbstractMode mode) {
         if (mode instanceof StairMode ||
-            mode instanceof VerticalColumnMode ||
-            mode instanceof HorizontalColumnMode) {
+                mode instanceof VerticalColumnMode ||
+                mode instanceof HorizontalColumnMode) {
             return range;
         }
 
@@ -288,7 +279,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         if (undoOptional.isPresent()) {
             Undo undo = undoOptional.get();
             IItemIndex index = InventoryHelper.index(stack, player);
-            if (!ForceUnloadedCommand.mayForceUnloadedChunks(player)) {//TODO separate command
+            if (!ForceUnloadedCommand.mayForceUnloadedChunks(player)) {
                 ImmutableSortedSet<ChunkPos> unloadedChunks = undo.getBoundingBox().getUnloadedChunks(world);
                 if (!unloadedChunks.isEmpty()) {
                     pushUndo(stack, undo, world);
@@ -310,6 +301,40 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     protected static boolean mayInteract(ServerPlayer player, BlockPos pos) {
-        return player.mayInteract(player.level(), pos) /*&& GOMLCompat.canUse(player, pos)*/ && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
+        return player.mayInteract(player.level(), pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
+    }
+
+    // Energy methods for SimpleEnergyItem
+    @Override
+    public long getStoredEnergy(ItemStack itemStack) {
+        return itemStack.getOrDefault(BGDataComponents.ENERGY, 0L);
+    }
+
+    @Override
+    public boolean tryUseEnergy(ItemStack itemStack, long amount) {
+        long current = getStoredEnergy(itemStack);
+        if (current >= amount) {
+            itemStack.set(BGDataComponents.ENERGY, current - amount);
+            return true;
+        }
+        return false;
+    }
+
+    public long receiveEnergy(ItemStack itemStack, long maxReceive, boolean simulate) {
+        long current = getStoredEnergy(itemStack);
+        long toReceive = Math.min(getEnergyCapacity() - current, Math.min(maxReceive, getEnergyMaxInput()));
+        if (!simulate && toReceive > 0) {
+            itemStack.set(BGDataComponents.ENERGY, current + toReceive);
+        }
+        return toReceive;
+    }
+
+    public long extractEnergy(ItemStack itemStack, long maxExtract, boolean simulate) {
+        long current = getStoredEnergy(itemStack);
+        long toExtract = Math.min(current, Math.min(maxExtract, getEnergyMaxOutput()));
+        if (!simulate && toExtract > 0) {
+            itemStack.set(BGDataComponents.ENERGY, current - toExtract);
+        }
+        return toExtract;
     }
 }

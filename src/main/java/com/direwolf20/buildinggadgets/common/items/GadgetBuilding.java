@@ -3,6 +3,7 @@ package com.direwolf20.buildinggadgets.common.items;
 import com.direwolf20.buildinggadgets.client.renders.BaseRenderer;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.blocks.EffectBlock;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.items.modes.AbstractMode;
 import com.direwolf20.buildinggadgets.common.items.modes.BuildingModes;
 import com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool;
@@ -20,7 +21,6 @@ import com.direwolf20.buildinggadgets.common.util.lang.LangUtil;
 import com.direwolf20.buildinggadgets.common.util.lang.MessageTranslation;
 import com.direwolf20.buildinggadgets.common.util.lang.Styles;
 import com.direwolf20.buildinggadgets.common.util.lang.TooltipTranslation;
-import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.TagReference;
 import com.direwolf20.buildinggadgets.common.world.MockBuilderWorld;
 import com.google.common.collect.ImmutableMultiset;
@@ -29,7 +29,6 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -73,29 +72,26 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     private static void setToolMode(ItemStack tool, BuildingModes mode) {
-        //Store the tool's mode in NBT as a string
-        CompoundTag tagCompound = tool.getOrCreateTag();
-        tagCompound.putString("mode", mode.toString());
-        tool.setTag(tagCompound);
+        tool.set(BGDataComponents.BUILDING_MODE, mode.name());
     }
 
     public static BuildingModes getToolMode(ItemStack tool) {
-        CompoundTag tagCompound = tool.getOrCreateTag();
-        return BuildingModes.getFromName(tagCompound.getString("mode"));
+        String modeName = tool.getOrDefault(BGDataComponents.BUILDING_MODE, BuildingModes.VERTICAL_COLUMN.name());
+        return BuildingModes.getFromName(modeName);
     }
 
     public static boolean shouldPlaceAtop(ItemStack stack) {
-        return !stack.getOrCreateTag().getBoolean(NBTKeys.GADGET_PLACE_INSIDE);
+        return !stack.getOrDefault(BGDataComponents.PLACE_INSIDE, false);
     }
 
     public static void togglePlaceAtop(Player player, ItemStack stack) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_PLACE_INSIDE, shouldPlaceAtop(stack));
-        player.displayClientMessage((shouldPlaceAtop(stack) ? MessageTranslation.PLACE_ATOP : MessageTranslation.PLACE_INSIDE).componentTranslation().setStyle(Styles.AQUA), true);
+        boolean current = shouldPlaceAtop(stack);
+        stack.set(BGDataComponents.PLACE_INSIDE, current);
+        player.displayClientMessage((!current ? MessageTranslation.PLACE_ATOP : MessageTranslation.PLACE_INSIDE).componentTranslation().setStyle(Styles.AQUA), true);
     }
 
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+        super.appendHoverText(stack, (TooltipContext) world, tooltip, flag);
         BuildingModes mode = getToolMode(stack);
         addEnergyInformation(tooltip, stack);
 
@@ -129,13 +125,10 @@ public class GadgetBuilding extends AbstractGadget {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
-        //On item use, if sneaking, select the block clicked on, else build -- This is called when you right click a tool NOT on a block.
         ItemStack itemstack = player.getItemInHand(hand);
 
         player.startUsingItem(hand);
         if (!world.isClientSide) {
-            // Debug code for free energy
-            //itemstack.getCapability(CapabilityEnergy.ENERGY).ifPresent(e -> e.receiveEnergy(15000000, false));
             if (player.isShiftKeyDown()) {
                 InteractionResultHolder<Block> result = selectBlock(itemstack, player);
                 if (!result.getResult().consumesAction()) {
@@ -158,13 +151,11 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
-        //Called when we specify a mode with the radial menu
         BuildingModes mode = BuildingModes.values()[modeInt];
         setToolMode(heldItem, mode);
     }
 
     public static void rangeChange(Player player, ItemStack heldItem) {
-        //Called when the range change hotkey is pressed
         int range = getToolRange(heldItem);
         int changeAmount = (getToolMode(heldItem) != BuildingModes.SURFACE || (range % 2 == 0)) ? 1 : 2;
         if (player.isShiftKeyDown())
@@ -177,7 +168,6 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     private void build(ServerPlayer player, ItemStack stack) {
-        //Build the blocks as shown in the visual render
         Level world = player.level();
         ItemStack heldItem = getGadget(player);
         if (heldItem.isEmpty())
@@ -190,9 +180,9 @@ public class GadgetBuilding extends AbstractGadget {
             return;
         }
 
-        if (coords.size() == 0) {  // If we don't have an anchor, build in the current spot
+        if (coords.size() == 0) {
             BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
-            if (world.isEmptyBlock(lookingAt.getBlockPos())) // If we aren't looking at anything, exit
+            if (world.isEmptyBlock(lookingAt.getBlockPos()))
                 return;
 
             Direction sideHit = lookingAt.getDirection();
@@ -200,7 +190,7 @@ public class GadgetBuilding extends AbstractGadget {
                     new AbstractMode.UseContext(world, blockData.getState(), lookingAt.getBlockPos(), heldItem, sideHit, placeAtop(stack), getConnectedArea(stack)),
                     player
             );
-        } else  // If we do have an anchor, erase it (Even if the build fails)
+        } else
             setAnchor(stack);
 
         BlockPos targetPos = VectorHelper.getLookingAt(player, stack).getBlockPos();
@@ -209,7 +199,7 @@ public class GadgetBuilding extends AbstractGadget {
         Undo.Builder builder = Undo.builder();
         IItemIndex index = InventoryHelper.index(stack, player);
 
-        fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords); // Initialize the fake world's blocks
+        fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords);
         for (BlockPos coordinate : coords) {
             placeBlock(world, player, index, builder, coordinate, blockData);
         }
@@ -228,7 +218,6 @@ public class GadgetBuilding extends AbstractGadget {
         BuildContext buildContext = new BuildContext(world, player, heldItem);
         MaterialList requiredItems = setBlock.getRequiredItems(buildContext, null, pos);
 
-        // #majorcode
         try (Transaction transaction = Transaction.openOuter()) {
             MatchResult match = index.match(requiredItems, transaction);
 

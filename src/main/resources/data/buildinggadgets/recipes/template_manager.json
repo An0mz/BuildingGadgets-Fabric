@@ -1,6 +1,7 @@
 {
   "result": {
-    "item": "buildinggadgets:template_manager"
+    "id": "buildinggadgets:template_manager",
+    "count": "1"
   },
   "pattern": [
     "iri",

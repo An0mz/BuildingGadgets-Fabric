@@ -7,12 +7,13 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference.ItemReference;
 import com.google.common.base.Preconditions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -32,9 +33,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TemplateManagerTileEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplContainer {
+public class TemplateManagerTileEntity extends BlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, ImplContainer {
     public static final TagKey<Item> TEMPLATE_CONVERTIBLES = TagKey.create(Registries.ITEM, ItemReference.TAG_TEMPLATE_CONVERTIBLE);
-
 
     public static final int SIZE = 2;
 
@@ -62,15 +62,15 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        ContainerHelper.loadAllItems(compound, inventory);
-        super.load(compound);
+    protected void loadAdditional(CompoundTag compound, HolderLookup.@NotNull Provider registries) {
+        super.loadAdditional(compound, registries);
+        ContainerHelper.loadAllItems(compound, inventory, registries);
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
-        ContainerHelper.saveAllItems(compound, inventory);
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, HolderLookup.@NotNull Provider registries) {
+        super.saveAdditional(compound, registries);
+        ContainerHelper.saveAllItems(compound, inventory, registries);
     }
 
     public boolean canInteractWith(Player playerIn) {
@@ -87,9 +87,9 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 
@@ -105,7 +105,7 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-        buf.writeBlockPos(getBlockPos());
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return getBlockPos();
     }
 }

@@ -4,6 +4,7 @@ import com.direwolf20.buildinggadgets.client.renders.BaseRenderer;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.blocks.EffectBlock;
 import com.direwolf20.buildinggadgets.common.blocks.OurBlocks;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.enchants.GadgetSilkTouch;
 import com.direwolf20.buildinggadgets.common.items.modes.AbstractMode;
 import com.direwolf20.buildinggadgets.common.items.modes.ExchangingModes;
@@ -33,9 +34,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -91,31 +90,17 @@ public class GadgetExchanger extends AbstractGadget {
         return true;
     }
 
-//    @Override
-//    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-//        return EnchantmentHelper.getEnchantments(book).containsKey(Enchantments.SILK_TOUCH) || super.isBookEnchantable(stack, book);
-//    }
-//
-//    @Override
-//    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-//        return enchantment == Enchantments.SILK_TOUCH || super.canApplyAtEnchantingTable(stack, enchantment);
-//    }
-
     private static void setToolMode(ItemStack tool, ExchangingModes mode) {
-        //Store the tool's mode in NBT as a string
-        CompoundTag tagCompound = tool.getOrCreateTag();
-        tagCompound.putString("mode", mode.toString());
-        tool.setTag(tagCompound);
+        tool.set(BGDataComponents.EXCHANGER_MODE, mode.name());
     }
 
     public static ExchangingModes getToolMode(ItemStack tool) {
-        CompoundTag tagCompound = tool.getOrCreateTag();
-        return ExchangingModes.getFromName(tagCompound.getString("mode"));
+        String modeName = tool.getOrDefault(BGDataComponents.EXCHANGER_MODE, ExchangingModes.SURFACE.name());
+        return ExchangingModes.getFromName(modeName);
     }
 
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+        super.appendHoverText(stack, (TooltipContext) world, tooltip, flag);
         addEnergyInformation(tooltip, stack);
 
         ExchangingModes mode = getToolMode(stack);
@@ -173,7 +158,6 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
-        //Called when we specify a mode with the radial menu
         ExchangingModes mode = ExchangingModes.values()[modeInt];
         setToolMode(heldItem, mode);
     }
@@ -198,36 +182,30 @@ public class GadgetExchanger extends AbstractGadget {
 
         BlockData blockData = getToolBlock(heldItem);
 
-        // Don't attempt to do anything if we can't actually do it.
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
         BlockEntity tileEntity = world.getBlockEntity(lookingAt.getBlockPos());
         BlockState lookingAtState = player.level().getBlockState(lookingAt.getBlockPos());
         Block lookAtBlock = lookingAtState.getBlock();
         if (blockData.getState() == Blocks.AIR.defaultBlockState()
-            || lookAtBlock == OurBlocks.EFFECT_BLOCK
-            || blockData.getState() == lookingAtState
-            || tileEntity != null) {
+                || lookAtBlock == OurBlocks.EFFECT_BLOCK
+                || blockData.getState() == lookingAtState
+                || tileEntity != null) {
             return;
         }
 
-        // Get the anchor or build the collection
         Optional<List<BlockPos>> anchor = GadgetUtils.getAnchor(stack);
         List<BlockPos> coords = anchor.orElseGet(
                 () -> getToolMode(stack).getMode().getCollection(new AbstractMode.UseContext(world, blockData.getState(), lookingAt.getBlockPos(), heldItem, lookingAt.getDirection(), getConnectedArea(heldItem)), player)
         );
 
         if (anchor.isPresent()) {
-            setAnchor(stack); // Remove the anchor
+            setAnchor(stack);
         }
 
         IItemIndex index = InventoryHelper.index(stack, player);
 
-        //TODO replace fakeWorld
-        fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords); // Initialize the fake world's blocks
+        fakeWorld.setWorldAndState(player.level(), blockData.getState(), coords);
         for (BlockPos coordinate : coords) {
-            //Get the extended block state in the fake world Disabled to fix Chisel
-            //state = state.getBlock().getExtendedState(state, fakeWorld, coordinate);
-
             exchangeBlock(world, player, index, coordinate, blockData, transactionContext);
         }
     }
@@ -257,12 +235,6 @@ public class GadgetExchanger extends AbstractGadget {
             return;
         }
 
-        // Should be equivalent to the above check?
-        // BlockSnapshot blockSnapshot = BlockSnapshot.create(world.dimension(), world, pos);
-        // BlockEvent.BreakEvent e = new BlockEvent.BreakEvent(world, pos, currentBlock, player);
-        // if (ForgeEventFactory.onBlockPlace(player, blockSnapshot, Direction.UP) || MinecraftForge.EVENT_BUS.post(e))
-        //     return;
-
         if (this.useEnergy(tool, player)) {
             MaterialList materials = data.getRequiredItems(
                     buildContext,
@@ -273,7 +245,7 @@ public class GadgetExchanger extends AbstractGadget {
             Iterator<ImmutableMultiset<ItemVariant>> it = materials.iterator();
             Multiset<ItemVariant> producedItems = LinkedHashMultiset.create();
 
-            if (buildContext.getStack().isEnchanted() && EnchantmentHelper.getItemEnchantmentLevel(GadgetSilkTouch.GADGET_SILKTOUCH, buildContext.getStack()) > 0) {
+            if (buildContext.getStack().isEnchanted() && EnchantmentHelper.getItemEnchantmentLevel(GadgetSilkTouch.getEnchantment(), buildContext.getStack()) > 0) {
                 producedItems = it.hasNext() ? it.next() : ImmutableMultiset.of();
             } else {
                 List<ItemStack> drops = Block.getDrops(currentBlock, (ServerLevel) buildContext.getWorld(), pos, buildContext.getWorld().getBlockEntity(pos));
@@ -312,16 +284,16 @@ public class GadgetExchanger extends AbstractGadget {
 
     @Override
     public long getEnergyCapacity(ItemStack stack) {
-        return 0;
+        return getEnergyCapacity();
     }
 
     @Override
     public long getEnergyMaxInput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxInput();
     }
 
     @Override
     public long getEnergyMaxOutput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxOutput();
     }
 }

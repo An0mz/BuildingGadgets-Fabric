@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import static com.direwolf20.buildinggadgets.common.util.ref.Reference.MODID;
 
 public final class NBTKeys {
+    // Template/Serialization keys (KEEP - used for file serialization)
     public static final ResourceLocation AND_SERIALIZER_ID = new ResourceLocation(MODID, "sub_entries");
     public static final String KEY_AUTHOR = "author";
     public static final String KEY_BOUNDS = "bounds";
@@ -35,24 +36,30 @@ public final class NBTKeys {
 
     public static final String CREATIVE_MARKER = "creative";
 
-    public static final String GADGET_MODE = "mode";
+    // DEPRECATED - Now using DataComponents (BGDataComponents)
+    // These are kept for backward compatibility when loading old items
+    @Deprecated public static final String GADGET_MODE = "mode";
+    @Deprecated public static final String GADGET_FUZZY = "fuzzy";
+    @Deprecated public static final String GADGET_RAYTRACE_FLUID = "raytrace_fluid";
+    @Deprecated public static final String GADGET_UNCONNECTED_AREA = "unconnected_area";
+    @Deprecated public static final String GADGET_ANCHOR = "anchor";
+    @Deprecated public static final String GADGET_UUID = "uuid";
+    @Deprecated public static final String ENERGY = "energy";
+    @Deprecated public static final String GADGET_FLUID_ONLY = "fluid";
+
+    // Still used in gadget logic (not stored on ItemStack)
     public static final String GADGET_TICKS = "ticks";
     public static final String GADGET_REPLACEMENT_BLOCK = "replacement_block";
     public static final String GADGET_SOURCE_BLOCK = "source_block";
     public static final String GADGET_USE_PASTE = "use_paste";
     public static final String GADGET_OVERLAY = "overlay";
-    public static final String GADGET_FUZZY = "fuzzy";
-    public static final String GADGET_RAYTRACE_FLUID = "raytrace_fluid";
     public static final String GADGET_PLACE_INSIDE = "start_inside";
-    public static final String GADGET_UNCONNECTED_AREA = "unconnected_area";
-    public static final String GADGET_ANCHOR = "anchor";
     public static final String GADGET_ANCHOR_SIDE = "anchor_side";
     public static final String GADGET_ANCHOR_COORDS = "anchor_coords";
     public static final String GADGET_UNDO_STACK = "undo_stack";
     public static final String GADGET_UNDO_INT_COORDS = "undo_int_coords";
     public static final String GADGET_UNDO_START_POS = "undo_start_pos";
     public static final String GADGET_REL_POS = "rel_pos";
-    public static final String GADGET_UUID = "uuid";
     public static final String GADGET_START_POS = "start_pos";
     public static final String GADGET_END_POS = "end_pos";
     public static final String GADGET_DIM = "dim";
@@ -61,24 +68,13 @@ public final class NBTKeys {
     public static final String GADGET_VALUE_RIGHT = "right";
     public static final String GADGET_VALUE_LEFT = "left";
     public static final String GADGET_VALUE_DEPTH = "depth";
-    public static final String GADGET_FLUID_ONLY = "fluid";
 
-    /**
-     * The mapping between an internal block state ID and a block state.
-     */
-    public static final String MAP_STATE = "state";
-
-    /**
-     * The mapping between a position index and an internal block state ID.
-     */
-
-    public static final String MAP_SERIALIZE_KEY = "key";
-    public static final String MAP_SERIALIZE_VALUE = "val";
-
+    // Template keys (KEEP)
     public static final String TEMPLATE_COPY_COUNT = "copy_count";
     public static final String TEMPLATE_NAME = "template_name";
     public static final String TEMPLATE_KEY_ID = "template_id";
 
+    // World save data keys (KEEP - still uses NBT)
     public static final String WORD_SAVE_DATA_MAP = "data_map";
     public static final String WORLD_SAVE_TIME = "time";
     public static final String WORLD_SAVE_UNDO_HISTORY = "undo_history";
@@ -94,21 +90,27 @@ public final class NBTKeys {
     public static final String WORLD_SAVE_UNDO_ITEMS_PRODUCED = "produced_items";
     public static final String WORLD_SAVE_UNDO_BOUNDS = "bounding_box";
 
+    // Remote inventory keys (KEEP)
     public static final String REMOTE_INVENTORY_POS = "bound_be_pos";
     public static final String REMOTE_INVENTORY_DIM = "bound_be_dim";
     public static final String REMOTE_INVENTORY_FACE = "bound_be_face";
 
-    public static final String ENERGY = "energy";
+    // Map state keys (KEEP)
+    public static final String MAP_STATE = "state";
+    public static final String MAP_SERIALIZE_KEY = "key";
+    public static final String MAP_SERIALIZE_VALUE = "val";
 
+    // Unique item keys (KEEP)
     public static final String UNIQUE_ITEM_ITEM = "item";
     public static final String UNIQUE_ITEM_SERIALIZER = "serializer";
     public static final String UNIQUE_ITEM_COUNT = "count";
 
+    // Block entity keys (KEEP)
     public static final String TE_CONSTRUCTION_STATE = MAP_STATE;
     public static final String TE_TEMPLATE_MANAGER_ITEMS = "items";
 
+    // Entity keys (KEEP)
     public static final String ENTITY_DESPAWNING = "despawning";
     public static final String ENTITY_TICKS_EXISTED = "ticks_existed";
     public static final String ENTITY_SET_POS = "set_pos";
-
 }

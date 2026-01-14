@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * {@link BlockPos} and {@link BlockData} combined, to allow for placement of an {@link BlockData} in an {@link BuildContext}. Ths class also offers serialisation
@@ -32,10 +33,13 @@ public record PlacementTarget(@NotNull BlockPos pos, @NotNull BlockData data) {
      * @see BlockData#deserialize(CompoundNBT, boolean)
      */
     public static PlacementTarget deserialize(CompoundTag nbt, boolean persisted) {
-        BlockPos pos = NbtUtils.readBlockPos(nbt.getCompound(NBTKeys.KEY_POS));
+        Optional<BlockPos> posOpt = NbtUtils.readBlockPos(nbt, NBTKeys.KEY_POS);
+        BlockPos pos = posOpt.orElseThrow(() -> new IllegalArgumentException("BlockPos missing in NBT"));
         BlockData data = BlockData.deserialize(nbt.getCompound(NBTKeys.KEY_DATA), persisted);
         return new PlacementTarget(pos, data);
     }
+
+
 
     /**
      * Creates a new {@code PlacementTarget} for the specified position and data

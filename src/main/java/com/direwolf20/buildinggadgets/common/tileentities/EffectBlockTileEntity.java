@@ -7,6 +7,7 @@ import com.direwolf20.buildinggadgets.common.tainted.building.tilesupport.TileSu
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -91,8 +92,8 @@ public class EffectBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public void saveAdditional(@NotNull CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(@NotNull CompoundTag compound, HolderLookup.@NotNull Provider registries) {
+        super.saveAdditional(compound, registries);
         if (mode != null && getRenderedBlock() != null && sourceBlock != null) {
             compound.putInt(NBTKeys.GADGET_TICKS, ticks);
             compound.putInt(NBTKeys.GADGET_MODE, mode.ordinal());
@@ -102,13 +103,13 @@ public class EffectBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    protected void loadAdditional(CompoundTag nbt, HolderLookup.@NotNull Provider registries) {
+        super.loadAdditional(nbt, registries);
 
         if (nbt.contains(NBTKeys.GADGET_TICKS, NbtType.INT) &&
-            nbt.contains(NBTKeys.GADGET_MODE, NbtType.INT) &&
-            nbt.contains(NBTKeys.GADGET_SOURCE_BLOCK, NbtType.COMPOUND) &&
-            nbt.contains(NBTKeys.GADGET_REPLACEMENT_BLOCK, NbtType.COMPOUND)) {
+                nbt.contains(NBTKeys.GADGET_MODE, NbtType.INT) &&
+                nbt.contains(NBTKeys.GADGET_SOURCE_BLOCK, NbtType.COMPOUND) &&
+                nbt.contains(NBTKeys.GADGET_REPLACEMENT_BLOCK, NbtType.COMPOUND)) {
 
             ticks = nbt.getInt(NBTKeys.GADGET_TICKS);
             mode = Mode.values()[nbt.getInt(NBTKeys.GADGET_MODE)];
@@ -126,9 +127,9 @@ public class EffectBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 

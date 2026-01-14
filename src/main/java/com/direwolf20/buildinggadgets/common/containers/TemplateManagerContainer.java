@@ -2,7 +2,7 @@ package com.direwolf20.buildinggadgets.common.containers;
 
 import com.direwolf20.buildinggadgets.common.tileentities.TemplateManagerTileEntity;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -20,17 +20,20 @@ public class TemplateManagerContainer extends BaseContainer {
 
     private final TemplateManagerTileEntity be;
 
-    public TemplateManagerContainer(int windowId, Inventory playerInventory, FriendlyByteBuf extraData) {
+    // Client-side constructor (called from ExtendedScreenHandlerType)
+    public TemplateManagerContainer(int windowId, Inventory playerInventory, BlockPos pos) {
         super(OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE, windowId);
-        BlockPos pos = extraData.readBlockPos();
-
         this.be = (TemplateManagerTileEntity) playerInventory.player.level().getBlockEntity(pos);
         addOwnSlots();
         addPlayerSlots(playerInventory, 8, 82);
     }
 
+    // Server-side constructor (called directly in code)
     public TemplateManagerContainer(int windowId, Inventory playerInventory, TemplateManagerTileEntity tileEntity) {
-        this(windowId, playerInventory, PacketByteBufs.create().writeBlockPos(tileEntity.getBlockPos()));
+        super(OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE, windowId);
+        this.be = tileEntity;
+        addOwnSlots();
+        addPlayerSlots(playerInventory, 8, 82);
     }
 
     @Override
@@ -47,7 +50,7 @@ public class TemplateManagerContainer extends BaseContainer {
     @Override
     public boolean canTakeItemForPickAll(ItemStack itemStack, Slot slot) {
         return (slot.index == 0 && be.isTemplateStack(itemStack)) ||
-               (slot.index == 1 && (be.isTemplateStack(itemStack) || itemStack.is(TemplateManagerTileEntity.TEMPLATE_CONVERTIBLES)));
+                (slot.index == 1 && (be.isTemplateStack(itemStack) || itemStack.is(TemplateManagerTileEntity.TEMPLATE_CONVERTIBLES)));
     }
 
     @Override
@@ -78,7 +81,6 @@ public class TemplateManagerContainer extends BaseContainer {
         return itemstack;
     }
 
-
     public TemplateManagerTileEntity getTe() {
         return be;
     }
@@ -88,11 +90,6 @@ public class TemplateManagerContainer extends BaseContainer {
         public SlotTemplateManager(Container container, int index, int xPosition, int yPosition, String backgroundLoc) {
             super(container, index, xPosition, yPosition);
         }
-
-        // @Override
-        // public Slot setBackground(ResourceLocation atlas, ResourceLocation sprite) {
-        //    return super.setBackground(atlas, new ResourceLocation(Reference.MODID, this.backgroundLoc));
-        // }
 
         @Override
         public int getMaxStackSize() {

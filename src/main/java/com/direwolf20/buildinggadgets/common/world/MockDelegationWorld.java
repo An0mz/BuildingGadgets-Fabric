@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -86,11 +86,10 @@ public class MockDelegationWorld implements LevelAccessor {
     }
 
     @Override
-    public void gameEvent(GameEvent gameEvent, Vec3 vec3, GameEvent.Context context) {
+    public void gameEvent(Holder<GameEvent> gameEvent, Vec3 pos, GameEvent.Context context) {
 
     }
 
-    @Override
     public void gameEvent(@Nullable Entity p_151549_, GameEvent p_151550_, BlockPos p_151551_) {
 
     }
@@ -113,12 +112,6 @@ public class MockDelegationWorld implements LevelAccessor {
     @Override
     public List<? extends Player> players() {
         return new ArrayList<>();
-    }
-
-    @Nullable
-    @Override
-    public ChunkAccess getChunk(int p_217353_1_, int p_217353_2_, ChunkStatus p_217353_3_, boolean p_217353_4_) {
-        return getChunk(p_217353_1_, p_217353_2_);
     }
 
     @Override
@@ -239,6 +232,11 @@ public class MockDelegationWorld implements LevelAccessor {
 
     @Override
     public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public @Nullable ChunkAccess getChunk(int x, int z, net.minecraft.world.level.chunk.status.ChunkStatus chunkStatus, boolean requireChunk) {
         return null;
     }
 

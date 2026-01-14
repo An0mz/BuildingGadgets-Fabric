@@ -3,35 +3,38 @@ package com.direwolf20.buildinggadgets.common.network.C2S;
 import com.direwolf20.buildinggadgets.common.items.GadgetCopyPaste;
 import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
 
-public class PacketPasteGUI implements ServerPlayNetworking.PlayChannelHandler {
+public record PacketPasteGUI(BlockPos pos) implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<PacketPasteGUI> TYPE =
+            new CustomPacketPayload.Type<>(PacketHandler.PacketPasteGUI);
+
+    public static final StreamCodec<FriendlyByteBuf, PacketPasteGUI> CODEC = StreamCodec.of(
+            (buf, packet) -> buf.writeBlockPos(packet.pos),
+            buf -> new PacketPasteGUI(buf.readBlockPos())
+    );
 
     public static void send(int x, int y, int z) {
-        FriendlyByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(x);
-        buf.writeInt(y);
-        buf.writeInt(z);
-        ClientPlayNetworking.send(PacketHandler.PacketPasteGUI, buf);
+        ClientPlayNetworking.send(new PacketPasteGUI(new BlockPos(x, y, z)));
     }
 
     @Override
-    public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        int x = buf.readInt();
-        int y = buf.readInt();
-        int z = buf.readInt();
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
-        server.execute(() -> {
-            ItemStack heldItem = GadgetCopyPaste.getGadget(player);
-            if (!heldItem.isEmpty()) GadgetCopyPaste.setRelativeVector(heldItem, new BlockPos(x, y, z));
+    public static void handle(PacketPasteGUI payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ItemStack heldItem = GadgetCopyPaste.getGadget(context.player());
+            if (!heldItem.isEmpty()) {
+                GadgetCopyPaste.setRelativeVector(heldItem, payload.pos);
+            }
         });
     }
 }

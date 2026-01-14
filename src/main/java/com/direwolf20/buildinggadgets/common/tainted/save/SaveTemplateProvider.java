@@ -108,12 +108,13 @@ public final class SaveTemplateProvider implements ITemplateProvider {
     }
 
     @Override
-    public void readFromNbt(CompoundTag tag)  {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider)  {
         save.load(tag);
     }
 
     @Override
-    public void writeToNbt(CompoundTag tag) {
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         save.save(tag);
     }
+
 }

@@ -1,15 +1,13 @@
 package com.direwolf20.buildinggadgets.common.tainted.inventory;
 
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.util.lang.MessageTranslation;
-import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -39,11 +37,10 @@ public class InventoryLinker {
             return Result.removed();
         }
 
-        // Set the relevant data
-        CompoundTag compound = stack.getOrCreateTag();
-        compound.putString(NBTKeys.REMOTE_INVENTORY_DIM, world.dimension().location().toString());
-        compound.put(NBTKeys.REMOTE_INVENTORY_POS, NbtUtils.writeBlockPos(trace.getBlockPos()));
-        compound.putString(NBTKeys.REMOTE_INVENTORY_FACE, trace.getDirection().name());
+        // Set the relevant data using DataComponents
+        stack.set(BGDataComponents.REMOTE_INVENTORY_DIM, world.dimension().location().toString());
+        stack.set(BGDataComponents.REMOTE_INVENTORY_POS, trace.getBlockPos());
+        stack.set(BGDataComponents.REMOTE_INVENTORY_FACE, trace.getDirection().name());
         return Result.success();
     }
 
@@ -84,7 +81,6 @@ public class InventoryLinker {
      * @implNote Ideally this would not have to get the same data twice but for now, this works fine.
      */
     private static boolean removeIfSame(ItemStack stack, BlockPos pos) {
-        // This isn't ideal that we have to do this twice
         InventoryLink dataFromStack = getDataFromStack(stack);
         if (dataFromStack == null) {
             return false;
@@ -99,13 +95,12 @@ public class InventoryLinker {
     }
 
     /**
-     * Removes the keys from the stack to allow for lazy contains
+     * Removes the data from the stack
      */
     public static void removeDataFromStack(ItemStack stack) {
-        CompoundTag compound = stack.getOrCreateTag();
-        compound.remove(NBTKeys.REMOTE_INVENTORY_POS);
-        compound.remove(NBTKeys.REMOTE_INVENTORY_DIM);
-        compound.remove(NBTKeys.REMOTE_INVENTORY_FACE);
+        stack.remove(BGDataComponents.REMOTE_INVENTORY_POS);
+        stack.remove(BGDataComponents.REMOTE_INVENTORY_DIM);
+        stack.remove(BGDataComponents.REMOTE_INVENTORY_FACE);
     }
 
     /**
@@ -113,22 +108,26 @@ public class InventoryLinker {
      */
     @Nullable
     public static InventoryLink getDataFromStack(ItemStack stack) {
-        CompoundTag compound = stack.getOrCreateTag();
-        if (!(compound.contains(NBTKeys.REMOTE_INVENTORY_POS) && compound.contains(NBTKeys.REMOTE_INVENTORY_DIM) && compound.contains(NBTKeys.REMOTE_INVENTORY_FACE))) {
+        String dimStr = stack.get(BGDataComponents.REMOTE_INVENTORY_DIM);
+        BlockPos pos = stack.get(BGDataComponents.REMOTE_INVENTORY_POS);
+        String faceStr = stack.get(BGDataComponents.REMOTE_INVENTORY_FACE);
+
+        // Check if all required data is present
+        if (dimStr == null || pos == null || faceStr == null) {
             return null;
         }
 
-        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(compound.getString(NBTKeys.REMOTE_INVENTORY_DIM)));
+        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(dimStr));
         Direction face;
 
         try {
-            face = Direction.valueOf(compound.getString(NBTKeys.REMOTE_INVENTORY_FACE));
+            face = Direction.valueOf(faceStr);
         } catch (Throwable ignored) {
-            // smh why does valueOf die but not return null
+            // Invalid direction name
             return null;
         }
 
-        return new InventoryLink(dimKey, NbtUtils.readBlockPos(compound.getCompound(NBTKeys.REMOTE_INVENTORY_POS)), face);
+        return new InventoryLink(dimKey, pos, face);
     }
 
     /**

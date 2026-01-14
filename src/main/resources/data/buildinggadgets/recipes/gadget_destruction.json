@@ -1,13 +1,14 @@
 {
+  "type": "minecraft:crafting_shaped",
   "result": {
-    "item": "buildinggadgets:gadget_destruction"
+    "id": "buildinggadgets:gadget_destruction",
+    "count": "1"
   },
   "pattern": [
     "iri",
     "ere",
     "ili"
   ],
-  "type": "minecraft:crafting_shaped",
   "key": {
     "i": {
       "item": "minecraft:iron_ingot"

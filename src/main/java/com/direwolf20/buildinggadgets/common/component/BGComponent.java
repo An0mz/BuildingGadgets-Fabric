@@ -7,18 +7,18 @@ import com.direwolf20.buildinggadgets.common.items.OurItems;
 import com.direwolf20.buildinggadgets.common.tainted.save.SaveTemplateProvider;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
-import dev.onyxstudios.cca.api.v3.component.ComponentKey;
-import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
-import dev.onyxstudios.cca.api.v3.item.ItemComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.item.ItemComponentInitializer;
-import dev.onyxstudios.cca.api.v3.level.LevelComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.level.LevelComponentInitializer;
-import dev.onyxstudios.cca.api.v3.world.WorldComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.world.WorldComponentInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
+import org.ladysnake.cca.api.v3.component.ComponentKey;
+import org.ladysnake.cca.api.v3.component.ComponentRegistryV3;
+import org.ladysnake.cca.api.v3.item.ItemComponentInitializer;
+import org.ladysnake.cca.api.v3.item.ItemComponentMigrationRegistry;
+import org.ladysnake.cca.api.v3.level.LevelComponentFactoryRegistry;
+import org.ladysnake.cca.api.v3.level.LevelComponentInitializer;
+import org.ladysnake.cca.api.v3.world.WorldComponentFactoryRegistry;
+import org.ladysnake.cca.api.v3.world.WorldComponentInitializer;
 
 public class BGComponent implements ItemComponentInitializer, WorldComponentInitializer, LevelComponentInitializer {
 
@@ -27,9 +27,8 @@ public class BGComponent implements ItemComponentInitializer, WorldComponentInit
     public static final ComponentKey<UndoService> UNDO_COMPONENT = ComponentRegistryV3.INSTANCE.getOrCreate(BuildingGadgets.id("undo"), UndoService.class);
 
     @Override
-    public void registerItemComponentFactories(ItemComponentFactoryRegistry registry) {
-        registry.register(OurItems.TEMPLATE_ITEM, TEMPLATE_KEY_COMPONENT, ItemTemplateKey::new);
-        registry.register(OurItems.COPY_PASTE_GADGET_ITEM, TEMPLATE_KEY_COMPONENT, ItemTemplateKey::new);
+    public void registerItemComponentMigrations(ItemComponentMigrationRegistry registry) {
+        // no migrations yet, leave empty
     }
 
     @Override

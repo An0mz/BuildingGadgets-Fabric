@@ -8,8 +8,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 public class ClientPacketHandler {
 
     public static void registerMessages() {
-        ClientPlayNetworking.registerGlobalReceiver(PacketHandler.PacketRequestTemplate, new PacketRequestTemplate.Client());
-        ClientPlayNetworking.registerGlobalReceiver(PacketHandler.SplitPacketUpdateTemplate, new SplitPacketUpdateTemplate.Client());
-        ClientPlayNetworking.registerGlobalReceiver(PacketHandler.PacketSetRemoteInventoryCache, new PacketSetRemoteInventoryCache.Client());
+        ClientPlayNetworking.registerGlobalReceiver(PacketRequestTemplate.TYPE, PacketRequestTemplate.Client::handle);
+        ClientPlayNetworking.registerGlobalReceiver(SplitPacketUpdateTemplate.TYPE, SplitPacketUpdateTemplate.Client::handle);
+        ClientPlayNetworking.registerGlobalReceiver(PacketSetRemoteInventoryCache.TYPE, PacketSetRemoteInventoryCache.Client::handle);
     }
 }

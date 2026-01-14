@@ -4,25 +4,34 @@ import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 import com.direwolf20.buildinggadgets.common.items.GadgetDestruction;
 import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
 
-public class PacketToggleFluidOnly implements ServerPlayNetworking.PlayChannelHandler {
+public record PacketToggleFluidOnly() implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<PacketToggleFluidOnly> TYPE =
+            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleFluidOnly);
+
+    public static final StreamCodec<FriendlyByteBuf, PacketToggleFluidOnly> CODEC = StreamCodec.of(
+            (buf, packet) -> {},
+            buf -> new PacketToggleFluidOnly()
+    );
 
     public static void send() {
-        ClientPlayNetworking.send(PacketHandler.PacketToggleFluidOnly, PacketByteBufs.empty());
+        ClientPlayNetworking.send(new PacketToggleFluidOnly());
     }
 
     @Override
-    public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        server.execute(() -> {
-            ItemStack stack = AbstractGadget.getGadget(player);
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(PacketToggleFluidOnly payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ItemStack stack = AbstractGadget.getGadget(context.player());
             if (stack.getItem() instanceof GadgetDestruction) {
                 GadgetDestruction.toggleFluidMode(stack);
             }

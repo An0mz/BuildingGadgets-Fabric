@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -188,13 +189,21 @@ class ScrollingMaterialList extends EntryList<Entry> {
         private void drawHoveringText(ItemStack item, int slotX, int slotY, int mouseX, int mouseY) {
             if (isPointInBox(mouseX, mouseY, slotX, slotY, 18, 18)) {
                 Minecraft mc = Minecraft.getInstance();
+
+                Item.TooltipContext tooltipContext = Item.TooltipContext.of(mc.level);
+
                 List tooltip = (List) item.getTooltipLines(
+                        tooltipContext,
                         mc.player,
-                        mc.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL
+                        mc.options.advancedItemTooltips
+                                ? TooltipFlag.Default.ADVANCED
+                                : TooltipFlag.Default.NORMAL
                 );
+
                 parent.gui.setTaskHoveringText(mouseX, mouseY, (java.util.List<Component>) tooltip);
             }
         }
+
 
 
         private void drawIcon(PoseStack matrices, ItemStack item, int slotX, int slotY) {

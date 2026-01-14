@@ -6,41 +6,43 @@ import com.direwolf20.buildinggadgets.common.items.GadgetCopyPaste;
 import com.direwolf20.buildinggadgets.common.items.GadgetExchanger;
 import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
 
-public class PacketToggleMode implements ServerPlayNetworking.PlayChannelHandler {
+public record PacketToggleMode(int mode) implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<PacketToggleMode> TYPE =
+            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleMode);
+
+    public static final StreamCodec<FriendlyByteBuf, PacketToggleMode> CODEC = StreamCodec.of(
+            (buf, packet) -> buf.writeInt(packet.mode),
+            buf -> new PacketToggleMode(buf.readInt())
+    );
 
     public static void send(int mode) {
-        FriendlyByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(mode);
-        ClientPlayNetworking.send(PacketHandler.PacketToggleMode, buf);
+        ClientPlayNetworking.send(new PacketToggleMode(mode));
     }
 
     @Override
-    public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        int mode = buf.readInt();
-        server.execute(() -> {
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
-            ItemStack heldItem = AbstractGadget.getGadget(player);
+    public static void handle(PacketToggleMode payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ItemStack heldItem = AbstractGadget.getGadget(context.player());
             if (heldItem.isEmpty())
                 return;
 
-            if (heldItem.getItem() instanceof GadgetBuilding) {
-                GadgetBuilding gadgetBuilding = (GadgetBuilding) (heldItem.getItem());
-                gadgetBuilding.setMode(heldItem, mode);
-            } else if (heldItem.getItem() instanceof GadgetExchanger) {
-                GadgetExchanger gadgetExchanger = (GadgetExchanger) (heldItem.getItem());
-                gadgetExchanger.setMode(heldItem, mode);
-            } else if (heldItem.getItem() instanceof GadgetCopyPaste) {
-                GadgetCopyPaste gadgetCopyPaste = (GadgetCopyPaste) (heldItem.getItem());
-                gadgetCopyPaste.setMode(heldItem, mode);
+            if (heldItem.getItem() instanceof GadgetBuilding gadgetBuilding) {
+                gadgetBuilding.setMode(heldItem, payload.mode);
+            } else if (heldItem.getItem() instanceof GadgetExchanger gadgetExchanger) {
+                gadgetExchanger.setMode(heldItem, payload.mode);
+            } else if (heldItem.getItem() instanceof GadgetCopyPaste gadgetCopyPaste) {
+                gadgetCopyPaste.setMode(heldItem, payload.mode);
             }
         });
     }

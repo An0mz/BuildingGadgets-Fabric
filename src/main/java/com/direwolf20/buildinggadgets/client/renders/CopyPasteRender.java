@@ -257,7 +257,6 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         }
 
         public void render(Matrix4f modelViewMatrix) {
-            RenderSystem.setShader(GameRenderer::getPositionTexLightmapColorShader);
             buffers.forEach((rt, vbo) -> {
 
                 rt.setupRenderState();

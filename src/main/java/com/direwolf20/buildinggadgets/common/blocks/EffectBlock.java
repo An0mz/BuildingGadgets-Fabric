@@ -55,7 +55,7 @@ public class EffectBlock extends BaseEntityBlock {
                 world.sendBlockUpdated(targetPos, targetBlock.getState(), targetBlock.getState(), Block.UPDATE_ALL);
 
                 BlockPos upPos = targetPos.above();
-                world.getBlockState(targetPos).neighborChanged(world, targetPos, world.getBlockState(upPos).getBlock(), upPos, false);
+                world.neighborChanged(targetPos, world.getBlockState(upPos).getBlock(), upPos);
             }
         },
         REMOVE() {

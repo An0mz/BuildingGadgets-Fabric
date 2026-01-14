@@ -43,6 +43,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.item.Item;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -326,7 +327,18 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             int zoneY = (topPos - 9) + (20 + (index * space));
 
             if (mouseX > zoneX && mouseX < (zoneX + space) && mouseY > zoneY && mouseY < (zoneY + space)) {
-                guiGraphics.renderTooltip(getMinecraft().font, (Component) stack.getTooltipLines(getMinecraft().player, TooltipFlag.Default.NORMAL), mouseX, mouseY);
+                List<Component> tooltip = stack.getTooltipLines(
+                        Item.TooltipContext.of(getMinecraft().level),
+                        getMinecraft().player,
+                        TooltipFlag.Default.NORMAL
+                );
+
+                guiGraphics.renderTooltip(
+                        getMinecraft().font,
+                        (Component) tooltip,
+                        mouseX,
+                        mouseY
+                );
             }
 
             index++;
@@ -423,7 +435,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
         Matrix4f perspectiveMatrix = new Matrix4f();
         perspectiveMatrix.perspective(60f, (float) panel.getWidth() / panel.getHeight(), 0.01f, 4000f);
-        pose.mulPoseMatrix(perspectiveMatrix);
+        pose.mulPose(perspectiveMatrix);
         RenderSystem.viewport((int) Math.round((leftPos + panel.getX()) * scale),
                 (int) Math.round(getMinecraft().getWindow().getHeight() - (topPos + panel.getY() + panel.getHeight()) * scale),
                 (int) Math.round(panel.getWidth() * scale),

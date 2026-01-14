@@ -1,30 +1,47 @@
 package com.direwolf20.buildinggadgets.common.enchants;
 
-import com.chocohead.mm.api.ClassTinkerers;
-import net.minecraft.world.entity.EquipmentSlot;
+import com.direwolf20.buildinggadgets.common.util.ref.Reference;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
-public class GadgetSilkTouch extends Enchantment {
+public class GadgetSilkTouch {
 
-    public static Enchantment GADGET_SILKTOUCH = new GadgetSilkTouch(Rarity.VERY_RARE, EquipmentSlot.MAINHAND);
+    // ResourceKey to reference the enchantment
+    public static final ResourceKey<Enchantment> GADGET_SILKTOUCH_KEY =
+            ResourceKey.create(Registries.ENCHANTMENT, new ResourceLocation(Reference.MODID, "gadget_silktouch"));
 
-    protected GadgetSilkTouch(Rarity rarity, EquipmentSlot... equipmentSlots) {
-        super(rarity, ClassTinkerers.getEnum(EnchantmentCategory.class, "EXCHANGE"), equipmentSlots);
+    /**
+     * Check if an ItemStack has the Gadget Silk Touch enchantment
+     */
+    public static boolean hasSilkTouch(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        return EnchantmentHelper.getItemEnchantmentLevel(getEnchantment(), stack) > 0;
     }
 
-    @Override
-    public int getMinCost(int level) {
-        return 15;
+    /**
+     * Get the level of Gadget Silk Touch on an ItemStack
+     */
+    public static int getSilkTouchLevel(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+
+        return EnchantmentHelper.getItemEnchantmentLevel(getEnchantment(), stack);
     }
 
-    @Override
-    public int getMaxCost(int level) {
-        return super.getMinCost(level) + 50;
-    }
-
-    @Override
-    public int getMaxLevel() {
-        return 1;
+    /**
+     * Get the Enchantment instance (nullable - returns null if not registered)
+     */
+    public static Enchantment getEnchantment() {
+        return BuiltInRegistries.ENCHANTMENT.get(GADGET_SILKTOUCH_KEY);
     }
 }

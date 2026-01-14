@@ -21,11 +21,13 @@ import com.google.common.collect.Multisets;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -41,9 +43,9 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
 
     public static Undo deserialize(CompoundTag nbt) {
         Preconditions.checkArgument(nbt.contains(NBTKeys.WORLD_SAVE_DIM, NbtType.STRING)
-                                    && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST, NbtType.LIST)
-                                    && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_LIST, NbtType.LIST)
-                                    && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST, NbtType.LIST));
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST, NbtType.LIST)
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_LIST, NbtType.LIST)
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST, NbtType.LIST));
         DataDecompressor<ITileDataSerializer> serializerReverseObjectIncrementer = new DataDecompressor<>(
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST),
                 inbt -> {
@@ -69,7 +71,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 value -> HashMultiset.create());
         Map<BlockPos, BlockInfo> map = NBTHelper.deserializeMap(
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST), new HashMap<>(),
-                inbt -> NbtUtils.readBlockPos((CompoundTag) inbt),
+                inbt -> NbtUtils.readBlockPos((CompoundTag) inbt, "pos").orElse(BlockPos.ZERO),
                 inbt -> BlockInfo.deserialize((CompoundTag) inbt, dataReverseObjectIncrementer, itemSetReverseObjectIncrementer));
 
         ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, new ResourceLocation(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
@@ -80,8 +82,19 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
     private static Tuple<ItemVariant, Integer> readEntry(Tag inbt) {
         CompoundTag nbt = (CompoundTag) inbt;
         int count = nbt.getInt(NBTKeys.UNIQUE_ITEM_COUNT);
-        ItemVariant item = ItemVariant.fromNbt(nbt.getCompound(NBTKeys.UNIQUE_ITEM_ITEM));
-        return new Tuple<>(item, count);
+
+        // Deserialize ItemVariant from NBT
+        CompoundTag itemData = nbt.getCompound(NBTKeys.UNIQUE_ITEM_ITEM);
+        ResourceLocation itemId = new ResourceLocation(itemData.getString("item"));
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+
+        DataComponentPatch components = DataComponentPatch.CODEC
+                .parse(NbtOps.INSTANCE, itemData.get("components"))
+                .resultOrPartial(error -> {})
+                .orElse(DataComponentPatch.EMPTY);
+
+        ItemVariant variant = ItemVariant.of(item, components);
+        return new Tuple<>(variant, count);
     }
 
     public static Builder builder() {
@@ -102,7 +115,11 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
         DataCompressor<ITileDataSerializer> serializerObjectIncrementer = new DataCompressor<>();
         CompoundTag res = new CompoundTag();
 
-        ListTag infoList = NBTHelper.serializeMap(dataMap, NbtUtils::writeBlockPos, i -> i.serialize(dataObjectIncrementer, itemObjectIncrementer));
+        ListTag infoList = NBTHelper.serializeMap(dataMap, pos -> {
+            CompoundTag tag = new CompoundTag();
+            tag.put("pos", NbtUtils.writeBlockPos(pos));
+            return tag;
+        }, i -> i.serialize(dataObjectIncrementer, itemObjectIncrementer));
         ListTag dataList = dataObjectIncrementer.write(d -> d.serialize(serializerObjectIncrementer, true));
         ListTag itemSetList = itemObjectIncrementer.write(ms -> NBTHelper.writeIterable(ms.entrySet(), this::writeEntry));
         ListTag dataSerializerList = serializerObjectIncrementer.write(ts -> StringTag.valueOf(Registries.getTileDataSerializers().getKey(ts).toString()));
@@ -119,7 +136,17 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
 
     private CompoundTag writeEntry(Entry<ItemVariant> entry) {
         CompoundTag res = new CompoundTag();
-        res.put(NBTKeys.UNIQUE_ITEM_ITEM, entry.getElement().toNbt());
+
+        // Serialize ItemVariant to NBT
+        ItemVariant variant = entry.getElement();
+        CompoundTag itemData = new CompoundTag();
+        itemData.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
+
+        DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+                .resultOrPartial(error -> {})
+                .ifPresent(tag -> itemData.put("components", tag));
+
+        res.put(NBTKeys.UNIQUE_ITEM_ITEM, itemData);
         res.putInt(NBTKeys.UNIQUE_ITEM_COUNT, entry.getCount());
         return res;
     }

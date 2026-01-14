@@ -5,6 +5,7 @@ import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.MaterialList;
 import com.direwolf20.buildinggadgets.common.tainted.template.SerialisationSupport;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +17,16 @@ public record NBTTileEntityData(@NotNull CompoundTag nbt,
                                 @Nullable MaterialList requiredMaterials) implements ITileEntityData {
     public static NBTTileEntityData ofTile(BlockEntity be) {
         CompoundTag nbt = new CompoundTag();
-        be.saveWithId();
+        HolderLookup.Provider registries = be.getLevel() != null
+                ? be.getLevel().registryAccess()
+                : null;
+
+        if (registries != null) {
+            nbt = be.saveWithId(registries);
+        } else {
+            BuildingGadgets.LOG.warn("Unable to get registry access for BlockEntity at {}, saving without full context", be.getBlockPos());
+        }
+
         return new NBTTileEntityData(nbt, null);
     }
 
@@ -39,7 +49,9 @@ public record NBTTileEntityData(@NotNull CompoundTag nbt,
         BlockEntity be = context.getWorld().getBlockEntity(position);
         if (be != null) {
             try {
-                be.load(getNBTModifiable());
+                // In 1.20.6, loadWithComponents requires HolderLookup.Provider
+                HolderLookup.Provider registries = context.getWorld().registryAccess();
+                be.loadWithComponents(getNBTModifiable(), registries);
             } catch (Exception e) {
                 BuildingGadgets.LOG.debug("Failed to apply Tile NBT Data to {} at {} in Context {}", state, position, context, e);
             }

@@ -14,12 +14,13 @@ public class MyRenderMethods {
             float f = 1f;
             float f1 = 1f;
             float f2 = 1f;
+            float f3 = alpha;
             if (bakedquad.isTinted()) {
                 f = red;
                 f1 = green;
                 f2 = blue;
             }
-            builder.putBulkData(matrixEntry, bakedquad, f, f1, f2, combinedLightsIn, combinedOverlayIn);
+            builder.putBulkData(matrixEntry, bakedquad, f, f1, f2, f3, combinedLightsIn, combinedOverlayIn);
         }
     }
 }

@@ -8,6 +8,7 @@ import com.direwolf20.buildinggadgets.common.commands.ForceUnloadedCommand;
 import com.direwolf20.buildinggadgets.common.commands.OverrideBuildSizeCommand;
 import com.direwolf20.buildinggadgets.common.commands.OverrideCopySizeCommand;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool;
 import com.direwolf20.buildinggadgets.common.network.Target;
 import com.direwolf20.buildinggadgets.common.tainted.building.PlacementChecker;
@@ -27,17 +28,13 @@ import com.direwolf20.buildinggadgets.common.util.Additions;
 import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.direwolf20.buildinggadgets.common.util.lang.*;
-import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.TagReference;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedSet;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.PacketFlow;
@@ -111,7 +108,6 @@ public class GadgetCopyPaste extends AbstractGadget {
         return BuildingGadgets.getConfig().gadgets.gadgetCopyPaste.energyCost;
     }
 
-
     @Override
     public long getEnergyMaxOutput() {
         return 10000;
@@ -140,25 +136,20 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     public static void setRelativeVector(ItemStack stack, BlockPos vec) {
-        CompoundTag nbt = stack.getOrCreateTag();
-
         if (vec.equals(BlockPos.ZERO)) {
-            nbt.remove(NBTKeys.GADGET_REL_POS);
+            stack.remove(BGDataComponents.RELATIVE_VECTOR);
         } else {
-            nbt.put(NBTKeys.GADGET_REL_POS, NbtUtils.writeBlockPos(vec));
+            stack.set(BGDataComponents.RELATIVE_VECTOR, vec);
         }
     }
 
     public static BlockPos getRelativeVector(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        // If not present, then this will just return (0, 0, 0)
-        return NbtUtils.readBlockPos(nbt.getCompound(NBTKeys.GADGET_REL_POS));
+        return stack.getOrDefault(BGDataComponents.RELATIVE_VECTOR, BlockPos.ZERO);
     }
 
     public static int getAndIncrementCopyCounter(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        int count = nbt.getInt(NBTKeys.TEMPLATE_COPY_COUNT); // Returns 0 if not present
-        nbt.putInt(NBTKeys.TEMPLATE_COPY_COUNT, count + 1);
+        int count = stack.getOrDefault(BGDataComponents.COPY_COUNTER, 0);
+        stack.set(BGDataComponents.COPY_COUNTER, count + 1);
         return count;
     }
 
@@ -200,51 +191,38 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     public static void setUpperRegionBound(ItemStack stack, @Nullable BlockPos pos) {
-        CompoundTag nbt = stack.getOrCreateTag();
-
         if (pos != null) {
-            nbt.put(NBTKeys.GADGET_START_POS, NbtUtils.writeBlockPos(pos));
+            stack.set(BGDataComponents.UPPER_REGION_BOUND, pos);
         } else {
-            nbt.remove(NBTKeys.GADGET_START_POS);
+            stack.remove(BGDataComponents.UPPER_REGION_BOUND);
         }
     }
 
     public static void setLowerRegionBound(ItemStack stack, @Nullable BlockPos pos) {
-        CompoundTag nbt = stack.getOrCreateTag();
         if (pos != null) {
-            nbt.put(NBTKeys.GADGET_END_POS, NbtUtils.writeBlockPos(pos));
+            stack.set(BGDataComponents.LOWER_REGION_BOUND, pos);
         } else {
-            nbt.remove(NBTKeys.GADGET_END_POS);
+            stack.remove(BGDataComponents.LOWER_REGION_BOUND);
         }
     }
 
     @Nullable
     public static BlockPos getUpperRegionBound(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        if (nbt.contains(NBTKeys.GADGET_START_POS, NbtType.COMPOUND)) {
-            return NbtUtils.readBlockPos(nbt.getCompound(NBTKeys.GADGET_START_POS));
-        }
-        return null;
+        return stack.get(BGDataComponents.UPPER_REGION_BOUND);
     }
 
     @Nullable
     public static BlockPos getLowerRegionBound(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        if (nbt.contains(NBTKeys.GADGET_END_POS, NbtType.COMPOUND)) {
-            return NbtUtils.readBlockPos(nbt.getCompound(NBTKeys.GADGET_END_POS));
-        }
-        return null;
+        return stack.get(BGDataComponents.LOWER_REGION_BOUND);
     }
 
     private static void setToolMode(ItemStack stack, ToolMode mode) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        tagCompound.putInt(NBTKeys.GADGET_MODE, mode.ordinal());
-        stack.setTag(tagCompound);
+        stack.set(BGDataComponents.COPYPASTE_MODE, mode.name());
     }
 
     public static ToolMode getToolMode(ItemStack stack) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        return ToolMode.values()[tagCompound.getByte(NBTKeys.GADGET_MODE)];
+        String modeName = stack.getOrDefault(BGDataComponents.COPYPASTE_MODE, ToolMode.COPY.name());
+        return ToolMode.valueOf(modeName);
     }
 
     @Override
@@ -263,9 +241,8 @@ public class GadgetCopyPaste extends AbstractGadget {
         return stack;
     }
 
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+        super.appendHoverText(stack, (TooltipContext) world, tooltip, flag);
         addEnergyInformation(tooltip, stack);
 
         tooltip.add(TooltipTranslation.GADGET_MODE.componentTranslation(getToolMode(stack).translation.format()).setStyle(Styles.AQUA));
@@ -274,7 +251,6 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
-        // Called when we specify a mode with the radial menu
         ToolMode mode = ToolMode.values()[modeInt];
         setToolMode(heldItem, mode);
     }
@@ -341,7 +317,6 @@ public class GadgetCopyPaste extends AbstractGadget {
         Optional<Region> regionOpt = getSelectedRegion(stack);
 
         if (regionOpt.isEmpty()) {
-            // Notify of single copy
             player.displayClientMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN), true);
         } else {
             tryCopy(stack, world, player, regionOpt.get());
@@ -372,8 +347,8 @@ public class GadgetCopyPaste extends AbstractGadget {
 
         int maxDimension = BuildingGadgets.getConfig().gadgets.gadgetCopyPaste.maxCopySize;
 
-        if (region.getXSize() > 0xFFFF || region.getYSize() > 255 || region.getZSize() > 0xFFFF ||  //these are the max dimensions of a Template
-            ((region.getXSize() > maxDimension || region.getYSize() > maxDimension || region.getZSize() > maxDimension) && !OverrideCopySizeCommand.mayPerformLargeCopy(player))) {
+        if (region.getXSize() > 0xFFFF || region.getYSize() > 255 || region.getZSize() > 0xFFFF ||
+                ((region.getXSize() > maxDimension || region.getYSize() > maxDimension || region.getZSize() > maxDimension) && !OverrideCopySizeCommand.mayPerformLargeCopy(player))) {
             BlockPos sizeVec = region.getMax().subtract(region.getMin());
             player.displayClientMessage(MessageTranslation.COPY_TOO_LARGE
                     .componentTranslation(sizeVec.getX(), sizeVec.getY(), sizeVec.getZ(), Math.min(maxDimension, 0xFFFF), Math.min(maxDimension, 255), Math.min(maxDimension, 0xFFFF))
@@ -441,7 +416,7 @@ public class GadgetCopyPaste extends AbstractGadget {
         int maxDimension = BuildingGadgets.getConfig().gadgets.gadgetCopyPaste.maxBuildSize;
 
         if ((region.getXSize() > maxDimension || region.getYSize() > maxDimension || region.getZSize() > maxDimension) &&
-            !OverrideBuildSizeCommand.mayPerformLargeBuild(player)) {
+                !OverrideBuildSizeCommand.mayPerformLargeBuild(player)) {
             BlockPos sizeVec = region.getMax().subtract(region.getMin());
             player.displayClientMessage(MessageTranslation.BUILD_TOO_LARGE
                     .componentTranslation(sizeVec.getX(), sizeVec.getY(), sizeVec.getZ(), maxDimension, maxDimension, maxDimension)

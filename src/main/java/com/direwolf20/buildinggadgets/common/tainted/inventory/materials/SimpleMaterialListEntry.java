@@ -9,13 +9,14 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.util.NbtType;
-import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -59,9 +60,21 @@ record SimpleMaterialListEntry(
             ImmutableMultiset.Builder<ItemVariant> builder = ImmutableMultiset.builder();
             for (Tag nbtEntry : nbtList) {
                 CompoundTag compoundEntry = (CompoundTag) nbtEntry;
-                builder.addCopies(
-                        ItemVariant.fromNbt((compoundEntry.getCompound(NBTKeys.KEY_DATA))),
-                        compoundEntry.getInt(NBTKeys.KEY_COUNT));
+                CompoundTag itemData = compoundEntry.getCompound(NBTKeys.KEY_DATA);
+
+                // Read Item
+                ResourceLocation itemId = new ResourceLocation(itemData.getString("item"));
+                Item item = BuiltInRegistries.ITEM.get(itemId);
+
+                // Read DataComponentPatch
+                DataComponentPatch components = DataComponentPatch.CODEC
+                        .parse(NbtOps.INSTANCE, itemData.get("components"))
+                        .resultOrPartial(error -> {})
+                        .orElse(DataComponentPatch.EMPTY);
+
+                ItemVariant variant = ItemVariant.of(item, components);
+                int count = compoundEntry.getInt(NBTKeys.KEY_COUNT);
+                builder.addCopies(variant, count);
             }
             return new SimpleMaterialListEntry(builder.build());
         }
@@ -72,7 +85,19 @@ record SimpleMaterialListEntry(
             ListTag nbtList = new ListTag();
             for (Entry<ItemVariant> entry : listEntry.getItems().entrySet()) {
                 CompoundTag nbtEntry = new CompoundTag();
-                nbtEntry.put(NBTKeys.KEY_DATA, entry.getElement().toNbt());
+                CompoundTag itemData = new CompoundTag();
+
+                ItemVariant variant = entry.getElement();
+
+                // Write Item
+                itemData.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
+
+                // Write DataComponentPatch
+                DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+                        .resultOrPartial(error -> {})
+                        .ifPresent(tag -> itemData.put("components", tag));
+
+                nbtEntry.put(NBTKeys.KEY_DATA, itemData);
                 nbtEntry.putInt(NBTKeys.KEY_COUNT, entry.getCount());
                 nbtList.add(nbtEntry);
             }
@@ -86,7 +111,16 @@ record SimpleMaterialListEntry(
                 Multiset<ItemVariant> set = src.getItems();
                 JsonArray jsonArray = new JsonArray();
                 for (Entry<ItemVariant> entry : ImmutableList.sortedCopyOf(COMPARATOR, set.entrySet())) {
-                    JsonElement element = Dynamic.convert(NbtOps.INSTANCE, JsonOps.INSTANCE, entry.getElement().toNbt());
+                    ItemVariant variant = entry.getElement();
+
+                    // Serialize to NBT first, then convert to JSON
+                    CompoundTag itemNbt = new CompoundTag();
+                    itemNbt.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
+                    DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+                            .resultOrPartial(error -> {})
+                            .ifPresent(tag -> itemNbt.put("components", tag));
+
+                    JsonElement element = Dynamic.convert(NbtOps.INSTANCE, JsonOps.INSTANCE, itemNbt);
                     JsonObject obj = new JsonObject();
                     obj.addProperty(JsonKeys.MATERIAL_LIST_ITEM_COUNT, entry.getCount());
                     obj.add(JsonKeys.MATERIAL_LIST_ITEM, element);
@@ -104,8 +138,20 @@ record SimpleMaterialListEntry(
                 for (JsonElement element : array) {
                     JsonObject object = element.getAsJsonObject();
                     int count = object.getAsJsonPrimitive(JsonKeys.MATERIAL_LIST_ITEM_COUNT).getAsInt();
-                    ItemVariant item = ItemVariant.fromNbt((CompoundTag) Dynamic.convert(JsonOps.INSTANCE, NbtOps.INSTANCE, object.get(JsonKeys.MATERIAL_LIST_ITEM)));
-                    items.addCopies(item, count);
+
+                    // Convert JSON to NBT, then deserialize
+                    CompoundTag itemNbt = (CompoundTag) Dynamic.convert(JsonOps.INSTANCE, NbtOps.INSTANCE, object.get(JsonKeys.MATERIAL_LIST_ITEM));
+
+                    ResourceLocation itemId = new ResourceLocation(itemNbt.getString("item"));
+                    Item item = BuiltInRegistries.ITEM.get(itemId);
+
+                    DataComponentPatch components = DataComponentPatch.CODEC
+                            .parse(NbtOps.INSTANCE, itemNbt.get("components"))
+                            .resultOrPartial(error -> {})
+                            .orElse(DataComponentPatch.EMPTY);
+
+                    ItemVariant variant = ItemVariant.of(item, components);
+                    items.addCopies(variant, count);
                 }
                 return new SimpleMaterialListEntry(items.build());
             };

@@ -71,7 +71,6 @@ public abstract class TimedDataSave<T extends TimedValue> extends SavedData {
         }
     }
 
-    @Override
     public CompoundTag save(CompoundTag compound) {
         ListTag data = NBTHelper.serializeUUIDMap(idToValue, TimedValue::write);
         compound.put(NBTKeys.WORD_SAVE_DATA_MAP, data);

@@ -1,8 +1,8 @@
 package com.direwolf20.buildinggadgets.common.util;
 
-import com.direwolf20.buildinggadgets.client.EventUtil;
 import com.direwolf20.buildinggadgets.common.blocks.EffectBlock;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 import com.direwolf20.buildinggadgets.common.items.GadgetBuilding;
 import com.direwolf20.buildinggadgets.common.items.GadgetExchanger;
@@ -19,18 +19,12 @@ import com.direwolf20.buildinggadgets.common.util.lang.Styles;
 import com.direwolf20.buildinggadgets.common.util.lang.TooltipTranslation;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.mojang.datafixers.types.templates.Tag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -53,12 +47,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class GadgetUtils {
     private static final ImmutableList<Block> DISALLOWED_BLOCKS = ImmutableList.of(
-                    Blocks.END_PORTAL, Blocks.NETHER_PORTAL, Blocks.END_PORTAL_FRAME, Blocks.BEDROCK, Blocks.SPAWNER
-            );
+            Blocks.END_PORTAL, Blocks.NETHER_PORTAL, Blocks.END_PORTAL_FRAME, Blocks.BEDROCK, Blocks.SPAWNER
+    );
 
     private static final ImmutableList<String> LINK_STARTS = ImmutableList.of("http", "www");
 
@@ -79,7 +72,6 @@ public class GadgetUtils {
         });
     }
 
-
     @Nullable
     public static ByteArrayOutputStream getPasteStream(@NotNull CompoundTag compound, @Nullable String name) throws IOException {
         CompoundTag withText = name != null && !name.isEmpty() ? compound.copy() : compound;
@@ -94,39 +86,27 @@ public class GadgetUtils {
     }
 
     public static void setAnchor(ItemStack stack, List<BlockPos> coordinates) {
-        //Store 1 set of BlockPos in NBT to anchor the Ghost Blocks in the world when the anchor key is pressed
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        tagCompound.put(NBTKeys.GADGET_ANCHOR_COORDS, coordinates.stream().map(NbtUtils::writeBlockPos).collect(Collectors.toCollection(ListTag::new)));
-        stack.setTag(tagCompound);
+        if (coordinates.isEmpty()) {
+            stack.remove(BGDataComponents.ANCHOR_COORDS);
+        } else {
+            stack.set(BGDataComponents.ANCHOR_COORDS, coordinates);
+        }
     }
 
     public static Optional<List<BlockPos>> getAnchor(ItemStack stack) {
-        //Return the list of coordinates in the NBT Tag for anchor Coordinates
-        CompoundTag tagCompound = stack.getTag();
-        if (tagCompound == null)
+        List<BlockPos> coords = stack.get(BGDataComponents.ANCHOR_COORDS);
+        if (coords == null || coords.isEmpty()) {
             return Optional.empty();
-
-        ListTag coordList = (ListTag) tagCompound.get(NBTKeys.GADGET_ANCHOR_COORDS);
-        if (coordList == null || coordList.size() == 0)
-            return Optional.empty();
-
-        List<BlockPos> coordinates = new ArrayList<>();
-        for (int i = 0; i < coordList.size(); i++) {
-            coordinates.add(NbtUtils.readBlockPos(coordList.getCompound(i)));
         }
-
-        return Optional.of(coordinates);
+        return Optional.of(coords);
     }
 
     public static void setToolRange(ItemStack stack, int range) {
-        //Store the tool's range in NBT as an Integer
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        tagCompound.putInt("range", range);
+        stack.set(BGDataComponents.TOOL_RANGE, range);
     }
 
     public static int getToolRange(ItemStack stack) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        return Mth.clamp(tagCompound.getInt("range"), 1, 15);
+        return Mth.clamp(stack.getOrDefault(BGDataComponents.TOOL_RANGE, 1), 1, 15);
     }
 
     public static BlockData rotateOrMirrorBlock(Player player, PacketRotateMirror.Operation operation, BlockData data) {
@@ -141,20 +121,22 @@ public class GadgetUtils {
     }
 
     private static void setToolBlock(ItemStack stack, @Nullable BlockData data) {
-        //Store the selected block in the tool's NBT
-        CompoundTag tagCompound = stack.getOrCreateTag();
         if (data == null)
             data = BlockData.AIR;
 
         CompoundTag stateTag = data.serialize(true);
-        tagCompound.put(NBTKeys.MAP_STATE, stateTag);
-        stack.setTag(tagCompound);
+        stack.set(BGDataComponents.TOOL_BLOCK, stateTag);
     }
 
     @NotNull
     public static BlockData getToolBlock(ItemStack stack) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-        BlockData res = BlockData.tryDeserialize(tagCompound.getCompound(NBTKeys.MAP_STATE), true);
+        CompoundTag stateTag = stack.get(BGDataComponents.TOOL_BLOCK);
+        if (stateTag == null) {
+            setToolBlock(stack, BlockData.AIR);
+            return BlockData.AIR;
+        }
+
+        BlockData res = BlockData.tryDeserialize(stateTag, true);
         if (res == null) {
             setToolBlock(stack, BlockData.AIR);
             return BlockData.AIR;
@@ -173,7 +155,6 @@ public class GadgetUtils {
     }
 
     public static InteractionResultHolder<Block> selectBlock(ItemStack stack, Player player) {
-        // Used to find which block the player is looking at, and store it in NBT on the tool.
         Level world = player.level();
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, AbstractGadget.shouldRayTraceFluid(stack) ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
         if (world.isEmptyBlock(lookingAt.getBlockPos()))
@@ -193,8 +174,7 @@ public class GadgetUtils {
 
         Optional<BlockData> data = InventoryHelper.getSafeBlockData(player, lookingAt.getBlockPos(), player.getUsedItemHand());
         data.ifPresent(placeState -> {
-            BlockState actualState = placeState.getState(); //.getExtendedState(world, lookingAt.getPos()); 1.14 @todo: fix?
-
+            BlockState actualState = placeState.getState();
             setToolBlock(stack, new BlockData(actualState, placeState.getTileData()));
         });
 
@@ -206,26 +186,22 @@ public class GadgetUtils {
         if (be == null)
             return InteractionResult.PASS;
 
-
         return InteractionResult.FAIL;
     }
 
     public static boolean anchorBlocks(Player player, ItemStack stack) {
-        //Stores the current visual blocks in NBT on the tool, so the player can look around without moving the visual render
         Optional<List<BlockPos>> anchorCoords = getAnchor(stack);
 
-        if (anchorCoords.isPresent()) {  //If theres already an anchor, remove it.
+        if (anchorCoords.isPresent()) {
             setAnchor(stack);
             player.displayClientMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA), true);
             return true;
         }
 
-        //If we don't have an anchor, find the block we're supposed to anchor to
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, stack);
         BlockPos startBlock = lookingAt.getBlockPos();
         Direction sideHit = lookingAt.getDirection();
 
-        //If we aren't looking at anything, exit
         if (player.level().isEmptyBlock(startBlock))
             return false;
 
@@ -236,7 +212,7 @@ public class GadgetUtils {
                 ? GadgetBuilding.getToolMode(stack).getMode().getCollection(context, player)
                 : GadgetExchanger.getToolMode(stack).getMode().getCollection(context, player);
 
-        setAnchor(stack, coords); //Set the anchor NBT
+        setAnchor(stack, coords);
         player.displayClientMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA), true);
 
         return true;
@@ -251,28 +227,16 @@ public class GadgetUtils {
     }
 
     public static void writePOSToNBT(ItemStack stack, @Nullable BlockPos pos, String tagName) {
-        CompoundTag tagCompound = stack.getOrCreateTag();
-
-        if (pos == null) {
-            if (tagCompound.get(tagName) != null) {
-                tagCompound.remove(tagName);
-                stack.setTag(tagCompound);
-            }
-            return;
-        }
-        tagCompound.put(tagName, NbtUtils.writeBlockPos(pos));
-        stack.setTag(tagCompound);
+        // This method is kept for compatibility with AbstractGadget.getAnchor/setAnchor
+        // which use BGDataComponents.ANCHOR directly
+        // Note: This is now handled by DataComponents in AbstractGadget
     }
-
 
     @Nullable
     public static BlockPos getPOSFromNBT(ItemStack stack, String tagName) {
-        CompoundTag stackTag = stack.getOrCreateTag();
-        if (!stackTag.contains(tagName))
-            return null;
-        CompoundTag posTag = stack.getOrCreateTag().getCompound(tagName);
-        if (posTag.isEmpty())
-            return null;
-        return NbtUtils.readBlockPos(posTag);
+        // This method is kept for compatibility with AbstractGadget.getAnchor
+        // which uses BGDataComponents.ANCHOR directly
+        // Note: This is now handled by DataComponents in AbstractGadget
+        return null;
     }
 }

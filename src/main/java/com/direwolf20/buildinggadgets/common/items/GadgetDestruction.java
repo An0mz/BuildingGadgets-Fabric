@@ -4,22 +4,19 @@ import com.direwolf20.buildinggadgets.client.screen.GuiMod;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.blocks.EffectBlock;
 import com.direwolf20.buildinggadgets.common.blocks.OurBlocks;
+import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.tainted.building.BlockData;
 import com.direwolf20.buildinggadgets.common.tainted.building.Region;
 import com.direwolf20.buildinggadgets.common.tainted.building.tilesupport.TileSupport;
 import com.direwolf20.buildinggadgets.common.tainted.save.Undo;
-import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.direwolf20.buildinggadgets.common.util.lang.Styles;
 import com.direwolf20.buildinggadgets.common.util.lang.TooltipTranslation;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.TagReference;
 import com.google.common.collect.ImmutableMultiset;
-import net.fabricmc.fabric.impl.client.rendering.fluid.FluidRenderHandlerRegistryImpl;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -60,9 +57,8 @@ public class GadgetDestruction extends AbstractGadget {
         return (int) (!getFuzzy(tool) ? BuildingGadgets.getConfig().gadgets.gadgetDestruction.nonFuzzyMultiplier : 1);
     }
 
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+        super.appendHoverText(stack, (TooltipContext) world, tooltip, flag);
         addEnergyInformation(tooltip, stack);
 
         tooltip.add(TooltipTranslation.GADGET_DESTROYWARNING
@@ -85,47 +81,56 @@ public class GadgetDestruction extends AbstractGadget {
         addInformationRayTraceFluid(tooltip, stack);
     }
 
-    public static void setAnchor(ItemStack stack, BlockPos pos) {
-        GadgetUtils.writePOSToNBT(stack, pos, NBTKeys.GADGET_ANCHOR);
-    }
-
     public static void setAnchorSide(ItemStack stack, Direction side) {
-        CompoundTag tag = stack.getOrCreateTag();
         if (side == null)
-            tag.remove(NBTKeys.GADGET_ANCHOR_SIDE);
+            stack.remove(BGDataComponents.ANCHOR_SIDE);
         else
-            tag.putString(NBTKeys.GADGET_ANCHOR_SIDE, side.getName());
+            stack.set(BGDataComponents.ANCHOR_SIDE, side.getName());
     }
 
     public static Direction getAnchorSide(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        String facing = tag.getString(NBTKeys.GADGET_ANCHOR_SIDE);
-        if (facing.isEmpty())
+        String facing = stack.get(BGDataComponents.ANCHOR_SIDE);
+        if (facing == null || facing.isEmpty())
             return null;
         return Direction.byName(facing);
     }
 
     public static void setToolValue(ItemStack stack, int value, String valueName) {
-        stack.getOrCreateTag().putInt(valueName, value);
+        // Map NBT key names to DataComponents
+        switch (valueName) {
+            case NBTKeys.GADGET_VALUE_LEFT -> stack.set(BGDataComponents.DESTRUCTION_LEFT, value);
+            case NBTKeys.GADGET_VALUE_RIGHT -> stack.set(BGDataComponents.DESTRUCTION_RIGHT, value);
+            case NBTKeys.GADGET_VALUE_UP -> stack.set(BGDataComponents.DESTRUCTION_UP, value);
+            case NBTKeys.GADGET_VALUE_DOWN -> stack.set(BGDataComponents.DESTRUCTION_DOWN, value);
+            case NBTKeys.GADGET_VALUE_DEPTH -> stack.set(BGDataComponents.DESTRUCTION_DEPTH, value);
+        }
     }
 
     public static int getToolValue(ItemStack stack, String valueName) {
-        return stack.getOrCreateTag().getInt(valueName);
+        // Map NBT key names to DataComponents
+        return switch (valueName) {
+            case NBTKeys.GADGET_VALUE_LEFT -> stack.getOrDefault(BGDataComponents.DESTRUCTION_LEFT, 0);
+            case NBTKeys.GADGET_VALUE_RIGHT -> stack.getOrDefault(BGDataComponents.DESTRUCTION_RIGHT, 0);
+            case NBTKeys.GADGET_VALUE_UP -> stack.getOrDefault(BGDataComponents.DESTRUCTION_UP, 0);
+            case NBTKeys.GADGET_VALUE_DOWN -> stack.getOrDefault(BGDataComponents.DESTRUCTION_DOWN, 0);
+            case NBTKeys.GADGET_VALUE_DEPTH -> stack.getOrDefault(BGDataComponents.DESTRUCTION_DEPTH, 0);
+            default -> 0;
+        };
     }
 
     public static boolean getOverlay(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.contains(NBTKeys.GADGET_OVERLAY))
-            return tag.getBoolean(NBTKeys.GADGET_OVERLAY);
+        Boolean overlay = stack.get(BGDataComponents.DESTRUCTION_OVERLAY);
+        if (overlay != null)
+            return overlay;
 
-        tag.putBoolean(NBTKeys.GADGET_OVERLAY, true);
-        tag.putBoolean(NBTKeys.GADGET_FUZZY, true);
-        stack.setTag(tag);// We want a Destruction Gadget to start with fuzzy=true
+        // Default values for new gadgets
+        stack.set(BGDataComponents.DESTRUCTION_OVERLAY, true);
+        stack.set(BGDataComponents.FUZZY, true);
         return true;
     }
 
     public static void setOverlay(ItemStack stack, boolean showOverlay) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_OVERLAY, showOverlay);
+        stack.set(BGDataComponents.DESTRUCTION_OVERLAY, showOverlay);
     }
 
     public static void switchOverlay(Player player, ItemStack stack) {
@@ -136,11 +141,12 @@ public class GadgetDestruction extends AbstractGadget {
     }
 
     public static boolean getIsFluidOnly(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(NBTKeys.GADGET_FLUID_ONLY);
+        return stack.getOrDefault(BGDataComponents.FLUID_ONLY, false);
     }
 
     public static void toggleFluidMode(ItemStack stack) {
-        stack.getOrCreateTag().putBoolean(NBTKeys.GADGET_FLUID_ONLY, !getIsFluidOnly(stack));
+        boolean current = getIsFluidOnly(stack);
+        stack.set(BGDataComponents.FLUID_ONLY, !current);
     }
 
     @Override
@@ -220,9 +226,9 @@ public class GadgetDestruction extends AbstractGadget {
 
     public static boolean isValidBlock(Level world, BlockPos voidPos, Player player, BlockState currentBlock) {
         if (world.isEmptyBlock(voidPos) ||
-            currentBlock.equals(OurBlocks.EFFECT_BLOCK.defaultBlockState()) ||
-            currentBlock.getDestroySpeed(world, voidPos) < 0 ||
-            !world.mayInteract(player, voidPos)) return false;
+                currentBlock.equals(OurBlocks.EFFECT_BLOCK.defaultBlockState()) ||
+                currentBlock.getDestroySpeed(world, voidPos) < 0 ||
+                !world.mayInteract(player, voidPos)) return false;
 
         BlockEntity be = world.getBlockEntity(voidPos);
         return (be == null);
@@ -276,16 +282,16 @@ public class GadgetDestruction extends AbstractGadget {
 
     @Override
     public long getEnergyCapacity(ItemStack stack) {
-        return 0;
+        return getEnergyCapacity();
     }
 
     @Override
     public long getEnergyMaxInput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxInput();
     }
 
     @Override
     public long getEnergyMaxOutput(ItemStack stack) {
-        return 0;
+        return getEnergyMaxOutput();
     }
 }

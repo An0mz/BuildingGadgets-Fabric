@@ -3,6 +3,7 @@ package com.direwolf20.buildinggadgets.common.tainted.save;
 import com.direwolf20.buildinggadgets.common.tainted.save.TemplateSave.TemplateInfo;
 import com.direwolf20.buildinggadgets.common.tainted.template.Template;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.UUID;
@@ -37,6 +38,11 @@ public final class TemplateSave extends TimedDataSave<TemplateInfo> {
     private TemplateInfo markDirtyAndUpdate(TemplateInfo info) {
         setDirty();
         return info.updateTime();
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        return null;
     }
 
     static final class TemplateInfo extends TimedDataSave.TimedValue { //for reasons I don't understand it doesn't compile if you leave the TimedDataSave out!
