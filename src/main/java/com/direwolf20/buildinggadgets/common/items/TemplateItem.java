@@ -2,8 +2,8 @@ package com.direwolf20.buildinggadgets.common.items;
 
 import com.direwolf20.buildinggadgets.client.screen.GuiMod;
 import com.direwolf20.buildinggadgets.client.screen.tooltip.TemplateData;
-import com.direwolf20.buildinggadgets.common.component.BGComponent;
 import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -45,11 +45,11 @@ public class TemplateItem extends Item {
 
     public static ItemStack getTemplateItem(Player player) {
         ItemStack mainhand = player.getMainHandItem();
-        if (BGComponent.TEMPLATE_KEY_COMPONENT.isProvidedBy(mainhand))
+        if (TemplateKeyHelper.hasTemplateKey(mainhand))
             return mainhand;
 
         ItemStack offhand = player.getOffhandItem();
-        if (BGComponent.TEMPLATE_KEY_COMPONENT.isProvidedBy(offhand))
+        if (TemplateKeyHelper.hasTemplateKey(offhand))
             return offhand;
         return ItemStack.EMPTY;
     }

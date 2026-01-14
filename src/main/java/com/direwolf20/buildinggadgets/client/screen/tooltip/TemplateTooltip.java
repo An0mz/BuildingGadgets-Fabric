@@ -11,6 +11,7 @@ import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
 import com.direwolf20.buildinggadgets.common.tainted.template.Template;
 import com.direwolf20.buildinggadgets.common.tainted.template.TemplateHeader;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -60,27 +61,30 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     private int getCount() {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(itemStack).ifPresent((ITemplateKey templateKey) -> {
-            Template template = provider.getTemplateForKey(templateKey);
-            IItemIndex index = InventoryHelper.index(itemStack, mc.player);
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
+            ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
+            if (templateKey != null) {
+                Template template = provider.getTemplateForKey(templateKey);
+                IItemIndex index = InventoryHelper.index(itemStack, mc.player);
 
-            BuildContext buildContext = BuildContext.builder()
-                    .stack(itemStack)
-                    .player(mc.player)
-                    .build(mc.level);
+                BuildContext buildContext = BuildContext.builder()
+                        .stack(itemStack)
+                        .player(mc.player)
+                        .build(mc.level);
 
-            TemplateHeader header = template.getHeaderAndForceMaterials(buildContext);
-            MaterialList list = header.getRequiredItems();
-            if (list == null)
-                list = MaterialList.empty();
+                TemplateHeader header = template.getHeaderAndForceMaterials(buildContext);
+                MaterialList list = header.getRequiredItems();
+                if (list == null)
+                    list = MaterialList.empty();
 
-            MatchResult match;
+                MatchResult match;
 
-            try (Transaction transaction = Transaction.openOuter()) {
-                match = index.match(list, transaction);
+                try (Transaction transaction = Transaction.openOuter()) {
+                    match = index.match(list, transaction);
+                }
+                count = match.isSuccess() ? match.getChosenOption().entrySet().size() : match.getChosenOption().entrySet().size() + 1;
             }
-            count = match.isSuccess() ? match.getChosenOption().entrySet().size() : match.getChosenOption().entrySet().size() + 1;
-        }));
+        });
         return count;
     }
 
@@ -88,55 +92,55 @@ public class TemplateTooltip implements ClientTooltipComponent {
         if (!Screen.hasShiftDown())
             return;
 
-        //This method will draw items on the tooltip
         Minecraft mc = Minecraft.getInstance();
 
         if (mc.level == null || mc.player == null)
             return;
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(itemStack).ifPresent((ITemplateKey templateKey) -> {
-            Template template = provider.getTemplateForKey(templateKey);
-            IItemIndex index = InventoryHelper.index(itemStack, mc.player);
-            BuildContext buildContext = BuildContext.builder()
-                    .stack(itemStack)
-                    .player(mc.player)
-                    .build(mc.level);
-            TemplateHeader header = template.getHeaderAndForceMaterials(buildContext);
-            MaterialList list = header.getRequiredItems();
-            if (list == null)
-                list = MaterialList.empty();
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
+            ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
+            if (templateKey != null) {
+                Template template = provider.getTemplateForKey(templateKey);
+                IItemIndex index = InventoryHelper.index(itemStack, mc.player);
+                BuildContext buildContext = BuildContext.builder()
+                        .stack(itemStack)
+                        .player(mc.player)
+                        .build(mc.level);
+                TemplateHeader header = template.getHeaderAndForceMaterials(buildContext);
+                MaterialList list = header.getRequiredItems();
+                if (list == null)
+                    list = MaterialList.empty();
 
-            MatchResult match;
+                MatchResult match;
 
-            try (Transaction transaction = Transaction.openOuter()) {
-                match = index.match(list, transaction);
+                try (Transaction transaction = Transaction.openOuter()) {
+                    match = index.match(list, transaction);
+                }
+
+                Multiset<ItemVariant> existing = match.getFoundItems();
+                List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(EventUtil.ENTRY_COMPARATOR, match.getChosenOption().entrySet());
+
+                int by = yin;
+                int j = 0;
+                int totalMissing = 0;
+                RenderSystem.enableBlend();
+                RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                for (Multiset.Entry<ItemVariant> entry : sortedEntries) {
+                    int x = xin + (j % EventUtil.STACKS_PER_LINE) * 18;
+                    int y = yin + (j / EventUtil.STACKS_PER_LINE) * 20;
+                    totalMissing += renderRequiredBlocks(
+                            guiGraphics,
+                            entry.getElement().toStack(),
+                            font,
+                            x,
+                            y,
+                            existing.count(entry.getElement()),
+                            entry.getCount()
+                    );
+                    j++;
+                }
             }
-
-            Multiset<ItemVariant> existing = match.getFoundItems();
-            List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(EventUtil.ENTRY_COMPARATOR, match.getChosenOption().entrySet());
-
-            int by = yin;
-            int j = 0;
-            int totalMissing = 0;
-            //add missing offset because the Stack is 16 by 16 as a render, not 9 by 9
-            //needs to be 8 instead of 7, so that there is a one pixel padding to the text, just as there is between stacks
-            RenderSystem.enableBlend();
-            RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            for (Multiset.Entry<ItemVariant> entry : sortedEntries) {
-                int x = xin + (j % EventUtil.STACKS_PER_LINE) * 18;
-                int y = yin + (j / EventUtil.STACKS_PER_LINE) * 20;
-                totalMissing += renderRequiredBlocks(
-                        guiGraphics,
-                        entry.getElement().toStack(),
-                        font,
-                        x,
-                        y,
-                        existing.count(entry.getElement()),
-                        entry.getCount()
-                );
-                j++;
-            }
-        }));
+        });
     }
 
     private int renderRequiredBlocks(
@@ -156,7 +160,6 @@ public class TemplateTooltip implements ClientTooltipComponent {
 
         boolean hasReq = req > 0;
 
-        // Render the item
         itemRenderer.renderStatic(
                 null,
                 itemStack,
@@ -170,10 +173,8 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 0
         );
 
-        // Render item overlay (count, etc.)
         guiGraphics.renderItemDecorations(font, itemStack, x, y);
 
-        // Render required count
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14), 500f);
         guiGraphics.pose().scale(0.5f, 0.5f, 1f);
@@ -219,6 +220,4 @@ public class TemplateTooltip implements ClientTooltipComponent {
 
         return missingCount;
     }
-
-
 }

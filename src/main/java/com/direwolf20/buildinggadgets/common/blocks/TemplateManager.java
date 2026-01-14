@@ -6,6 +6,7 @@ import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
 import com.direwolf20.buildinggadgets.common.tileentities.OurTileEntities;
 import com.direwolf20.buildinggadgets.common.tileentities.TemplateManagerTileEntity;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -76,10 +77,10 @@ public class TemplateManager extends BaseEntityBlock {
             ITemplateProvider templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.get(worldIn);
 
             for (ItemStack item : be.getItems()) {
-                // CCA 5.x API: use maybeGet() which returns Optional
-                BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(item).ifPresent(key -> {
+                ITemplateKey key = TemplateKeyHelper.getTemplateKey(item);
+                if (key != null) {
                     templateProvider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
-                });
+                }
             }
 
             MenuProvider menuProvider = state.getMenuProvider(worldIn, pos);

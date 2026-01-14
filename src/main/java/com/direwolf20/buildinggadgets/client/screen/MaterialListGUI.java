@@ -4,6 +4,7 @@ import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
 import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
 import com.direwolf20.buildinggadgets.common.tainted.template.*;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.util.lang.MaterialListTranslation;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.google.common.base.Preconditions;
@@ -57,7 +58,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
 
     public MaterialListGUI(ItemStack item) {
         super(MaterialListTranslation.TITLE.componentTranslation());
-        Preconditions.checkArgument(BGComponent.TEMPLATE_KEY_COMPONENT.getNullable(item) != null);
+        Preconditions.checkArgument(TemplateKeyHelper.hasTemplateKey(item));
         this.item = item;
     }
 
@@ -191,14 +192,13 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
 
         Optional<ITemplateProvider> providerCap = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(minecraft.level);
         if (providerCap.isPresent()) {
-            Optional<ITemplateKey> keyCap = BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(item);
-            ITemplateProvider provider = providerCap.orElseThrow(RuntimeException::new);
-            if (keyCap.isPresent()) {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(item);
+            if (key != null) {
+                ITemplateProvider provider = providerCap.get();
                 provider.registerUpdateListener(this);
-                ITemplateKey key = keyCap.orElseThrow(RuntimeException::new);
                 return provider.getTemplateForKey(key);
             }
-            BuildingGadgets.LOG.warn("Item used for material list does not have an ITemplateKey component!");
+            BuildingGadgets.LOG.warn("Item used for material list does not have a template key!");
             minecraft.player.closeContainer();
             return null;
         }
@@ -214,7 +214,8 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
 
     @Override
     public void onTemplateUpdate(ITemplateProvider provider, ITemplateKey key, Template template) {
-        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(item).ifPresent((ITemplateKey itemKey) -> {
+        ITemplateKey itemKey = TemplateKeyHelper.getTemplateKey(item);
+        if (itemKey != null) {
             UUID keyId = provider.getId(key);
             UUID itemId = provider.getId(itemKey);
             if (keyId.equals(itemId)) {
@@ -222,7 +223,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
                 evaluateTitle();
                 scrollingList.reset();
             }
-        });
+        }
     }
 
     private void evaluateTitle() {

@@ -1,9 +1,9 @@
+package com.direwolf20.buildinggadgets.client.screen;
+
 /**
  * Parts of this class were adapted from code written by TTerrag for the Chisel mod: https://github.com/Chisel-Team/Chisel
  * Chisel is Open Source and distributed under GNU GPL v2
  */
-
-package com.direwolf20.buildinggadgets.client.screen;
 
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
@@ -20,6 +20,7 @@ import com.direwolf20.buildinggadgets.common.tainted.template.*;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider.IUpdateListener;
 import com.direwolf20.buildinggadgets.common.tileentities.TemplateManagerTileEntity;
 import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.util.exceptions.TemplateParseException.IllegalMinecraftVersionException;
 import com.direwolf20.buildinggadgets.common.util.exceptions.TemplateParseException.UnknownTemplateVersionException;
 import com.direwolf20.buildinggadgets.common.util.exceptions.TemplateReadException;
@@ -198,7 +199,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             return;
         }
 
-        ITemplateKey key = BGComponent.TEMPLATE_KEY_COMPONENT.getNullable(container.getSlot(0).getItem());
+        ITemplateKey key = TemplateKeyHelper.getTemplateKey(container.getSlot(0).getItem());
         // Make sure we're not re-creating the same cache.
         if(key == null)
             return;
@@ -209,20 +210,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
         this.template = template;
         //TODO: fix rendering
-
-//            IBuildView view = template.createViewInContext(
-//                    SimpleBuildContext.builder()
-//                            .player(getMinecraft().player)
-//                            .stack(container.getSlot(0).getStack())
-//                            .build(new MockDelegationWorld(getMinecraft().world)));
-
-//            int displayList = GLAllocation.generateDisplayLists(1);
-//            GlStateManager.newList(displayList, GL11.GL_COMPILE);
-
-//            renderStructure(view, partialTicks);
-
-//            GlStateManager.endList();
-//            this.displayList = displayList;
     }
 
     private void renderStructure(IBuildView view, float partialTicks) {
@@ -240,18 +227,12 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
             if (renderBlockState.getRenderShape() == RenderShape.MODEL) {
                 BakedModel model = dispatcher.getBlockModel(renderBlockState);
-//                dispatcher.getModelRenderer().renderModel(getWorld(), model, renderBlockState, target.getPos(), bufferBuilder, false,
-//                        rand, 0L);
             }
 
             if (be != null) {
                 try {
                     BlockEntityRenderer<BlockEntity> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
                     if (renderer != null) {
-//                        if (be.hasFastRenderer())
-//                            renderer.renderTileEntityFast(be, targetPos.getX(), targetPos.getY(), targetPos.getZ(), partialTicks, - 1, bufferBuilder);
-//                        else
-//                            renderer.render(be, targetPos.getX(), targetPos.getY(), targetPos.getZ(), partialTicks, - 1);
                     }
                     //remember vanilla Tiles rebinding the TextureAtlas
                     RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
@@ -262,27 +243,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         }
 
         bufferBuilder.end();
-
-//        if (bufferBuilder.getVertexCount() > 0) {
-//            VertexFormat vertexformat = bufferBuilder.getVertexFormat();
-//            int i = vertexformat.getSize();
-//            ByteBuffer bytebuffer = bufferBuilder.getByteBuffer();
-//            List<VertexFormatElement> list = vertexformat.getElements();
-//
-//            for (int j = 0; j < list.size(); ++ j) {
-//                VertexFormatElement vertexformatelement = list.get(j);
-//                bytebuffer.position(vertexformat.getOffset(j));
-//                vertexformatelement.getUsage().preDraw(vertexformat, j, i, bytebuffer);
-//            }
-//
-//            GlStateManager.drawArrays(bufferBuilder.getDrawMode(), 0, bufferBuilder.getVertexCount());
-//            int i1 = 0;
-//
-//            for (int j1 = list.size(); i1 < j1; ++ i1) {
-//                VertexFormatElement vertexformatelement1 = list.get(i1);
-//                vertexformatelement1.getUsage().postDraw(vertexformat, i1, i, bytebuffer);
-//            }
-//        }
     }
 
     private void renderRequirement(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -291,13 +251,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
         Lighting.setupForFlatItems();
 
-        PoseStack poseStack = guiGraphics.pose(); // get the PoseStack
+        PoseStack poseStack = guiGraphics.pose();
 
         poseStack.pushPose();
         poseStack.translate(leftPos - 30, topPos - 5, 200);
         poseStack.scale(0.8f, 0.8f, 0.8f);
 
-        String title = "Requirements"; // TODO: use localization
+        String title = "Requirements";
         guiGraphics.drawString(getMinecraft().font, title, 5 - getMinecraft().font.width(title), 0, Color.WHITE.getRGB());
 
         MatchResult list;
@@ -318,7 +278,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             int x = -20 - (column * 25);
             int y = 20 + (index * 25);
 
-            // Render the item
             guiGraphics.renderItem(stack, x + 4, y + 4);
             guiGraphics.renderItemDecorations(getMinecraft().font, stack, x + 4, y + 4, GadgetUtils.withSuffix(foundItems.count(e.getElement())));
 
@@ -359,13 +318,15 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
     private void pasteTemplateToStack(ITemplateProvider provider, ItemStack stack, Template newTemplate, boolean replaced) {
-        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent((ITemplateKey key) -> {
+        ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+        if (key != null) {
             provider.setTemplate(key, newTemplate);
             if (replaced) {
                 PacketTemplateManagerTemplateCreated.send(provider.getId(key), be.getBlockPos());
-            } else
+            } else {
                 provider.requestRemoteUpdate(key, be.getLevel());
-        });
+            }
+        }
     }
 
     private boolean replaceStack() {
@@ -373,11 +334,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         if (stack.isEmpty())
             return false;
 
-        if (BGComponent.TEMPLATE_KEY_COMPONENT.isProvidedBy(stack))
+        if (TemplateKeyHelper.hasTemplateKey(stack))
             return false;
 
         else if (stack.is(TemplateManagerTileEntity.TEMPLATE_CONVERTIBLES)) {
-            container.getSlot(1).set(new ItemStack(OurItems.TEMPLATE_ITEM));
+            ItemStack newStack = new ItemStack(OurItems.TEMPLATE_ITEM);
+            TemplateKeyHelper.initializeTemplateKey(newStack);
+            container.getSlot(1).set(newStack);
             return true;
         }
 
@@ -388,16 +351,18 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         if (nameField.getValue().isEmpty())
             return;
 
-        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent((ITemplateKey key) -> templateProvider.ifPresent((ITemplateProvider provider) -> {
-            Template template = provider.getTemplateForKey(key);
-            template = template.withName(nameField.getValue());
-            provider.setTemplate(key, template);
-            provider.requestRemoteUpdate(key, getWorld());
-        }));
+        ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+        if (key != null) {
+            templateProvider.ifPresent((ITemplateProvider provider) -> {
+                Template template = provider.getTemplateForKey(key);
+                template = template.withName(nameField.getValue());
+                provider.setTemplate(key, template);
+                provider.requestRemoteUpdate(key, getWorld());
+            });
+        }
     }
 
     private void renderPanel(PoseStack pose, int partialTicks) {
-
         validateCache(partialTicks);
 
         if(template == null)
@@ -471,8 +436,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         renderStructure(view, partialTicks);
 
         RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-
-//        RenderSystem.callList(displayList);
 
         pose.popPose();
         pose.popPose();
@@ -564,7 +527,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     private void drawSlotOverlay(PoseStack matrices, Slot slot, GuiGraphics guiGraphics) {
         matrices.pushPose();
         matrices.translate(0, 0, 1000);
-        guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x9E000000); // -1660903937 == 0x9E000000
+        guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x9E000000);
         matrices.popPose();
     }
 
@@ -599,20 +562,22 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
     // Events
-    // we need to ensure that the Template we want to look at is recent, before we take any further action
     private void runAfterUpdate(int slot, Runnable runnable) {
-        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(container.getSlot(slot).getItem()).ifPresent((ITemplateKey key) -> templateProvider.ifPresent((ITemplateProvider provider) -> {
-            provider.registerUpdateListener(new IUpdateListener() {
-                @Override
-                public void onTemplateUpdate(ITemplateProvider provider, ITemplateKey updateKey, Template template) {
-                    if (provider.getId(updateKey).equals(provider.getId(key))) {
-                        runnable.run();
-                        provider.removeUpdateListener(this);
+        ITemplateKey key = TemplateKeyHelper.getTemplateKey(container.getSlot(slot).getItem());
+        if (key != null) {
+            templateProvider.ifPresent((ITemplateProvider provider) -> {
+                provider.registerUpdateListener(new IUpdateListener() {
+                    @Override
+                    public void onTemplateUpdate(ITemplateProvider provider, ITemplateKey updateKey, Template template) {
+                        if (provider.getId(updateKey).equals(provider.getId(key))) {
+                            runnable.run();
+                            provider.removeUpdateListener(this);
+                        }
                     }
-                }
+                });
+                provider.requestUpdate(key);
             });
-            provider.requestUpdate(key);
-        }));
+        }
     }
 
     private void onSave() {
@@ -624,11 +589,14 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             return;
         }
 
-        runAfterUpdate(0, () -> { //we are copying form 0 to 1 => slot 0 needs to be the recent one
-            templateProvider.ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(left).ifPresent((ITemplateKey key) -> {
-                Template templateToSave = provider.getTemplateForKey(key).withName(nameField.getValue());
-                pasteTemplateToStack(provider, right, templateToSave, replaced);
-            }));
+        runAfterUpdate(0, () -> {
+            templateProvider.ifPresent((ITemplateProvider provider) -> {
+                ITemplateKey key = TemplateKeyHelper.getTemplateKey(left);
+                if (key != null) {
+                    Template templateToSave = provider.getTemplateForKey(key).withName(nameField.getValue());
+                    pasteTemplateToStack(provider, right, templateToSave, replaced);
+                }
+            });
         });
     }
 
@@ -641,40 +609,46 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             return;
         }
 
-        runAfterUpdate(1, () -> { //we are copying form 1 to 0 => slot 1 needs to be the recent one
-            templateProvider.ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(right).ifPresent((ITemplateKey key) -> {
-                Template templateToSave = provider.getTemplateForKey(key);
-                pasteTemplateToStack(provider, left, templateToSave, replaced);
-            }));
+        runAfterUpdate(1, () -> {
+            templateProvider.ifPresent((ITemplateProvider provider) -> {
+                ITemplateKey key = TemplateKeyHelper.getTemplateKey(right);
+                if (key != null) {
+                    Template templateToSave = provider.getTemplateForKey(key);
+                    pasteTemplateToStack(provider, left, templateToSave, replaced);
+                }
+            });
         });
     }
 
     private void onCopy() {
-        runAfterUpdate(0, () -> { //we are copying from slot 1 => slot 1 needs to be updated
+        runAfterUpdate(0, () -> {
             ItemStack stack = container.getSlot(0).getItem();
-            templateProvider.ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent((ITemplateKey key) -> {
-                Player player = getMinecraft().player;
-                assert player != null;
+            templateProvider.ifPresent((ITemplateProvider provider) -> {
+                ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+                if (key != null) {
+                    Player player = getMinecraft().player;
+                    assert player != null;
 
-                BuildContext buildContext = BuildContext.builder()
-                        .player(player)
-                        .stack(stack)
-                        .build(getWorld());
-                try {
-                    Template template = provider.getTemplateForKey(key);
-                    if (!nameField.getValue().isEmpty())
-                        template = template.withName(nameField.getValue());
-                    String json = TemplateIO.writeTemplateJson(template, buildContext);
-                    getMinecraft().keyboardHandler.setClipboard(json);
-                    player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN), false);
-                } catch (DataCannotBeWrittenException e) {
-                    BuildingGadgets.LOG.error("Failed to write Template.", e);
-                    player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED), false);
-                } catch (Exception e) {
-                    BuildingGadgets.LOG.error("Failed to copy Template to clipboard.", e);
-                    player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED), false);
+                    BuildContext buildContext = BuildContext.builder()
+                            .player(player)
+                            .stack(stack)
+                            .build(getWorld());
+                    try {
+                        Template template = provider.getTemplateForKey(key);
+                        if (!nameField.getValue().isEmpty())
+                            template = template.withName(nameField.getValue());
+                        String json = TemplateIO.writeTemplateJson(template, buildContext);
+                        getMinecraft().keyboardHandler.setClipboard(json);
+                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN), false);
+                    } catch (DataCannotBeWrittenException e) {
+                        BuildingGadgets.LOG.error("Failed to write Template.", e);
+                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED), false);
+                    } catch (Exception e) {
+                        BuildingGadgets.LOG.error("Failed to copy Template to clipboard.", e);
+                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED), false);
+                    }
                 }
-            }));
+            });
         });
     }
 
@@ -687,7 +661,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             return;
         }
 
-        // Attempt to parse into nbt first to check for old 1.12 pastes
         try {
             CompoundTag tagFromJson = TagParser.parseTag(CBString);
             if (!tagFromJson.contains("header")) {
@@ -695,7 +668,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
                         .componentTranslation("(1.12.x)", TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED), false);
                 return;
-
             }
             if(!tagFromJson.contains("body")) {
                 BuildingGadgets.LOG.error("Attempted to paste Material List as a template");
@@ -706,7 +678,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         } catch (CommandSyntaxException ignored) {
         }
 
-        // todo: this needs to be put onto some kind of readTemplateFromJson(input stream).onError(e -> error)
         try {
             Template template = TemplateIO.readTemplateFromJson(CBString);
             Template readTemplate = template.clearMaterials();

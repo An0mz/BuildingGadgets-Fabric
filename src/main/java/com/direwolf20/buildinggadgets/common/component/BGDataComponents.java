@@ -117,6 +117,11 @@ public class BGDataComponents {
     public static final DataComponentType<List<BlockPos>> ANCHOR_COORDS = register("anchor_coords",
             builder -> builder.persistent(BlockPos.CODEC.listOf()).networkSynchronized(ByteBufCodecs.fromCodec(BlockPos.CODEC.listOf())));
 
+    // Template Key (stores UUID of template)
+    public static final DataComponentType<UUID> TEMPLATE_KEY = register("template_key",
+            builder -> builder.persistent(Codec.STRING.xmap(UUID::fromString, UUID::toString))
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8.map(UUID::fromString, UUID::toString)));
+
     private static <T> DataComponentType<T> register(String name, UnaryOperator<DataComponentType.Builder<T>> builder) {
         return Registry.register(
                 BuiltInRegistries.DATA_COMPONENT_TYPE,

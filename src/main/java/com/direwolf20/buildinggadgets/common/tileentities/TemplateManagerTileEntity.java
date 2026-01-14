@@ -3,6 +3,7 @@ package com.direwolf20.buildinggadgets.common.tileentities;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
 import com.direwolf20.buildinggadgets.common.containers.TemplateManagerContainer;
 import com.direwolf20.buildinggadgets.common.inventory.ImplContainer;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.ItemReference;
 import com.google.common.base.Preconditions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -58,7 +59,7 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
     }
 
     public boolean isTemplateStack(ItemStack stack) {
-        return BGComponent.TEMPLATE_KEY_COMPONENT.getNullable(stack) != null;
+        return TemplateKeyHelper.hasTemplateKey(stack);
     }
 
     @Override

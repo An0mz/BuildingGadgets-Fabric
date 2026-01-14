@@ -20,12 +20,10 @@ import com.direwolf20.buildinggadgets.common.tainted.concurrent.CopyScheduler;
 import com.direwolf20.buildinggadgets.common.tainted.concurrent.PlacementScheduler;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.IItemIndex;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryHelper;
-import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
-import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
-import com.direwolf20.buildinggadgets.common.tainted.template.Template;
-import com.direwolf20.buildinggadgets.common.tainted.template.TemplateHeader;
+import com.direwolf20.buildinggadgets.common.tainted.template.*;
 import com.direwolf20.buildinggadgets.common.util.Additions;
 import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.direwolf20.buildinggadgets.common.util.lang.*;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.TagReference;
@@ -115,24 +113,28 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performRotate(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).flatMap(provider ->
-                BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).map(key -> {
-                    Template template = provider.getTemplateForKey(key);
-                    provider.setTemplate(key, template.rotate(Rotation.CLOCKWISE_90));
-                    provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
-                    return true;
-                })).orElse(false);
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+            if (key == null) return false;
+
+            Template template = provider.getTemplateForKey(key);
+            provider.setTemplate(key, template.rotate(Rotation.CLOCKWISE_90));
+            provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
+            return true;
+        }).orElse(false);
     }
 
     @Override
     public boolean performMirror(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).flatMap(provider ->
-                BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).map(key -> {
-                    Template template = provider.getTemplateForKey(key);
-                    provider.setTemplate(key, template.mirror(player.getDirection().getAxis()));
-                    provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
-                    return true;
-                })).orElse(false);
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+            if (key == null) return false;
+
+            Template template = provider.getTemplateForKey(key);
+            provider.setTemplate(key, template.mirror(player.getDirection().getAxis()));
+            provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
+            return true;
+        }).orElse(false);
     }
 
     public static void setRelativeVector(ItemStack stack, BlockPos vec) {
@@ -378,29 +380,37 @@ public class GadgetCopyPaste extends AbstractGadget {
             sendMessage(stack, player, MessageTranslation.AREA_COPIED, Styles.DK_GREEN);
         }
 
-        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent(key -> {
+        // Initialize template key if it doesn't exist
+        if (!TemplateKeyHelper.hasTemplateKey(stack)) {
+            TemplateKeyHelper.initializeTemplateKey(stack);
+        }
+
+        ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+        if (key != null) {
             BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
                 provider.setTemplate(key, newTemplate);
                 provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
             });
-        });
+        }
     }
 
-
     private void build(ItemStack stack, Level world, Player player, BlockPos pos, InteractionHand hand) {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent((ITemplateKey key) -> {
-            Template template = provider.getTemplateForKey(key);
-            BuildContext buildContext = BuildContext.builder()
-                    .stack(stack)
-                    .player(player)
-                    .build(world);
-            IBuildView view = template.createViewInContext(buildContext);
-            view.translateTo(pos);
-            if (!checkPlacement(world, player, view.getBoundingBox())) {
-                return;
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
+            if (key != null) {
+                Template template = provider.getTemplateForKey(key);
+                BuildContext buildContext = BuildContext.builder()
+                        .stack(stack)
+                        .player(player)
+                        .build(world);
+                IBuildView view = template.createViewInContext(buildContext);
+                view.translateTo(pos);
+                if (!checkPlacement(world, player, view.getBoundingBox())) {
+                    return;
+                }
+                schedulePlacement(stack, view, player, hand);
             }
-            schedulePlacement(stack, view, player, hand);
-        }));
+        });
     }
 
     private boolean checkPlacement(Level world, Player player, Region region) {

@@ -12,6 +12,7 @@ import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateProvider.IUpdateListener;
 import com.direwolf20.buildinggadgets.common.tainted.template.Template;
+import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.world.MockDelegationWorld;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -96,38 +97,38 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         LevelRenderer.renderLineBox(matrix, buffer.getBuffer(OurRenderTypes.CopyGadgetLines), new AABB(region.getMin().getCenter(), region.getMax().offset(1, 1, 1).getCenter()), R / 255f, G / 255f, B / 255f, 1f);
     }
 
+// In CopyPasteRender.java, update the renderPaste method:
+
     private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem) {
         Level world = player.level();
 
-        // Check the template cap from the world
-        // Fetch the template key (because for some reason this is it's own cap)
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(heldItem).ifPresent((ITemplateKey key) -> {
-            // Finally get the data from the render.
-            GadgetCopyPaste.getActivePos(player, heldItem).ifPresent(startPos -> {
-                MockDelegationWorld fakeWorld = new MockDelegationWorld(world);
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(heldItem);
+            if (key != null) {
+                GadgetCopyPaste.getActivePos(player, heldItem).ifPresent(startPos -> {
+                    MockDelegationWorld fakeWorld = new MockDelegationWorld(world);
 
-                BuildContext context = BuildContext.builder().player(player).stack(heldItem).build(fakeWorld);
+                    BuildContext context = BuildContext.builder().player(player).stack(heldItem).build(fakeWorld);
 
-                // Get the template and move it to the start pos (player.pick())
-                IBuildView view = provider.getTemplateForKey(key).createViewInContext(context);
+                    IBuildView view = provider.getTemplateForKey(key).createViewInContext(context);
 
-                // Sort the render
-                List<PlacementTarget> targets = new ArrayList<>();
-                for (PlacementTarget target : view) {
-                    if (target.placeIn(context)) {
-                        targets.add(target);
+                    List<PlacementTarget> targets = new ArrayList<>();
+                    for (PlacementTarget target : view) {
+                        if (target.placeIn(context)) {
+                            targets.add(target);
+                        }
                     }
-                }
-                UUID id = provider.getId(key);
-                if (!id.equals(lastRendered)) {
-                    renderBuffer = null;
-                    System.gc();
-                }
+                    UUID id = provider.getId(key);
+                    if (!id.equals(lastRendered)) {
+                        renderBuffer = null;
+                        System.gc();
+                    }
 
-                renderTargets(matrices, cameraView, context, targets, startPos);
-                lastRendered = id;
-            });
-        }));
+                    renderTargets(matrices, cameraView, context, targets, startPos);
+                    lastRendered = id;
+                });
+            }
+        });
     }
 
     private void renderTargets(PoseStack matrix, Vec3 projectedView, BuildContext context, List<PlacementTarget> targets, BlockPos startPos) {

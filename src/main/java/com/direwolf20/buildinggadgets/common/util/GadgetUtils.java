@@ -11,6 +11,7 @@ import com.direwolf20.buildinggadgets.common.network.C2S.PacketRotateMirror;
 import com.direwolf20.buildinggadgets.common.tainted.building.BlockData;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryHelper;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryLinker;
+import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;
 import com.direwolf20.buildinggadgets.common.tainted.template.Template;
 import com.direwolf20.buildinggadgets.common.tainted.template.TemplateHeader;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
@@ -60,15 +61,18 @@ public class GadgetUtils {
     }
 
     public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, List<Component> tooltip) {
+        if (world == null) return;
+
         BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent(provider -> {
-            BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent(key -> {
+            ITemplateKey key = com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper.getTemplateKey(stack);
+            if (key != null) {
                 Template template = provider.getTemplateForKey(key);
                 TemplateHeader header = template.getHeader();
                 if (header.getName() != null && !header.getName().isEmpty())
                     tooltip.add(TooltipTranslation.TEMPLATE_NAME.componentTranslation(header.getName()).setStyle(Styles.AQUA));
                 if (header.getAuthor() != null && !header.getAuthor().isEmpty())
                     tooltip.add(TooltipTranslation.TEMPLATE_AUTHOR.componentTranslation(header.getAuthor()).setStyle(Styles.AQUA));
-            });
+            }
         });
     }
 
