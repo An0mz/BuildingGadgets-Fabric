@@ -79,7 +79,7 @@ public class DestructionGUI extends Screen {
 
         updateSizeString();
         updateIsValid();
-        
+
         sliders.forEach(gui -> gui.getComponents().forEach(this::addRenderableWidget));
     }
 
