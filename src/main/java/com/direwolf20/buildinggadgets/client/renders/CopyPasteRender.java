@@ -94,7 +94,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         int R = 255, G = 223, B = 127;
 
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-        
+
         AABB box = new AABB(
                 region.getMin().getX(),
                 region.getMin().getY(),
@@ -173,7 +173,6 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
             matrix.popPose();
         }
 
-        // CRITICAL: Flush the buffer to actually render!
         bufferSource.endBatch();
     }
 
