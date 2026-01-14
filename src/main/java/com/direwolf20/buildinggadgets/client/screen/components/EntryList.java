@@ -18,9 +18,9 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     public static final int SCROLL_BAR_WIDTH = 6;
 
     public EntryList(int left, int top, int width, int height, int slotHeight) {
-        super(Minecraft.getInstance(), width, height, top, top + height);
+        super(Minecraft.getInstance(), width, height, top, top + height, slotHeight);
         // Set left x and right x, somehow MCP gave it a weird name
-        this.setX(left);
+        this.setLeftPos(left);
     }
 
     public void render(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
@@ -28,8 +28,8 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         double guiScaleFactor = Minecraft.getInstance().getWindow().getGuiScale();
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor((int) (getX() * guiScaleFactor),
-                (int) (Minecraft.getInstance().getWindow().getHeight() - (getY() + getHeight() * guiScaleFactor)),
+        GL11.glScissor((int) (x0 * guiScaleFactor),
+                (int) (Minecraft.getInstance().getWindow().getHeight() - (y1 * guiScaleFactor)),
                 (int) (width * guiScaleFactor),
                 (int) (height * guiScaleFactor));
 
@@ -41,6 +41,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     private void renderParts(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
         Minecraft mc = Minecraft.getInstance();
         GuiGraphics guiGraphics = new GuiGraphics(mc, mc.renderBuffers().bufferSource());
+        renderBackground(guiGraphics);
 //        RenderSystem.disableLighting();
 //        RenderSystem.disableFog();
         Tesselator tessellator = Tesselator.getInstance();
@@ -49,7 +50,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         renderContentBackground(guiGraphics);
 
         int k = getRowLeft();
-        int l = getY() + 4 - (int) getScrollAmount();
+        int l = y0 + 4 - (int) getScrollAmount();
         renderHeader(guiGraphics, k, l);
 
         renderList(guiGraphics, mouseX, mouseY, partialTicks);
@@ -57,21 +58,21 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
 
         int j1 = getMaxScroll();
         if (j1 > 0) {
-            int k1 = (int) ((float) ((getY() + getHeight() - getY()) * (getY() + getHeight() - getY())) / (float) getMaxPosition());
-            k1 = Mth.clamp(k1, 32, getY() + getHeight() - getY() - 8);
-            int l1 = (int) getScrollAmount() * (getY() + getHeight() - getY() - k1) / j1 + getY();
-            if (l1 < getY()) {
-                l1 = getY();
+            int k1 = (int) ((float) ((y1 - y0) * (y1 - y0)) / (float) getMaxPosition());
+            k1 = Mth.clamp(k1, 32, y1 - y0 - 8);
+            int l1 = (int) getScrollAmount() * (y1 - y0 - k1) / j1 + y0;
+            if (l1 < y0) {
+                l1 = y0;
             }
             int x1 = getScrollbarPosition();
             int x2 = x1 + 6;
 
             GlStateManager._bindTexture(0);
             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-            bufferbuilder.vertex(x1, getY() + getHeight(), 0.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.vertex(x2, getY() + getHeight(), 0.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.vertex(x2, getY(), 0.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.vertex(x1, getY(), 0.0D).color(0, 0, 0, 255).endVertex();
+            bufferbuilder.vertex(x1, y1, 0.0D).color(0, 0, 0, 255).endVertex();
+            bufferbuilder.vertex(x2, y1, 0.0D).color(0, 0, 0, 255).endVertex();
+            bufferbuilder.vertex(x2, y0, 0.0D).color(0, 0, 0, 255).endVertex();
+            bufferbuilder.vertex(x1, y0, 0.0D).color(0, 0, 0, 255).endVertex();
 
             bufferbuilder.vertex(x1, (l1 + k1), 0.0D).color(128, 128, 128, 255).endVertex();
             bufferbuilder.vertex(x2, (l1 + k1), 0.0D).color(128, 128, 128, 255).endVertex();
@@ -91,7 +92,12 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     }
 
     protected void renderContentBackground(GuiGraphics guiGraphics) {
-        guiGraphics.fillGradient(RenderType.guiOverlay().bufferSize(), getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xC0101010, 0xD0101010);
+        guiGraphics.fillGradient(RenderType.guiOverlay().bufferSize(), x0, y0, x1, y1, 0xC0101010, 0xD0101010);
+    }
+
+
+    protected void renderBackground(GuiGraphics guiGraphics) {
+        super.renderBackground(guiGraphics);
     }
 
     @Override

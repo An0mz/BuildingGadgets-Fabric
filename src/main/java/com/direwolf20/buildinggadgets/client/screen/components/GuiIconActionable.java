@@ -86,19 +86,20 @@ public class GuiIconActionable extends Button {
         this.setSelected(!this.selected);
     }
 
-    @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!visible)
             return;
 
         RenderSystem.enableBlend();
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+//
+//
+//        RenderSystem.disableTexture();
+//        blit(matrices, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
+//        RenderSystem.enableTexture();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                0.15f
-        );
+        RenderSystem.setShaderColor(activeColor.getRed() / 255f, activeColor.getGreen() / 255f, activeColor.getBlue() / 255f, .15f);
         guiGraphics.fill(
                 this.getX(),
                 this.getY(),
@@ -106,35 +107,25 @@ public class GuiIconActionable extends Button {
                 this.getY() + this.height,
                 -1873784752
         );
-
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                alpha
-        );
+//
+        RenderSystem.setShaderTexture(0, selected ? selectedTexture : deselectedTexture);
+        RenderSystem.setShaderColor(activeColor.getRed() / 255f, activeColor.getGreen() / 255f, activeColor.getBlue() / 255f, alpha);
 
         guiGraphics.blit(
                 selected ? selectedTexture : deselectedTexture,
-                this.getX(),
-                this.getY(),
-                0,
-                0,
-                this.width,
-                this.height,
-                this.width,
-                this.height
+                this.getX(), this.getY(),
+                0, 0,
+                this.width, this.height,
+                this.width, this.height
         );
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         if (mouseX >= getX() && mouseY >= getY()
                 && mouseX < getX() + width && mouseY < getY() + height) {
             guiGraphics.drawString(
                     Minecraft.getInstance().font,
                     this.getMessage(),
                     mouseX > (Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2)
-                            ? mouseX + 2
-                            : mouseX - Minecraft.getInstance().font.width(getMessage()),
+                            ? mouseX + 2 : mouseX - Minecraft.getInstance().font.width(getMessage()),
                     mouseY - 10,
                     activeColor.getRGB()
             );

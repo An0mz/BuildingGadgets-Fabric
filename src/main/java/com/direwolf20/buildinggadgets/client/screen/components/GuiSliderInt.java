@@ -84,8 +84,7 @@ public class GuiSliderInt extends AbstractSliderButton {
         BuildingGadgetsClient.playSound(SoundEvents.DISPENSER_FAIL, 2F);
     }
 
-    @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
         if (!visible) {
             return;
         }
@@ -145,7 +144,7 @@ public class GuiSliderInt extends AbstractSliderButton {
             this.parent = parent;
         }
 
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
             if (!visible) {
                 return;
             }

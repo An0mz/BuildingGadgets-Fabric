@@ -113,7 +113,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.20.4:${project.parchment_version}@zip")
+        parchment("org.parchmentmc.data:parchment-1.20.1:${project.parchment_version}@zip")
     }
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
@@ -133,28 +133,37 @@ dependencies {
     modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
 
     modImplementation include("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}")
+//    modCompileOnly("io.github.flemmli97:flan:1.18.2-${flan_version}:fabric-api") {
+//        transitive = false //Remove this if you want to have all those optional dependencies
+//    }
+//    modRuntimeOnly("io.github.flemmli97:flan:1.18.2-${flan_version}:fabric") {
+//        transitive = false //Remove this if you want to have all those optional dependencies
+//    }
 
     modRuntimeOnly("curse.maven:LazyDFU-433518:3821870")
 
     //modImplementation "curse.maven:get-off-my-lawn-reserved-572651:4813644"
-    modImplementation include("eu.pb4:placeholder-api:2.4.0-pre.3+1.20.4")
-    modImplementation include("eu.pb4:polymer-core:0.7.9+1.20.4")
-    modImplementation include("eu.pb4:sgui:1.4.2+1.20.4")
+    modImplementation include("eu.pb4:placeholder-api:2.1.4+1.20.1")
+    modImplementation include("eu.pb4:polymer-core:0.5.9+1.20.1")
+    modImplementation include("eu.pb4:sgui:1.2.2+1.20")
+    modImplementation include("eu.pb4:polymer-core:0.5.9+1.20.1")
     modImplementation include("eu.pb4:common-protection-api:1.0.0")
 
     modImplementation include("io.github.ladysnake:PlayerAbilityLib:${pal_version}")
 
     modCompileOnly "curse.maven:IPN-495267:3543808"
-    modCompileOnly "curse.maven:ftb-chunks-472657:5415199"
-    modCompileOnly "curse.maven:ftb-teams-438497:5202948"
-    modCompileOnly "curse.maven:ftb-library-438495:5567592"
+    modCompileOnly "curse.maven:ftb-chunks-472657:6431734"
+    modCompileOnly "curse.maven:ftb-teams-438497:6130783"
+    modCompileOnly "curse.maven:ftb-library-438495:7296747"
 
     modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}")
     modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-item:${project.cca_version}")
     modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-world:${project.cca_version}")
     modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-level:${project.cca_version}")
 
-    include('me.lucko:fabric-permissions-api:0.3.1')
+    include('me.lucko:fabric-permissions-api:0.3')
+
+    modImplementation "curse.maven:powah-633483:6828053"
 }
 
 base {

@@ -100,7 +100,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         int R = 255, G = 223, B = 127;
 
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-        LevelRenderer.renderLineBox(matrix, buffer.getBuffer(OurRenderTypes.CopyGadgetLines), new AABB(region.getMin().getCenter(), region.getMax().offset(1, 1, 1).getCenter()), R / 255f, G / 255f, B / 255f, 1f);
+        LevelRenderer.renderLineBox(matrix, buffer.getBuffer(OurRenderTypes.CopyGadgetLines), new AABB(region.getMin(), region.getMax().offset(1, 1, 1)), R / 255f, G / 255f, B / 255f, 1f);
     }
 
     private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem) {

@@ -164,7 +164,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        renderBackground(guiGraphics);
 
         RenderSystem.setShaderTexture(0, background);
         guiGraphics.blit(background, leftPos, topPos, 0, 0, 176, 192);
@@ -557,18 +557,20 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta, double scrollY) {
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
         zoom = initZoom + ((float) scrollDelta * 20);
         if (zoom < -200) zoom = -200;
         if (zoom > 5000) zoom = 5000;
 
-        return super.mouseScrolled(mouseX, mouseY, scrollDelta, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollDelta);
     }
 
     @Override
     protected void containerTick() {
         super.containerTick();
 
+        nameField.tick();
         if (!panelClicked) {
             initRotX = rotX;
             initRotY = rotY;
