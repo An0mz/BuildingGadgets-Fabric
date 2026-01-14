@@ -72,15 +72,11 @@ public class GuiIncrementer extends AbstractWidget {
             this.onChange.onChange(value);
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    @Override
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.plusButton.render(guiGraphics, mouseX, mouseY, partialTick);
         this.minusButton.render(guiGraphics, mouseX, mouseY, partialTick);
         this.field.render(guiGraphics, mouseX, mouseY, partialTick);
-    }
-
-    @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-
     }
 
     @Override

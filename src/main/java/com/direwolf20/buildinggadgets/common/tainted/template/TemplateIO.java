@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +55,8 @@ public final class TemplateIO {
      */
     public static Template readTemplate(InputStream stream, @Nullable TemplateHeader header, boolean persisted) throws TemplateReadException {
         try {
-            return readTemplate(NbtIo.readCompressed(stream), header, persisted);
+            // Added NbtAccounter.unlimitedHeap() parameter
+            return readTemplate(NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap()), header, persisted);
         } catch (IOException e) {
             throw new DataCannotBeReadException(e);
         }
@@ -109,7 +111,8 @@ public final class TemplateIO {
             try {
                 byte[] bytes = Base64.getDecoder().decode(body);
                 CompoundTag nbt;
-                nbt = NbtIo.readCompressed(new ByteArrayInputStream(bytes));
+                // Added NbtAccounter.unlimitedHeap() parameter
+                nbt = NbtIo.readCompressed(new ByteArrayInputStream(bytes), NbtAccounter.unlimitedHeap());
                 return Template.deserialize(nbt, header, true);
             } catch (IOException | NullPointerException e) {
                 throw new CorruptDataException(e, body);

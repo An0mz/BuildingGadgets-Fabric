@@ -6,6 +6,7 @@ import com.direwolf20.buildinggadgets.common.tainted.building.tilesupport.TileSu
 import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
 import com.direwolf20.buildinggadgets.common.tileentities.EffectBlockTileEntity;
 import com.direwolf20.buildinggadgets.common.tileentities.OurTileEntities;
+import com.mojang.serialization.MapCodec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -145,6 +146,11 @@ public class EffectBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return Shapes.block();
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return null;
     }
 
     @Override
