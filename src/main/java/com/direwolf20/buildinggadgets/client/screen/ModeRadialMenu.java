@@ -74,6 +74,10 @@ public class ModeRadialMenu extends Screen {
             setSocketable(stack);
     }
 
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    }
+
     public void setSocketable(ItemStack stack) {
         if (stack.getItem() instanceof GadgetBuilding)
             segments = BuildingModes.values().length;
