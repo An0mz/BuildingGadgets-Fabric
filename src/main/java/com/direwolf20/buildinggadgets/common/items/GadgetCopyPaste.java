@@ -31,6 +31,7 @@ import com.direwolf20.buildinggadgets.common.util.lang.*;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.TagReference;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedSet;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.client.gui.screens.Screen;
@@ -378,12 +379,18 @@ public class GadgetCopyPaste extends AbstractGadget {
             sendMessage(stack, player, MessageTranslation.AREA_COPIED, Styles.DK_GREEN);
         }
 
-        ITemplateKey key = BGComponent.TEMPLATE_KEY_COMPONENT.get(stack);
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
-            provider.setTemplate(key, newTemplate);
-            provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
+        BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent(key -> {
+            PoseStack poseStack = getPoseStack();
+            if (poseStack == null) return; // safety check
+
+            BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
+                provider.setTemplate(key, newTemplate);
+                provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
+            });
         });
+
     }
+
 
     private void build(ItemStack stack, Level world, Player player, BlockPos pos, InteractionHand hand) {
         BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> BGComponent.TEMPLATE_KEY_COMPONENT.maybeGet(stack).ifPresent((ITemplateKey key) -> {

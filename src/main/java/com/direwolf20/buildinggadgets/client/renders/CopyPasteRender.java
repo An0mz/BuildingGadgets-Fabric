@@ -56,36 +56,29 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
 
     @Override
     public void renderAfterSetup(WorldRenderContext context, Player player, ItemStack heldItem) {
-        if (GadgetCopyPaste.getToolMode(heldItem) == GadgetCopyPaste.ToolMode.COPY) {
-            GadgetCopyPaste.getSelectedRegion(heldItem).ifPresent(region -> {
-                PoseStack stack = context.matrixStack();
-                Vec3 cameraView = context.camera().getPosition();
-
-                stack.pushPose();
-                stack.translate(-cameraView.x(), -cameraView.y(), -cameraView.z());
-                renderCopy(stack, region);
-                stack.popPose();
-            });
-        }
+        // Remove this method entirely or leave it empty
+        // The matrix stack isn't available at this render phase
     }
 
     @Override
     public void render(WorldRenderContext context, Player player, ItemStack heldItem) {
-        // We can completely trust that heldItem isn't empty and that it's a copy paste gadget.
         super.render(context, player, heldItem);
 
-        if (GadgetCopyPaste.getToolMode(heldItem) != GadgetCopyPaste.ToolMode.COPY) {
-            // Provide this as both renders require the data.
-            Vec3 cameraView = context.camera().getPosition();
+        Vec3 cameraView = context.camera().getPosition();
+        PoseStack stack = context.matrixStack();
 
-            // translate the matric to the projected view
-            PoseStack stack = context.matrixStack(); //Get current matrix position from the evt call
-            stack.pushPose(); //Save the render position from RenderWorldLast
-            stack.translate(-cameraView.x(), -cameraView.y(), -cameraView.z()); //Sets render position to 0,0,0
+        stack.pushPose();
+        stack.translate(-cameraView.x(), -cameraView.y(), -cameraView.z());
 
+        if (GadgetCopyPaste.getToolMode(heldItem) == GadgetCopyPaste.ToolMode.COPY) {
+            GadgetCopyPaste.getSelectedRegion(heldItem).ifPresent(region -> {
+                renderCopy(stack, region);
+            });
+        } else {
             renderPaste(stack, cameraView, player, heldItem);
-            stack.popPose();
         }
+
+        stack.popPose();
     }
 
     private void renderCopy(PoseStack matrix, Region region) {
