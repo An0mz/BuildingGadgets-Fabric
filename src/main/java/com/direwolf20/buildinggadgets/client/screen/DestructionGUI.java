@@ -46,7 +46,8 @@ public class DestructionGUI extends Screen {
         int x = width / 2;
         int y = height / 2;
 
-        this.addRenderableWidget(
+        // CHANGED: Store the button in this.confirm
+        this.confirm = this.addRenderableWidget(
                 Button.builder(Component.translatable(GuiMod.getLangKeySingle("confirm")), b -> {
                             if (Minecraft.getInstance().player == null) return;
 
@@ -78,8 +79,7 @@ public class DestructionGUI extends Screen {
 
         updateSizeString();
         updateIsValid();
-
-        // Adds their buttons to the gui
+        
         sliders.forEach(gui -> gui.getComponents().forEach(this::addRenderableWidget));
     }
 
