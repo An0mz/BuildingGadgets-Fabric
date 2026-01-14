@@ -42,6 +42,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -243,13 +244,19 @@ public class GadgetCopyPaste extends AbstractGadget {
         return stack;
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, (TooltipContext) world, tooltip, flag);
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         addEnergyInformation(tooltip, stack);
 
-        tooltip.add(TooltipTranslation.GADGET_MODE.componentTranslation(getToolMode(stack).translation.format()).setStyle(Styles.AQUA));
+        tooltip.add(TooltipTranslation.GADGET_MODE
+                .componentTranslation(getToolMode(stack).translation.format())
+                .setStyle(Styles.AQUA));
+
         addInformationRayTraceFluid(tooltip, stack);
-        GadgetUtils.addTooltipNameAndAuthor(stack, world, tooltip);
+
+        // Pass null - template name/author won't show in creative tab but will work in-game
+        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltip);
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
