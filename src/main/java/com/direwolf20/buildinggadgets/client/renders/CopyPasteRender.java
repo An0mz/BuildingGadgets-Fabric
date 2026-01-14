@@ -111,6 +111,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                     BuildContext context = BuildContext.builder().player(player).stack(heldItem).build(fakeWorld);
 
                     IBuildView view = provider.getTemplateForKey(key).createViewInContext(context);
+                    view.translateTo(startPos);  // ADD THIS LINE - Move template to paste position!
 
                     List<PlacementTarget> targets = new ArrayList<>();
                     for (PlacementTarget target : view) {
@@ -132,62 +133,39 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     }
 
     private void renderTargets(PoseStack matrix, Vec3 projectedView, BuildContext context, List<PlacementTarget> targets, BlockPos startPos) {
-        tickTrack++;
-        if (renderBuffer != null && tickTrack < 300) {
-            if (tickTrack % 30 == 0) {
-                try {
-                    //Vec3 projectedView2 = projectedView;
-                    //Vec3 startPosView = new Vec3(startPos.getX(), startPos.getY(), startPos.getZ());
-                    //projectedView2 = projectedView2.subtract(startPosView);
-                    //renderBuffer.sort((float) projectedView2.x(), (float) projectedView2.y(), (float) projectedView2.z());
-                } catch (Exception ignored) {
-                }
-            }
+        tickTrack = 0;
 
-            matrix.translate(startPos.getX(), startPos.getY(), startPos.getZ());
-            renderBuffer.render(matrix.last().pose()); //Actually draw whats in the buffer
-            return;
+        if (renderBuffer != null) {
+            renderBuffer.close();
+            renderBuffer = null;
         }
 
+        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(
+                bufferSource, .7f);
 
-        tickTrack = 0;
-        if (renderBuffer != null) //Reset Render Buffer before rebuilding
-            renderBuffer.close();
+        BlockRenderDispatcher dispatcher = getMc().getBlockRenderer();
 
-        renderBuffer = MultiVBORenderer.of((buffer) -> {
-            OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(buffer, .7f);
+        for (PlacementTarget target : targets) {
+            BlockPos targetPos = target.getPos();
+            BlockState state = context.getWorld().getBlockState(target.getPos());
 
-            BlockRenderDispatcher dispatcher = getMc().getBlockRenderer();
+            matrix.pushPose();
+            matrix.translate(targetPos.getX(), targetPos.getY(), targetPos.getZ());
 
-            PoseStack stack = new PoseStack(); //Create a new matrix stack for use in the buffer building process
-            stack.pushPose(); //Save position
-
-            for (PlacementTarget target : targets) {
-                BlockPos targetPos = target.getPos();
-                BlockState state = context.getWorld().getBlockState(target.getPos());
-
-                stack.pushPose(); //Save position again
-                stack.translate(targetPos.getX(), targetPos.getY(), targetPos.getZ());
-
-                try {
-                    if (state.getRenderShape() == RenderShape.MODEL) {
-                        dispatcher.renderSingleBlock(state, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-
-                    }
-                } catch (Exception e) {
-                    BuildingGadgets.LOG.trace("Caught exception whilst rendering {}.", state, e);
+            try {
+                if (state.getRenderShape() == RenderShape.MODEL) {
+                    dispatcher.renderSingleBlock(state, matrix, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
                 }
-
-                stack.popPose(); // Load the position we saved earlier
+            } catch (Exception e) {
+                BuildingGadgets.LOG.trace("Caught exception whilst rendering {}.", state, e);
             }
-            stack.popPose(); //Load after loop
-        });
-        //Vec3 projectedView2 = getMc().gameRenderer.getMainCamera().getPosition();
-        //Vec3 startPosView = new Vec3(startPos.getX(), startPos.getY(), startPos.getZ());
-        //projectedView2 = projectedView2.subtract(startPosView);
-        //renderBuffer.sort((float) projectedView2.x(), (float) projectedView2.y(), (float) projectedView2.z());
-        matrix.translate(startPos.getX(), startPos.getY(), startPos.getZ());
-        renderBuffer.render(matrix.last().pose()); //Actually draw whats in the buffer
+
+            matrix.popPose();
+        }
+
+        // CRITICAL: Flush the buffer to actually render!
+        bufferSource.endBatch();
     }
 
     @Override
