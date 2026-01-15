@@ -237,7 +237,7 @@ public class MockDelegationWorld implements LevelAccessor {
 
     @Override
     public @Nullable ChunkAccess getChunk(int x, int z, net.minecraft.world.level.chunk.status.ChunkStatus chunkStatus, boolean requireChunk) {
-        return null;
+        return delegate.getChunk(x, z, chunkStatus, requireChunk);  // Delegate like before
     }
 
     @Override
