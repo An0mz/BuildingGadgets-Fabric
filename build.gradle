@@ -158,7 +158,19 @@ dependencies {
 }
 
 base {
-    archivesName.set(project.archives_base_name)
+    // optional, can remove if overriding jar task
+}
+
+tasks.named('remapJar') {
+    archiveBaseName.set("[${project.findProperty('minecraft_version')}] ${project.findProperty('archives_base_name')}")
+    archiveVersion.set(project.findProperty('mod_version'))
+    archiveClassifier.set("")
+}
+
+tasks.named('remapSourcesJar') {
+    archiveBaseName.set("[${project.findProperty('minecraft_version')}] ${project.findProperty('archives_base_name')}")
+    archiveVersion.set(project.findProperty('mod_version'))
+    archiveClassifier.set("sources")
 }
 
 java {
@@ -188,6 +200,7 @@ processResources {
         expand("version": project.version)
     }
 }
+
 
 publishing {
     publications {

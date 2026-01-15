@@ -15,8 +15,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.UUID;
@@ -45,8 +45,9 @@ public record PacketTemplateManagerTemplateCreated(UUID id, BlockPos pos) implem
 
     public static void handle(PacketTemplateManagerTemplateCreated payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
-            Level level = context.player().level();
-            if (level.hasChunkAt(payload.pos)) {
+            ServerLevel level = (ServerLevel) context.player().level();
+
+            if (level.isLoaded(payload.pos)) {
                 BlockEntity blockEntity = level.getBlockEntity(payload.pos);
                 if (blockEntity instanceof TemplateManagerTileEntity manager) {
                     ItemStack stack = new ItemStack(OurItems.TEMPLATE_ITEM);
