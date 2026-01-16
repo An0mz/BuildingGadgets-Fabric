@@ -34,6 +34,10 @@ public class BuildingGadgetsClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(EventKeyInput::handleEventInput);
         BlockEntityRendererRegistry.register(OurTileEntities.EFFECT_BLOCK_TILE_ENTITY, EffectBlockTER::new);
 
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            client.execute(ClientWarnings::warnChunkRenderIssue);
+        }); //Temporary fix since I can't find the problem
+
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> CACHE_TEMPLATE_PROVIDER.clear());
         CACHE_TEMPLATE_PROVIDER.registerUpdateListener(BGRenderers.COPY_PASTE);
         ClientPacketHandler.registerMessages();
