@@ -138,7 +138,7 @@ dependencies {
 
     //modImplementation "curse.maven:get-off-my-lawn-reserved-572651:4813644"
     modImplementation include("eu.pb4:placeholder-api:2.4.0-pre.3+1.20.4")
-    modImplementation include("eu.pb4:polymer-core:0.8.5+1.20.6")
+
     modImplementation include("eu.pb4:sgui:1.5.1+1.20.5")
     modImplementation include("eu.pb4:common-protection-api:1.0.0")
 
