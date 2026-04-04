@@ -3,22 +3,17 @@ package com.direwolf20.buildinggadgets.client.renders;
 import com.direwolf20.buildinggadgets.client.renderer.OurRenderTypes;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.blocks.OurBlocks;
-import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 import com.direwolf20.buildinggadgets.common.items.GadgetBuilding;
 import com.direwolf20.buildinggadgets.common.items.GadgetExchanger;
 import com.direwolf20.buildinggadgets.common.items.modes.AbstractMode;
 import com.direwolf20.buildinggadgets.common.tainted.building.BlockData;
 import com.direwolf20.buildinggadgets.common.tainted.building.view.BuildContext;
-import com.direwolf20.buildinggadgets.common.tainted.inventory.IItemIndex;
-import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryHelper;
-import com.direwolf20.buildinggadgets.common.tainted.inventory.MatchResult;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.MaterialList;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -26,6 +21,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,7 +29,9 @@ import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.Level;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.getAnchor;
@@ -128,33 +126,41 @@ public class BuildRender extends BaseRenderer {
             boolean hasLinkedInventory = getCacheInventory().maintainCache(heldItem);
             int remainingCached = getCacheInventory().getCache() == null ? -1 : getCacheInventory().getCache().count(ItemVariant.of(data.getState().getBlock().asItem()));
 
-            IItemIndex index = InventoryHelper.index(heldItem, player);
             BuildContext context = new BuildContext(player.level(), player, heldItem);
-
             MaterialList materials = data.getRequiredItems(context, null, null);
-            long hasEnergy = getEnergy(player, heldItem);
 
-            try (Transaction transaction = Transaction.openOuter()) {
-                for (BlockPos coordinate : coordinates) {
-                    boolean renderFree = false;
-                    hasEnergy -= ((AbstractGadget) heldItem.getItem()).getEnergyCost(heldItem);
-                    MatchResult match = index.match(materials, transaction);
-                    VertexConsumer builder = buffer.getBuffer(OurRenderTypes.MissingBlockOverlay);
+            // Count available items directly from the player's inventory.
+            // This avoids Fabric Transfer API transaction issues on the client render thread.
+            // Note: energy is intentionally not checked here — the gadget's energy bar already
+            // communicates charge level, and including it in the condition caused all preview
+            // blocks to show red whenever the gadget was uncharged, even if the player had
+            // the required items in their inventory.
+            Map<Item, Integer> itemCounts = new HashMap<>();
+            for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+                ItemStack s = player.getInventory().getItem(slot);
+                if (!s.isEmpty()) {
+                    itemCounts.merge(s.getItem(), s.getCount(), Integer::sum);
+                }
+            }
 
-                    if (!match.isSuccess() || hasEnergy < 0) {
-                        if (hasLinkedInventory && remainingCached > 0) {
-                            renderFree = true;
-                            remainingCached--;
-                        } else {
-                            renderMissingBlock(matrix.last().pose(), builder, coordinate);
-                        }
+            for (BlockPos coordinate : coordinates) {
+                boolean renderFree = false;
+                boolean hasItems = checkAndConsumeItems(itemCounts, materials);
+                VertexConsumer builder = buffer.getBuffer(OurRenderTypes.MissingBlockOverlay);
+
+                if (!hasItems) {
+                    if (hasLinkedInventory && remainingCached > 0) {
+                        renderFree = true;
+                        remainingCached--;
                     } else {
-                        renderBoxSolid(matrix.last().pose(), builder, coordinate, .97f, 1f, .99f, .1f);
+                        renderMissingBlock(matrix.last().pose(), builder, coordinate);
                     }
+                } else {
+                    renderBoxSolid(matrix.last().pose(), builder, coordinate, .97f, 1f, .99f, .1f);
+                }
 
-                    if (renderFree) {
-                        renderBoxSolid(matrix.last().pose(), builder, coordinate, .97f, 1f, .99f, .1f);
-                    }
+                if (renderFree) {
+                    renderBoxSolid(matrix.last().pose(), builder, coordinate, .97f, 1f, .99f, .1f);
                 }
             }
         }
@@ -166,5 +172,40 @@ public class BuildRender extends BaseRenderer {
     @Override
     public boolean isLinkable() {
         return true;
+    }
+
+    /**
+     * Checks whether the required items from the MaterialList are available in the given
+     * item count map, and if so, consumes them (decrements the counts).
+     * Tries each OR-option in order; the first satisfiable option wins.
+     */
+    private static boolean checkAndConsumeItems(Map<Item, Integer> itemCounts, MaterialList materials) {
+        for (com.google.common.collect.ImmutableMultiset<ItemVariant> option : materials) {
+            if (option.isEmpty()) {
+                return true; // no items required
+            }
+            // Check all entries in this option
+            boolean canFulfill = true;
+            Map<Item, Integer> toConsume = new HashMap<>();
+            for (com.google.common.collect.Multiset.Entry<ItemVariant> entry : option.entrySet()) {
+                Item item = entry.getElement().getItem();
+                int needed = entry.getCount();
+                int available = itemCounts.getOrDefault(item, 0) - toConsume.getOrDefault(item, 0);
+                if (available >= needed) {
+                    toConsume.merge(item, needed, Integer::sum);
+                } else {
+                    canFulfill = false;
+                    break;
+                }
+            }
+            if (canFulfill) {
+                // Commit the consumption
+                for (Map.Entry<Item, Integer> e : toConsume.entrySet()) {
+                    itemCounts.merge(e.getKey(), -e.getValue(), Integer::sum);
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }

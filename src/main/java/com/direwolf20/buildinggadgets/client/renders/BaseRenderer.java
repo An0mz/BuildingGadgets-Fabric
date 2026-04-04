@@ -66,6 +66,10 @@ public abstract class BaseRenderer {
     long getEnergy(Player player, ItemStack heldItem) {
         if (player.isCreative() || !(heldItem.getItem() instanceof AbstractGadget))
             return Integer.MAX_VALUE;
+        AbstractGadget gadget = (AbstractGadget) heldItem.getItem();
+        // If energy system is disabled (capacity == 0), treat as unlimited
+        if (gadget.getEnergyCapacity() == 0)
+            return Integer.MAX_VALUE;
         return SimpleEnergyItem.getStoredEnergyUnchecked(heldItem);
     }
 
