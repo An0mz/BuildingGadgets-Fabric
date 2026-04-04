@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "buildinggadgets",
   "version": "${version}",
-  "name": "st'ructure tools continued",
+  "name": "Building Gadgets",
   "description": "Fabric port of Building Gadgets.",
   "authors": [
     "ProjectET",
@@ -15,42 +15,27 @@
     "sources": "https://github.com/ProjectET/BuildingGadgets-Fabric",
     "issues": "https://github.com/ProjectET/BuildingGadgets-Fabric/issues"
   },
-  "license": [
-    "MIT"
-  ],
+  "license": ["MIT"],
   "icon": "assets/buildinggadgets/icon.png",
-  "accessWidener" : "buildinggadgets.accesswidener",
+  "accessWidener": "buildinggadgets.accesswidener",
   "entrypoints": {
-    "main": [
-      "com.direwolf20.buildinggadgets.common.BuildingGadgets"
-    ],
-    "cardinal-components-world" : [
-      "com.direwolf20.buildinggadgets.common.component.BGComponent"
-    ],
-    "cardinal-components-level" : [
-      "com.direwolf20.buildinggadgets.common.component.BGComponent"
-    ],
-    "client": [
-      "com.direwolf20.buildinggadgets.client.BuildingGadgetsClient"
-    ],
-    "modmenu": [
-      "com.direwolf20.buildinggadgets.common.compat.ModMenuCompat"
-    ]
+    "main": ["com.direwolf20.buildinggadgets.common.BuildingGadgets"],
+    "cardinal-components-world": ["com.direwolf20.buildinggadgets.common.component.BGComponent"],
+    "cardinal-components-level": ["com.direwolf20.buildinggadgets.common.component.BGComponent"],
+    "client": ["com.direwolf20.buildinggadgets.client.BuildingGadgetsClient"],
+    "modmenu": ["com.direwolf20.buildinggadgets.common.compat.ModMenuCompat"]
   },
-  "mixins": [
-    "buildinggadgets.mixins.json"
-  ],
+  "mixins": ["buildinggadgets.mixins.json"],
   "depends": {
-    "minecraft": "1.20.*",
-    "fabricloader": ">=0.18.0",
-    "fabric": ">=0.90.0",
-    "cloth-config2": ">=6.0.42",
-    "cardinal-components-base": ">=5.2.2"
+    "minecraft": "1.21.4",
+    "fabricloader": ">=0.16.0",
+    "fabric": ">=0.107.0",
+    "cloth-config2": ">=15.0.0",
+    "cardinal-components-base": ">=6.1.0"
   },
   "custom": {
     "cardinal-components": [
       "buildinggadgets:template_provider",
-      "buildinggadgets:template_key",
       "buildinggadgets:undo"
     ]
   }

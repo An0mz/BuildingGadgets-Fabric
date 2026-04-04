@@ -16,7 +16,7 @@ public final class CommonUtils {
 
     public static BlockHitResult fakeRayTrace(Vec3 simulatePos, BlockPos pos) {
         Vec3 simVec = Vec3.atLowerCornerOf(pos).subtract(simulatePos);
-        Direction dir = Direction.getNearest(simVec.x(), simVec.y(), simVec.z());
+        Direction dir = Direction.getNearest((int)simVec.x(), (int)simVec.y(), (int)simVec.z(), Direction.NORTH);
         return new BlockHitResult(simVec, dir, pos, false);
     }
 

@@ -50,11 +50,11 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
     public static BlockData tryDeserialize(@Nullable CompoundTag tag, @Nullable IntFunction<ITileDataSerializer> serializerProvider, boolean readDataPersisted) {
         if (tag == null || !(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA)))
             return null;
-        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().get(new ResourceLocation(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
             else
                 serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
         } catch (Exception e) {
@@ -82,11 +82,11 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         Preconditions.checkNotNull(tag, "Cannot deserialize from a null tag compound");
         Preconditions.checkArgument(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA),
                 "Given NBTTagCompound does not contain a valid BlockData instance. Missing NBT-Keys in Tag {}!", tag.toString());
-        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().get(new ResourceLocation(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
             else
                 serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
         } catch (Exception e) {

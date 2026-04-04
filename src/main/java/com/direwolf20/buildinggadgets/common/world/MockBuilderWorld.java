@@ -50,7 +50,7 @@ public class MockBuilderWorld implements BlockGetter {
     }
 
     @Override
-    public int getMinBuildHeight() {
-        return realWorld.getMinBuildHeight();
+    public int getMinY() {
+        return realWorld.getMinY();
     }
 }

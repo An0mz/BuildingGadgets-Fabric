@@ -322,11 +322,6 @@ public class MockDelegationWorld implements LevelAccessor {
     }
 
     @Override
-    public int getMaxLightLevel() {
-        return delegate.getMaxLightLevel();
-    }
-
-    @Override
     public boolean setBlock(BlockPos p_241211_1_, BlockState p_241211_2_, int p_241211_3_, int p_241211_4_) {
         return false;
     }

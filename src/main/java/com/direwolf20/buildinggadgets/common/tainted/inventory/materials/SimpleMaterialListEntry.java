@@ -63,8 +63,8 @@ record SimpleMaterialListEntry(
                 CompoundTag itemData = compoundEntry.getCompound(NBTKeys.KEY_DATA);
 
                 // Read Item
-                ResourceLocation itemId = new ResourceLocation(itemData.getString("item"));
-                Item item = BuiltInRegistries.ITEM.get(itemId);
+                ResourceLocation itemId = ResourceLocation.parse(itemData.getString("item"));
+                Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                 // Read DataComponentPatch
                 DataComponentPatch components = DataComponentPatch.CODEC
@@ -142,8 +142,8 @@ record SimpleMaterialListEntry(
                     // Convert JSON to NBT, then deserialize
                     CompoundTag itemNbt = (CompoundTag) Dynamic.convert(JsonOps.INSTANCE, NbtOps.INSTANCE, object.get(JsonKeys.MATERIAL_LIST_ITEM));
 
-                    ResourceLocation itemId = new ResourceLocation(itemNbt.getString("item"));
-                    Item item = BuiltInRegistries.ITEM.get(itemId);
+                    ResourceLocation itemId = ResourceLocation.parse(itemNbt.getString("item"));
+                    Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                     DataComponentPatch components = DataComponentPatch.CODEC
                             .parse(NbtOps.INSTANCE, itemNbt.get("components"))

@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +16,7 @@ public record PacketPasteGUI(BlockPos pos) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketPasteGUI> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketPasteGUI);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketPasteGUI> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketPasteGUI> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeBlockPos(packet.pos),
             buf -> new PacketPasteGUI(buf.readBlockPos())
     );

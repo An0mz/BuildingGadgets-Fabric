@@ -100,7 +100,6 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         items.add(charged);
     }
 
-    @Override
     public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
         return repair.getItem() instanceof AbstractGadget && repair.getItem() == Items.DIAMOND;
     }
@@ -301,7 +300,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     protected static boolean mayInteract(ServerPlayer player, BlockPos pos) {
-        return player.mayInteract(player.level(), pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
+        return player.mayInteract((net.minecraft.server.level.ServerLevel) player.level(), pos) && FLANCompat.canUse(player, pos) && FTBChunksCompat.canUse(player, pos);
     }
 
     // Energy methods for SimpleEnergyItem

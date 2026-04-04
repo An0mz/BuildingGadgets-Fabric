@@ -94,45 +94,45 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         // Down
         if (tile.getLevel().getBlockState(tile.getBlockPos().below()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, x, y, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, y, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, y, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, y, maxZ).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
         }
         // Up
         if (tile.getLevel().getBlockState(tile.getBlockPos().above()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, x, maxY, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, maxY, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, z).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
         }
         // North
         if (tile.getLevel().getBlockState(tile.getBlockPos().north()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, x, y, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, maxY, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, y, z).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
         }
         // South
         if (tile.getLevel().getBlockState(tile.getBlockPos().south()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, x, y, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, y, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, maxY, maxZ).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
         }
         // East
         if (tile.getLevel().getBlockState(tile.getBlockPos().east()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, maxX, y, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, maxY, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, maxX, y, maxZ).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
         }
         // West
         if (tile.getLevel().getBlockState(tile.getBlockPos().west()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.vertex(matrix, x, y, z).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, y, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, maxY, maxZ).color(red, green, blue, alpha).endVertex();
-            builder.vertex(matrix, x, maxY, z).color(red, green, blue, alpha).endVertex();
+            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
         }
         stack.popPose();
         buffer2.endBatch(); // @mcp: draw (yarn) = finish (mcp)

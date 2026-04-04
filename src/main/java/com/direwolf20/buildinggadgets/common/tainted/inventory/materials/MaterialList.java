@@ -82,7 +82,7 @@ public final class MaterialList implements Iterable<ImmutableMultiset<ItemVarian
     }
 
     static MaterialListEntry<?> readEntry(CompoundTag nbt, boolean persisted) {
-        ResourceLocation id = new ResourceLocation(nbt.getString(NBTKeys.KEY_SERIALIZER));
+        ResourceLocation id = ResourceLocation.parse(nbt.getString(NBTKeys.KEY_SERIALIZER));
         MaterialListEntry.Serializer<?> serializer = getSerializerForId(id);
         Preconditions.checkArgument(serializer != null,
                 "Failed to recognize Serializer " + id +

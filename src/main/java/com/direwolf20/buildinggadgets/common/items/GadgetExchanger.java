@@ -40,12 +40,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.ClipContext.Fluid;
 import net.minecraft.world.level.Level;
@@ -79,16 +77,6 @@ public class GadgetExchanger extends AbstractGadget {
     @Override
     public long getEnergyCost(ItemStack tool) {
         return BuildingGadgets.getConfig().gadgets.gadgetExchanger.energyCost;
-    }
-
-    @Override
-    public int getEnchantmentValue() {
-        return 3;
-    }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
     }
 
     private static void setToolMode(ItemStack tool, ExchangingModes mode) {
@@ -129,16 +117,16 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
 
         player.startUsingItem(hand);
 
         if (!world.isClientSide) {
             if (player.isShiftKeyDown()) {
-                InteractionResultHolder<Block> result = selectBlock(itemstack, player);
-                if (!result.getResult().consumesAction()) {
-                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(result.getObject())).setStyle(Styles.AQUA), true);
+                Optional<Block> result = selectBlock(itemstack, player);
+                if (result.isEmpty()) {
+                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(net.minecraft.world.level.block.Blocks.AIR)).setStyle(Styles.AQUA), true);
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
@@ -156,7 +144,7 @@ public class GadgetExchanger extends AbstractGadget {
                 }
             }
         }
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
+        return InteractionResult.SUCCESS;
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
@@ -247,10 +235,10 @@ public class GadgetExchanger extends AbstractGadget {
             Iterator<ImmutableMultiset<ItemVariant>> it = materials.iterator();
             Multiset<ItemVariant> producedItems = LinkedHashMultiset.create();
 
-            if (buildContext.getStack().isEnchanted() && EnchantmentHelper.getItemEnchantmentLevel(GadgetSilkTouch.getEnchantment(), buildContext.getStack()) > 0) {
+            if (buildContext.getStack().isEnchanted() && GadgetSilkTouch.hasSilkTouch(buildContext.getStack(), buildContext.getWorld().registryAccess())) {
                 producedItems = it.hasNext() ? it.next() : ImmutableMultiset.of();
             } else {
-                List<ItemStack> drops = Block.getDrops(currentBlock, (ServerLevel) buildContext.getWorld(), pos, buildContext.getWorld().getBlockEntity(pos));
+                List<ItemStack> drops = Block.getDrops(currentBlock, (ServerLevel) buildContext.getWorld(), pos, buildContext.getWorld().getBlockEntity(pos), buildContext.getPlayer(), buildContext.getStack());
                 producedItems.addAll(drops.stream().map(ItemVariant::of).collect(Collectors.toList()));
             }
 
@@ -268,7 +256,7 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) {
         return 20;
     }
 

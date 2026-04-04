@@ -5,6 +5,7 @@ import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +15,7 @@ public record PacketToggleRayTraceFluid() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketToggleRayTraceFluid> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketToggleRayTraceFluid);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketToggleRayTraceFluid> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleRayTraceFluid> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing
             buf -> new PacketToggleRayTraceFluid() // Read nothing, return new instance
     );

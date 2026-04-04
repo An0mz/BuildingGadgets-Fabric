@@ -46,8 +46,8 @@ public class GuiIconActionable extends Button {
         // Set the selected and deselected textures.
         String assetLocation = "textures/gui/setting/%s.png";
 
-        this.deselectedTexture = new ResourceLocation(Reference.MODID, String.format(assetLocation, texture));
-        this.selectedTexture = !isSelectable ? this.deselectedTexture : new ResourceLocation(Reference.MODID, String.format(assetLocation, texture + "_selected"));
+        this.deselectedTexture = ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture));
+        this.selectedTexture = !isSelectable ? this.deselectedTexture : ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture + "_selected"));
     }
 
     /**
@@ -92,7 +92,7 @@ public class GuiIconActionable extends Button {
             return;
 
         RenderSystem.enableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX);
         RenderSystem.setShaderColor(
                 activeColor.getRed() / 255f,
                 activeColor.getGreen() / 255f,
@@ -115,11 +115,12 @@ public class GuiIconActionable extends Button {
         );
 
         guiGraphics.blit(
+                net.minecraft.client.renderer.RenderType::guiTextured,
                 selected ? selectedTexture : deselectedTexture,
                 this.getX(),
                 this.getY(),
-                0,
-                0,
+                0f,
+                0f,
                 this.width,
                 this.height,
                 this.width,

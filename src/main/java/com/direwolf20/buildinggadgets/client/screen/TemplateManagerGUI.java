@@ -38,10 +38,7 @@ import com.google.common.collect.Multiset;
 import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.Item;
@@ -84,7 +81,7 @@ import java.util.Random;
 
 @IPNIgnore
 public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerContainer> {
-    private static final ResourceLocation background = new ResourceLocation(Reference.MODID, "textures/gui/template_manager.png");
+    private static final ResourceLocation background = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/template_manager.png");
 
     private final Rect2i panel = new Rect2i(8, 23, 136, 80);
     private boolean panelClicked;
@@ -167,19 +164,17 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-
-        RenderSystem.setShaderTexture(0, background);
-        guiGraphics.blit(background, leftPos, topPos, 0, 0, 176, 192);
-        guiGraphics.blit(background, leftPos + 176, topPos + 29, 176, 28, 76, 113);
+        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, leftPos, topPos, (float)0, (float)0, 176, 192, 256, 256);
+        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, leftPos + 176, topPos + 29, 176f, 28f, 76, 113, 256, 256);
 
         if (!buttonCopy.isHoveredOrFocused() && !buttonPaste.isHoveredOrFocused()) {
             int x = (leftPos + imageWidth) - 98;
             int y = topPos + 49;
 
             if (buttonLoad.isHoveredOrFocused())
-                guiGraphics.blit(background,x, y, 176, 0, 17, 24);
+                guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, x, y, (float)176, (float)0, 17, 24, 256, 256);
             else
-                guiGraphics.blit(background,x, y, 193, 0, 16, 24);
+                guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, x, y, (float)193, (float)0, 16, 24, 256, 256);
         }
 
         this.nameField.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -216,9 +211,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         Random rand = new Random();
         BlockRenderDispatcher dispatcher = getMinecraft().getBlockRenderer();
 
-        BufferBuilder bufferBuilder = new BufferBuilder(2097152);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
-
         for (PlacementTarget target : view) {
             target.placeIn(view.getContext());
             BlockPos targetPos = target.getPos();
@@ -235,14 +227,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                     if (renderer != null) {
                     }
                     //remember vanilla Tiles rebinding the TextureAtlas
-                    RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
                 } catch (Exception e) {
                     BuildingGadgets.LOG.error("Error rendering TileEntity", e);
                 }
             }
         }
 
-        bufferBuilder.end();
+        // end structure preview rendering
     }
 
     private void renderRequirement(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -289,7 +280,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 List<Component> tooltip = stack.getTooltipLines(
                         Item.TooltipContext.of(getMinecraft().level),
                         getMinecraft().player,
-                        TooltipFlag.Default.NORMAL
+                        TooltipFlag.NORMAL
                 );
 
                 guiGraphics.renderTooltip(
@@ -406,7 +397,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 (int) Math.round(panel.getWidth() * scale),
                 (int) Math.round(panel.getHeight() * scale));
 
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, true);
+        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT);
 
         sc = (293 * sc) + zoom / zoomScale;
         pose.scale((float) sc, (float) sc, (float) sc);
@@ -434,9 +425,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                         .build(new MockDelegationWorld(getMinecraft().level)));
 
         renderStructure(view, partialTicks);
-
-        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-
         pose.popPose();
         pose.popPose();
         RenderSystem.viewport(0, 0, getMinecraft().getWindow().getWidth(), getMinecraft().getWindow().getHeight());

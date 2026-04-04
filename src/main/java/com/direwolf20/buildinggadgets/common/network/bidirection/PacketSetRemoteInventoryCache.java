@@ -26,7 +26,7 @@ public record PacketSetRemoteInventoryCache(Data data) implements CustomPacketPa
     public static final CustomPacketPayload.Type<PacketSetRemoteInventoryCache> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketSetRemoteInventoryCache);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketSetRemoteInventoryCache> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketSetRemoteInventoryCache> CODEC = StreamCodec.of(
             (buf, packet) -> packet.data.write(buf),
             buf -> new PacketSetRemoteInventoryCache(Data.read(buf))
     );

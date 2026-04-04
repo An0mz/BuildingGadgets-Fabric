@@ -1,4 +1,5 @@
 package com.direwolf20.buildinggadgets.common.items;
+import net.minecraft.world.InteractionResult;
 
 import com.direwolf20.buildinggadgets.client.screen.GuiMod;
 import com.direwolf20.buildinggadgets.client.screen.tooltip.TemplateData;
@@ -6,7 +7,6 @@ import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
 import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
@@ -24,19 +24,20 @@ public class TemplateItem extends Item {
         super(properties);
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, (TooltipContext) worldIn, tooltip, flagIn);
-        GadgetUtils.addTooltipNameAndAuthor(stack, worldIn, tooltip);
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, context, tooltip, flagIn);
+        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltip);
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
         if (!playerIn.isShiftKeyDown())
             return super.use(worldIn, playerIn, handIn);
 
         if (worldIn.isClientSide) {
             return GuiMod.MATERIAL_LIST.openScreen(playerIn)
-                    ? InteractionResultHolder.success(playerIn.getItemInHand(handIn))
+                    ? InteractionResult.SUCCESS
                     : super.use(worldIn, playerIn, handIn);
         }
 

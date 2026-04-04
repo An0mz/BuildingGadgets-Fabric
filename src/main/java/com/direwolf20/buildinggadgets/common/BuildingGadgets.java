@@ -52,7 +52,7 @@ public final class BuildingGadgets implements ModInitializer {
             .build();
 
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(Reference.MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(Reference.MODID, path);
     }
 
     public static Config getConfig() {

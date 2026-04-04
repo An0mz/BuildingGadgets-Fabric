@@ -16,7 +16,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,7 +42,6 @@ public abstract class BaseRenderer {
     }
 
     private void bindBlocks() {
-        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
     }
 
     private static void renderLinkedInventoryOutline(WorldRenderContext evt, ItemStack gadget, Player player) {
@@ -110,40 +108,40 @@ public abstract class BaseRenderer {
 //        float startX = 0, startY = 0, startZ = -1, endX = 1, endY = 1, endZ = 0;
 
         //down
-        builder.vertex(matrix, startX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, startY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, startY, endZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
 
         //up
-        builder.vertex(matrix, startX, endY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, endY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, startZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
 
         //east
-        builder.vertex(matrix, startX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, endY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, startY, startZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
 
         //west
-        builder.vertex(matrix, startX, startY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, startY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, endY, endZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
 
         //south
-        builder.vertex(matrix, endX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, endY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, endX, startY, endZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
 
         //north
-        builder.vertex(matrix, startX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, startY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, endY, endZ).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix, startX, endY, startZ).color(red, green, blue, alpha).endVertex();
+        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
     }
 
     /**

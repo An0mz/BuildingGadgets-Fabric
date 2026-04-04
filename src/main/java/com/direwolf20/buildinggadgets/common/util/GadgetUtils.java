@@ -28,7 +28,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -158,22 +157,22 @@ public class GadgetUtils {
         player.displayClientMessage(result.i18n().componentTranslation(), true);
     }
 
-    public static InteractionResultHolder<Block> selectBlock(ItemStack stack, Player player) {
+    public static Optional<Block> selectBlock(ItemStack stack, Player player) {
         Level world = player.level();
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, AbstractGadget.shouldRayTraceFluid(stack) ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
         if (world.isEmptyBlock(lookingAt.getBlockPos()))
-            return InteractionResultHolder.fail(Blocks.AIR);
+            return Optional.empty();
 
         BlockState state = world.getBlockState(lookingAt.getBlockPos());
         if (!((AbstractGadget) stack.getItem()).isAllowedBlock(state.getBlock()) || state.getBlock() instanceof EffectBlock)
-            return InteractionResultHolder.fail(state.getBlock());
+            return Optional.empty();
 
         if (DISALLOWED_BLOCKS.contains(state.getBlock())) {
-            return InteractionResultHolder.fail(state.getBlock());
+            return Optional.empty();
         }
 
         if (state.getDestroySpeed(world, lookingAt.getBlockPos()) < 0) {
-            return InteractionResultHolder.fail(state.getBlock());
+            return Optional.empty();
         }
 
         Optional<BlockData> data = InventoryHelper.getSafeBlockData(player, lookingAt.getBlockPos(), player.getUsedItemHand());
@@ -182,7 +181,7 @@ public class GadgetUtils {
             setToolBlock(stack, new BlockData(actualState, placeState.getTileData()));
         });
 
-        return InteractionResultHolder.success(state.getBlock());
+        return Optional.of(state.getBlock());
     }
 
     public static InteractionResult setRemoteInventory(ItemStack stack, Player player, Level world, BlockPos pos, boolean setTool) {

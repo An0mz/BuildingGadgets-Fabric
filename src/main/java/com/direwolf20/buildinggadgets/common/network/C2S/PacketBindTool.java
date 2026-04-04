@@ -7,6 +7,7 @@ import com.direwolf20.buildinggadgets.common.util.GadgetUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -16,7 +17,7 @@ public record PacketBindTool() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketBindTool> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketBindTool);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketBindTool> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketBindTool> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing
             buf -> new PacketBindTool() // Read nothing, return new instance
     );

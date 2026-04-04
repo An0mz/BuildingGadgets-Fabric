@@ -15,6 +15,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -33,7 +34,7 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
     public static final CustomPacketPayload.Type<SplitPacketUpdateTemplate> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.SplitPacketUpdateTemplate);
 
-    public static final StreamCodec<FriendlyByteBuf, SplitPacketUpdateTemplate> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, SplitPacketUpdateTemplate> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeBytes(packet.data),
             buf -> {
                 FriendlyByteBuf copy = new FriendlyByteBuf(Unpooled.buffer());

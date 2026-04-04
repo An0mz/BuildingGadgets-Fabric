@@ -49,7 +49,7 @@ public interface ITileEntityData {
     default MaterialList getRequiredItems(BuildContext context, BlockState state, @Nullable HitResult target, @Nullable BlockPos pos) {
         ItemStack stack = null;
         try {
-            stack = state.getBlock().getCloneItemStack(context.getWorld(), pos, state);
+            stack = new net.minecraft.world.item.ItemStack(state.getBlock().asItem());
         } catch (Exception e) {
             BuildingGadgets.LOG.trace("Failed to retrieve pickBlock for {}.", state, e);
         }

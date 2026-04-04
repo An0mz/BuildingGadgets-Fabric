@@ -32,7 +32,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
     public static final int BUTTON_HEIGHT = 20;
     public static final int BUTTONS_PADDING = 4;
 
-    public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Reference.MODID, "textures/gui/material_list.png");
+    public static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/material_list.png");
     public static final int BACKGROUND_WIDTH = 256;
     public static final int BACKGROUND_HEIGHT = 200;
     public static final int BORDER_SIZE = 4;
@@ -139,8 +139,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float particleTicks) {
-        RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        guiGraphics.blit(BACKGROUND_TEXTURE, backgroundX, backgroundY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
+        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, BACKGROUND_TEXTURE, backgroundX, backgroundY, (float)0, (float)0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, 256, 256);
 
 
         scrollingList.render(guiGraphics, mouseX, mouseY, particleTicks);

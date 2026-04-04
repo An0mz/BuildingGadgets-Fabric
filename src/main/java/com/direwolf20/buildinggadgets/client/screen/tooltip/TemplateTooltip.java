@@ -45,7 +45,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(net.minecraft.client.gui.Font font) {
         if(this.getCount() > 0 && Screen.hasShiftDown()) {
             return (((count - 1) / EventUtil.STACKS_PER_LINE) + 1) * 21;
         }
@@ -166,7 +166,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 ItemDisplayContext.GUI,
                 false,
                 guiGraphics.pose(),
-                guiGraphics.bufferSource(),
+                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
                 Minecraft.getInstance().level,
                 0xF000F0,
                 OverlayTexture.NO_OVERLAY,
@@ -185,7 +185,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 0xFFFFFF,
                 true,
                 guiGraphics.pose().last().pose(),
-                guiGraphics.bufferSource(),
+                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
                 Font.DisplayMode.NORMAL,
                 0,
                 15728880
@@ -208,7 +208,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
                     0xFF0000,
                     true,
                     guiGraphics.pose().last().pose(),
-                    guiGraphics.bufferSource(),
+                    net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
                     Font.DisplayMode.NORMAL,
                     0,
                     15728880

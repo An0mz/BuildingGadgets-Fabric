@@ -12,7 +12,7 @@ public class OurSounds {
     public static SoundEvent BEEP;
 
     public static void initSounds() {
-        ResourceLocation loc = new ResourceLocation(Reference.MODID, "beep");
+        ResourceLocation loc = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "beep");
 
         BEEP = SoundEvent.createVariableRangeEvent(loc);
         Registry.register(BuiltInRegistries.SOUND_EVENT, loc, BEEP);

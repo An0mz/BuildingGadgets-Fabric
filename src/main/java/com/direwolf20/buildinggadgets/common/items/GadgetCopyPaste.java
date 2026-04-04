@@ -1,4 +1,5 @@
 package com.direwolf20.buildinggadgets.common.items;
+import net.minecraft.world.InteractionResult;
 
 import com.direwolf20.buildinggadgets.client.renders.BaseRenderer;
 import com.direwolf20.buildinggadgets.client.screen.GuiMod;
@@ -39,7 +40,6 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
@@ -265,7 +265,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         player.startUsingItem(hand);
 
@@ -274,7 +274,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
         if (!world.isClientSide()) {
             if (player.isShiftKeyDown() && lookingAtInventory) {
-                return InteractionResultHolder.pass(stack);
+                return super.use(world, player, hand);
             }
 
             if (getToolMode(stack) == ToolMode.COPY) {
@@ -287,7 +287,7 @@ public class GadgetCopyPaste extends AbstractGadget {
         } else {
             if (player.isShiftKeyDown() && Screen.hasControlDown() && lookingAtInventory) {
                 PacketBindTool.send();
-                return InteractionResultHolder.pass(stack);
+                return super.use(world, player, hand);
             }
 
             if (getToolMode(stack) == ToolMode.COPY) {
@@ -301,7 +301,7 @@ public class GadgetCopyPaste extends AbstractGadget {
             }
         }
 
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     private void setRegionAndCopy(ItemStack stack, Level world, Player player, BlockPos lookedAt) {

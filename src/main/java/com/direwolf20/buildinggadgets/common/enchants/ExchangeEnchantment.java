@@ -1,43 +1,28 @@
 package com.direwolf20.buildinggadgets.common.enchants;
 
-import com.direwolf20.buildinggadgets.common.items.OurItems;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
+import com.direwolf20.buildinggadgets.common.util.ref.Reference;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
-public class ExchangeEnchantment extends Enchantment {
+/**
+ * In 1.21.1, enchantments are fully data-driven.
+ * The actual enchantment definition is in data/buildinggadgets/enchantment/exchange.json.
+ * This class just holds the ResourceKey reference for use in code.
+ */
+public class ExchangeEnchantment {
 
-    public static final TagKey<Item> SUPPORTED = TagKey.create(
-            BuiltInRegistries.ITEM.key(),                 // the registry key for items
-            BuiltInRegistries.ITEM.getKey(OurItems.EXCHANGING_GADGET_ITEM) // the item's ResourceLocation
-    );
+    public static final ResourceKey<Enchantment> EXCHANGE_KEY =
+            ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(Reference.MODID, "exchange"));
 
-    public ExchangeEnchantment() {
-        super(definition(
-                SUPPORTED,                   // supported items
-                1,                           // weight
-                1,                           // max level
-                new Cost(1, 0),              // min cost
-                new Cost(1, 0),              // max cost
-                0,                           // anvil cost
-                EquipmentSlot.MAINHAND
-        ));
-    }
-
-
-    @Override
-    public boolean canEnchant(ItemStack stack) {
-        return stack.is(OurItems.EXCHANGING_GADGET_ITEM);
-    }
-
-    public boolean canApplyAtEnchantingTable(ItemStack stack) {
-        return canEnchant(stack);
-    }
-
-    public boolean isAllowedOnBooks() {
-        return false;
+    public static boolean hasExchange(ItemStack stack, net.minecraft.core.HolderLookup.Provider registries) {
+        if (stack.isEmpty()) return false;
+        return registries.lookupOrThrow(Registries.ENCHANTMENT)
+                .get(EXCHANGE_KEY)
+                .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack) > 0)
+                .orElse(false);
     }
 }

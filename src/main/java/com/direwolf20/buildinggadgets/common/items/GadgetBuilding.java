@@ -33,7 +33,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -44,6 +43,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -126,15 +126,15 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
 
         player.startUsingItem(hand);
         if (!world.isClientSide) {
             if (player.isShiftKeyDown()) {
-                InteractionResultHolder<Block> result = selectBlock(itemstack, player);
-                if (!result.getResult().consumesAction()) {
-                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(result.getObject().getName()).setStyle(Styles.AQUA), true);
+                Optional<Block> result = selectBlock(itemstack, player);
+                if (result.isEmpty()) {
+                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(net.minecraft.world.level.block.Blocks.AIR.getName()).setStyle(Styles.AQUA), true);
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
@@ -149,7 +149,7 @@ public class GadgetBuilding extends AbstractGadget {
                 }
             }
         }
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
+        return InteractionResult.SUCCESS;
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {
@@ -210,7 +210,7 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     private void placeBlock(Level world, ServerPlayer player, IItemIndex index, Undo.Builder builder, BlockPos pos, BlockData setBlock) {
-        if ((pos.getY() > world.getMaxBuildHeight() || pos.getY() < world.getMinBuildHeight()) || !player.mayBuild())
+        if ((pos.getY() > world.getMaxY() || pos.getY() < world.getMinY()) || !player.mayBuild())
             return;
 
         ItemStack heldItem = getGadget(player);

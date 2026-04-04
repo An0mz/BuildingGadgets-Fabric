@@ -1,17 +1,12 @@
 package com.direwolf20.buildinggadgets.client.renderer;
 
-
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
 
 import java.util.OptionalDouble;
 
@@ -23,11 +18,10 @@ public class OurRenderTypes extends RenderType {
     public static final RenderType RenderBlock = create("GadgetRenderBlock",
             DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, false,
             RenderType.CompositeState.builder()
-//                    .setShadeModelState(SMOOTH_SHADE)
                     .setShaderState(RenderStateShard.RENDERTYPE_SOLID_SHADER)
                     .setLightmapState(LIGHTMAP)
-                    .setTextureState(BLOCK_SHEET_MIPPED) //BLOCK_SHEET_MIPPED (mcp) = BLOCK_SHEET_MIPPED (yarn)
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
+                    .setTextureState(BLOCK_SHEET_MIPPED)
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setCullState(NO_CULL)
@@ -38,7 +32,7 @@ public class OurRenderTypes extends RenderType {
             DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, true,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setTextureState(RenderStateShard.NO_TEXTURE)
@@ -54,7 +48,7 @@ public class OurRenderTypes extends RenderType {
             RenderType.CompositeState.builder()
                     .setShaderState(RenderStateShard.RENDERTYPE_LINES_SHADER)
                     .setLineState(new LineStateShard(OptionalDouble.of(2.0D)))
-                    .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
+                    .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                     .setTextureState(NO_TEXTURE)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
@@ -67,10 +61,9 @@ public class OurRenderTypes extends RenderType {
             DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, false,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderStateShard.RENDERTYPE_SOLID_SHADER)
-//                    .setShadeModelState(SMOOTH_SHADE)
                     .setLightmapState(LIGHTMAP)
-                    .setTextureState(BLOCK_SHEET_MIPPED) //BLOCK_SHEET_MIPPED (mcp) = BLOCK_SHEET_MIPPED (yarn)
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
+                    .setTextureState(BLOCK_SHEET_MIPPED)
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setCullState(NO_CULL)
@@ -81,7 +74,7 @@ public class OurRenderTypes extends RenderType {
             DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, true,
             RenderType.CompositeState.builder()
                     .setShaderState(POSITION_COLOR_SHADER)
-                    .setLayeringState(RenderStateShard.POLYGON_OFFSET_LAYERING) // view_offset_z_layering
+                    .setLayeringState(RenderStateShard.POLYGON_OFFSET_LAYERING)
                     .setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
                     .setTextureState(NO_TEXTURE)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
@@ -95,10 +88,7 @@ public class OurRenderTypes extends RenderType {
     }
 
     /**
-     * This is used for rendering blocks with an alpha value as the alpha currently isn't
-     * supported by minecraft.
-     * <p>
-     * Literally just wraps the buffer so we can render a different RenderType
+     * Wraps a MultiBufferSource to multiply alpha on all vertex colors.
      */
     public static class MultiplyAlphaRenderTypeBuffer implements MultiBufferSource {
         private final MultiBufferSource inner;
@@ -111,23 +101,9 @@ public class OurRenderTypes extends RenderType {
 
         @Override
         public VertexConsumer getBuffer(RenderType type) {
-            RenderType localType = type;
-            if (localType instanceof CompositeRenderType) {
-                // all of this requires a lot of AT's so be aware of that on ports
-                ResourceLocation texture = ((TextureStateShard) ((CompositeRenderType) localType).state.textureState).texture
-                        .orElse(InventoryMenu.BLOCK_ATLAS);
-
-                localType = entityTranslucentCull(texture);
-            } else if (localType.toString().equals(Sheets.translucentCullBlockSheet().toString())) {
-                localType = Sheets.translucentCullBlockSheet();
-            }
-
-            return new MultiplyAlphaVertexBuilder(inner.getBuffer(localType), this.constantAlpha);
+            return new MultiplyAlphaVertexBuilder(inner.getBuffer(type), this.constantAlpha);
         }
 
-        /**
-         * Required for modifying the alpha value.
-         */
         public static class MultiplyAlphaVertexBuilder implements VertexConsumer {
             private final VertexConsumer inner;
             private final float constantAlpha;
@@ -138,54 +114,33 @@ public class OurRenderTypes extends RenderType {
             }
 
             @Override
-            public VertexConsumer vertex(double x, double y, double z) {
-                return inner.vertex(x, y, z);
+            public VertexConsumer addVertex(float x, float y, float z) {
+                return new MultiplyAlphaVertexBuilder(inner.addVertex(x, y, z), constantAlpha);
             }
 
             @Override
-            public VertexConsumer vertex(Matrix4f matrixIn, float x, float y, float z) {
-                return inner.vertex(matrixIn, x, y, z);
+            public VertexConsumer setColor(int red, int green, int blue, int alpha) {
+                return inner.setColor(red, green, blue, (int) (alpha * constantAlpha));
             }
 
             @Override
-            public VertexConsumer color(int red, int green, int blue, int alpha) {
-                return inner.color(red, green, blue, (int) (alpha * constantAlpha));
+            public VertexConsumer setUv(float u, float v) {
+                return inner.setUv(u, v);
             }
 
             @Override
-            public VertexConsumer uv(float u, float v) {
-                return inner.uv(u, v);
+            public VertexConsumer setUv1(int u, int v) {
+                return inner.setUv1(u, v);
             }
 
             @Override
-            public VertexConsumer overlayCoords(int u, int v) {
-                return inner.overlayCoords(u, v);
-            }
-
-
-            @Override
-            public VertexConsumer uv2(int u, int v) {
-                return inner.uv2(u, v);
+            public VertexConsumer setUv2(int u, int v) {
+                return inner.setUv2(u, v);
             }
 
             @Override
-            public VertexConsumer normal(float x, float y, float z) {
-                return inner.normal(x, y, z);
-            }
-
-            @Override
-            public void endVertex() {
-                inner.endVertex();
-            }
-
-            @Override
-            public void defaultColor(int p_166901_, int p_166902_, int p_166903_, int p_166904_) {
-                inner.defaultColor(p_166901_, p_166902_, p_166903_, p_166904_);
-            }
-
-            @Override
-            public void unsetDefaultColor() {
-                inner.unsetDefaultColor();
+            public VertexConsumer setNormal(float x, float y, float z) {
+                return inner.setNormal(x, y, z);
             }
         }
     }

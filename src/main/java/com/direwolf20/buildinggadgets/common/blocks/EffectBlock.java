@@ -54,8 +54,7 @@ public class EffectBlock extends BaseEntityBlock {
                 // Instead of removing the block, we just sync the client & server to know that the block has been replaced
                 world.sendBlockUpdated(targetPos, targetBlock.getState(), targetBlock.getState(), Block.UPDATE_ALL);
 
-                BlockPos upPos = targetPos.above();
-                world.neighborChanged(targetPos, world.getBlockState(upPos).getBlock(), upPos);
+                // neighbor update handled by sendBlockUpdated above
             }
         },
         REMOVE() {
@@ -125,11 +124,8 @@ public class EffectBlock extends BaseEntityBlock {
         }
     }
 
-    public EffectBlock() {
-        super(Block.Properties.of()
-                .strength(20f)
-                .noCollission()  // Replaces Material.nonSolid()
-                .noLootTable());
+    public EffectBlock(Block.Properties properties) {
+        super(properties);
     }
 
     @Nullable
@@ -139,7 +135,7 @@ public class EffectBlock extends BaseEntityBlock {
     }
 
     @Override
-    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    public VoxelShape getOcclusionShape(BlockState state) {
         return Shapes.empty();
     }
 
@@ -169,7 +165,7 @@ public class EffectBlock extends BaseEntityBlock {
 
 
     @Override
-    public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    public int getLightBlock(BlockState state) {
         return 0;
     }
 

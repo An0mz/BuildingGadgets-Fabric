@@ -42,7 +42,6 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     private MultiVBORenderer renderBuffer;
     private int tickTrack = 0;
     private UUID lastRendered = null;
-    private ShaderInstance instance;
 
     @Override
     public void onTemplateUpdate(ITemplateProvider provider, ITemplateKey key, Template template) {
@@ -104,7 +103,37 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                 region.getMax().getZ() + 1
         );
 
-        LevelRenderer.renderLineBox(matrix, buffer.getBuffer(OurRenderTypes.CopyGadgetLines), box, R / 255f, G / 255f, B / 255f, 1f);
+        // Draw AABB box manually - LevelRenderer.renderLineBox API keeps changing
+        com.mojang.blaze3d.vertex.VertexConsumer lineBuffer = buffer.getBuffer(OurRenderTypes.CopyGadgetLines);
+        float r = R / 255f, g = G / 255f, b = B / 255f, a = 1f;
+        double x0 = box.minX, y0 = box.minY, z0 = box.minZ;
+        double x1 = box.maxX, y1 = box.maxY, z1 = box.maxZ;
+        org.joml.Matrix4f m = matrix.last().pose();
+        // 12 edges of the box
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(1,0,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(0,1,0);
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x0,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z0).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x1,(float)y0,(float)z1).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x0,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z0).setColor(r,g,b,a).setNormal(0,0,1);
+        lineBuffer.addVertex(m,(float)x1,(float)y1,(float)z1).setColor(r,g,b,a).setNormal(0,0,1);
         buffer.endBatch();
     }
 
@@ -188,24 +217,34 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         private static final int BUFFER_SIZE = 2 * 1024 * 1024 * 3;
 
         public static MultiVBORenderer of(Consumer<MultiBufferSource> vertexProducer) {
+            final Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder> byteBuilders = Maps.newHashMap();
             final Map<RenderType, BufferBuilder> builders = Maps.newHashMap();
 
             vertexProducer.accept(rt -> builders.computeIfAbsent(rt, (_rt) -> {
-                BufferBuilder builder = new BufferBuilder(BUFFER_SIZE);
-                builder.begin(_rt.mode(), _rt.format());
-
-                return builder;
+                com.mojang.blaze3d.vertex.ByteBufferBuilder byteBuf =
+                        new com.mojang.blaze3d.vertex.ByteBufferBuilder(BUFFER_SIZE);
+                byteBuilders.put(_rt, byteBuf);
+                return new BufferBuilder(byteBuf, _rt.mode(), _rt.format());
             }));
 
-            Map<RenderType, VertexBuffer> buffers = Maps.transformEntries(builders, (rt, builder) -> {
+            Map<RenderType, VertexBuffer> buffers = new java.util.HashMap<>();
+            for (Map.Entry<RenderType, BufferBuilder> entry : builders.entrySet()) {
+                RenderType rt = entry.getKey();
+                BufferBuilder builder = entry.getValue();
                 Objects.requireNonNull(rt);
                 Objects.requireNonNull(builder);
 
-                VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                com.mojang.blaze3d.vertex.MeshData mesh = builder.buildOrThrow();
+                VertexBuffer vbo = new VertexBuffer(com.mojang.blaze3d.buffers.BufferUsage.DYNAMIC_WRITE);
                 vbo.bind();
-                vbo.upload(builder.end());
-                return vbo;
-            });
+                vbo.upload(mesh);
+                mesh.close();
+
+                com.mojang.blaze3d.vertex.ByteBufferBuilder byteBuf = byteBuilders.get(rt);
+                if (byteBuf != null) byteBuf.close();
+
+                buffers.put(rt, vbo);
+            }
 
             return new MultiVBORenderer(buffers);
         }

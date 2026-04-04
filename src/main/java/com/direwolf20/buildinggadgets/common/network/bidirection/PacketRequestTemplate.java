@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -23,7 +24,7 @@ public record PacketRequestTemplate(UUID id) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketRequestTemplate> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketRequestTemplate);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketRequestTemplate> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketRequestTemplate> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeUUID(packet.id),
             buf -> new PacketRequestTemplate(buf.readUUID())
     );
