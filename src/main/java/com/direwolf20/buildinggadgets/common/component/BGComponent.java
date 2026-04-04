@@ -11,7 +11,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.item.ItemComponentMigrationRegistry;
 import org.ladysnake.cca.api.v3.level.LevelComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.level.LevelComponentInitializer;
 import org.ladysnake.cca.api.v3.world.WorldComponentFactoryRegistry;

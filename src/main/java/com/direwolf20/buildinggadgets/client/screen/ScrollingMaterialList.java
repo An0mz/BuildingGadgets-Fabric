@@ -111,11 +111,11 @@ class ScrollingMaterialList extends EntryList<Entry> {
     }
 
     @Override
-    public void render(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (lastUpdate + UPDATE_MILLIS < System.currentTimeMillis())
             updateEntries();
 
-        super.render(matrices, mouseX, mouseY, partialTicks);
+        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     public void reset() {
@@ -196,8 +196,8 @@ class ScrollingMaterialList extends EntryList<Entry> {
                         tooltipContext,
                         mc.player,
                         mc.options.advancedItemTooltips
-                                ? TooltipFlag.Default.ADVANCED
-                                : TooltipFlag.Default.NORMAL
+                                ? TooltipFlag.ADVANCED
+                                : TooltipFlag.NORMAL
                 );
 
                 parent.gui.setTaskHoveringText(mouseX, mouseY, (java.util.List<Component>) tooltip);
@@ -220,15 +220,13 @@ class ScrollingMaterialList extends EntryList<Entry> {
             poseStack.translate(slotX, slotY, 0);
 
             itemRenderer.renderStatic(
-                    null,
                     item,
                     ItemDisplayContext.GUI,
-                    false,
+                    0xF000F0,
+                    OverlayTexture.NO_OVERLAY,
                     poseStack,
                     mc.renderBuffers().bufferSource(),
                     mc.level,
-                    0xF000F0,
-                    OverlayTexture.NO_OVERLAY,
                     0
             );
 

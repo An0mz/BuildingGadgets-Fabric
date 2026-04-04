@@ -24,9 +24,10 @@ public class TemplateItem extends Item {
         super(properties);
     }
 
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, (TooltipContext) worldIn, tooltip, flagIn);
-        GadgetUtils.addTooltipNameAndAuthor(stack, worldIn, tooltip);
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, context, tooltip, flagIn);
+        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltip);
     }
 
     @Override

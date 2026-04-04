@@ -9,6 +9,7 @@ import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +19,7 @@ public record PacketToggleFuzzy() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketToggleFuzzy> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketToggleFuzzy);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketToggleFuzzy> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleFuzzy> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing
             buf -> new PacketToggleFuzzy() // Read nothing, return new instance
     );

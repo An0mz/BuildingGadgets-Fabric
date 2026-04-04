@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -26,7 +27,7 @@ public record PacketTemplateManagerTemplateCreated(UUID id, BlockPos pos) implem
     public static final CustomPacketPayload.Type<PacketTemplateManagerTemplateCreated> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketTemplateManagerTemplateCreated);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketTemplateManagerTemplateCreated> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketTemplateManagerTemplateCreated> CODEC = StreamCodec.of(
             (buf, packet) -> {
                 buf.writeUUID(packet.id);
                 buf.writeBlockPos(packet.pos);

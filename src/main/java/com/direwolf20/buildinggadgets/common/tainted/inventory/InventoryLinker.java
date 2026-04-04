@@ -117,7 +117,7 @@ public class InventoryLinker {
             return null;
         }
 
-        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(dimStr));
+        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimStr));
         Direction face;
 
         try {

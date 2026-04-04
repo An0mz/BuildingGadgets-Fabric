@@ -6,6 +6,7 @@ import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +16,7 @@ public record PacketToggleFluidOnly() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PacketToggleFluidOnly> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketToggleFluidOnly);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketToggleFluidOnly> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleFluidOnly> CODEC = StreamCodec.of(
             (buf, packet) -> {},
             buf -> new PacketToggleFluidOnly()
     );

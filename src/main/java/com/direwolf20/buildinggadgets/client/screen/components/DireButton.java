@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DireButton extends Button {
 
-    private static final ResourceLocation WIDGETS_LOCATION = new ResourceLocation("textures/gui/widgets.png");
+    private static final ResourceLocation WIDGETS_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png");
     
     public DireButton(int x, int y, int widthIn, int heightIn, Component buttonText, OnPress action) {
         super(x, y, widthIn, heightIn, buttonText, action, Button.DEFAULT_NARRATION);

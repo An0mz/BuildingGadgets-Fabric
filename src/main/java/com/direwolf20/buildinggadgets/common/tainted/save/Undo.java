@@ -50,7 +50,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST),
                 inbt -> {
                     String s = inbt.getAsString();
-                    ITileDataSerializer serializer = Registries.getTileDataSerializers().get(new ResourceLocation(s));
+                    ITileDataSerializer serializer = Registries.getTileDataSerializers().get(ResourceLocation.parse(s));
                     if (serializer == null) {
                         BuildingGadgets.LOG.warn("Found unknown serializer {}. Replacing with dummy!", s);
                         serializer = TileSupport.dummyTileEntityData().getSerializer();
@@ -74,7 +74,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 inbt -> NbtUtils.readBlockPos((CompoundTag) inbt, "pos").orElse(BlockPos.ZERO),
                 inbt -> BlockInfo.deserialize((CompoundTag) inbt, dataReverseObjectIncrementer, itemSetReverseObjectIncrementer));
 
-        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, new ResourceLocation(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
+        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, ResourceLocation.parse(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
         Region bounds = Region.deserializeFrom(nbt.getCompound(NBTKeys.WORLD_SAVE_UNDO_BOUNDS));
         return new Undo(dim, map, bounds);
     }
@@ -85,7 +85,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
 
         // Deserialize ItemVariant from NBT
         CompoundTag itemData = nbt.getCompound(NBTKeys.UNIQUE_ITEM_ITEM);
-        ResourceLocation itemId = new ResourceLocation(itemData.getString("item"));
+        ResourceLocation itemId = ResourceLocation.parse(itemData.getString("item"));
         Item item = BuiltInRegistries.ITEM.get(itemId);
 
         DataComponentPatch components = DataComponentPatch.CODEC

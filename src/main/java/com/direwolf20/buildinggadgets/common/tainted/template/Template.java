@@ -35,7 +35,7 @@ public final class Template {
             header = header.name(externalHeader.getName()).author(externalHeader.getAuthor());
         DataDecompressor<ITileDataSerializer> serializerDecompressor = persisted ? new DataDecompressor<>(
                 nbt.getList(NBTKeys.KEY_SERIALIZER, NbtType.STRING),
-                inbt -> Registries.getTileDataSerializers().get(new ResourceLocation(inbt.getAsString())),
+                inbt -> Registries.getTileDataSerializers().get(ResourceLocation.parse(inbt.getAsString())),
                 value -> SerialisationSupport.dummyDataSerializer())
                 : null;
         DataDecompressor<BlockData> dataDecompressor = new DataDecompressor<>(

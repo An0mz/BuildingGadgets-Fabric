@@ -26,6 +26,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -58,8 +59,8 @@ public class ModeRadialMenu extends Screen {
     }
 
     private static final ImmutableList<ResourceLocation> signsCopyPaste = ImmutableList.of(
-            new ResourceLocation(Reference.MODID, "textures/gui/mode/copy.png"),
-            new ResourceLocation(Reference.MODID, "textures/gui/mode/paste.png")
+            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/copy.png"),
+            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/paste.png")
     );
 
     private int timeIn = 0;
@@ -325,23 +326,22 @@ public class ModeRadialMenu extends Screen {
         int modeIndex;
         if (tool.getItem() instanceof GadgetBuilding) {
             modeIndex = GadgetBuilding.getToolMode(tool).ordinal();
-            signs = Arrays.stream(BuildingModes.values()).map(e -> new ResourceLocation(Reference.MODID, e.getIcon())).collect(Collectors.toList());
+            signs = Arrays.stream(BuildingModes.values()).map(e -> ResourceLocation.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
         } else if (tool.getItem() instanceof GadgetExchanger) {
             modeIndex = GadgetExchanger.getToolMode(tool).ordinal();
-            signs = Arrays.stream(ExchangingModes.values()).map(e -> new ResourceLocation(Reference.MODID, e.getIcon())).collect(Collectors.toList());
+            signs = Arrays.stream(ExchangingModes.values()).map(e -> ResourceLocation.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
         } else {
             modeIndex = GadgetCopyPaste.getToolMode(tool).ordinal();
             signs = signsCopyPaste;
         }
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuilder();
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
 
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
@@ -377,15 +377,15 @@ public class ModeRadialMenu extends Screen {
                 if ((int) i == (int) (degPer / 2))
                     nameData.add(new NameDisplayData((int) xp, (int) yp, mouseInSector, shouldCenter && (seg == indexBottom || seg == indexTop)));
 
-                bufferBuilder.vertex(x + Math.cos(rad) * radius / 2.3F, y + Math.sin(rad) * radius / 2.3F, 0).color(r, g, b, a).endVertex();
-                bufferBuilder.vertex(xp, yp, 0).color(r, g, b, a).endVertex();
+                bufferBuilder.addVertex((float)(x + Math.cos(rad) * radius / 2.3F), (float)(y + Math.sin(rad) * radius / 2.3F), 0).setColor(r, g, b, a);
+                bufferBuilder.addVertex((float)xp, (float)yp, 0).setColor(r, g, b, a);
             }
 
             totalDeg += degPer;
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
 
-        tessellator.end();
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
 
         for (int i = 0; i < nameData.size(); i++) {
@@ -437,15 +437,13 @@ public class ModeRadialMenu extends Screen {
         stack.scale(s, s, s);
         stack.translate(x / s - (tool.getItem() instanceof GadgetCopyPaste ? 8 : 8.5), y / s - 8, 0);
         itemRenderer.renderStatic(
-                null,
                 tool,
                 ItemDisplayContext.GUI,
-                false,
+                0xF000F0,
+                OverlayTexture.NO_OVERLAY,
                 stack,
                 mc.renderBuffers().bufferSource(),
                 mc.level,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
                 0
         );
         mc.renderBuffers().bufferSource().endBatch();

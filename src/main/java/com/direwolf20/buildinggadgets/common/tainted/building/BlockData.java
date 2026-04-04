@@ -54,7 +54,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().get(new ResourceLocation(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().get(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
             else
                 serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().get(new ResourceLocation(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().get(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
             else
                 serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
         } catch (Exception e) {

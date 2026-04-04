@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,7 @@ public record PacketCopyCoords(BlockPos startPos, BlockPos endPos) implements Cu
     public static final CustomPacketPayload.Type<PacketCopyCoords> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketCopyCoords);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketCopyCoords> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketCopyCoords> CODEC = StreamCodec.of(
             (buf, packet) -> {
                 buf.writeBlockPos(packet.startPos);
                 buf.writeBlockPos(packet.endPos);

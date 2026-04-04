@@ -6,7 +6,7 @@ import static com.direwolf20.buildinggadgets.common.util.ref.Reference.MODID;
 
 public final class NBTKeys {
     // Template/Serialization keys (KEEP - used for file serialization)
-    public static final ResourceLocation AND_SERIALIZER_ID = new ResourceLocation(MODID, "sub_entries");
+    public static final ResourceLocation AND_SERIALIZER_ID = ResourceLocation.fromNamespaceAndPath(MODID, "sub_entries");
     public static final String KEY_AUTHOR = "author";
     public static final String KEY_BOUNDS = "bounds";
     public static final String KEY_CAP_COMPARISON = "cap_comp";
@@ -28,8 +28,8 @@ public final class NBTKeys {
     public static final String KEY_SERIALIZER = "serializer";
     public static final String KEY_STATE = "state";
     public static final String KEY_SUB_ENTRIES = "sub_entries";
-    public static final ResourceLocation OR_SERIALIZER_ID = new ResourceLocation(MODID, "alternatives");
-    public static final ResourceLocation SIMPLE_SERIALIZER_ID = new ResourceLocation(MODID, "entries");
+    public static final ResourceLocation OR_SERIALIZER_ID = ResourceLocation.fromNamespaceAndPath(MODID, "alternatives");
+    public static final ResourceLocation SIMPLE_SERIALIZER_ID = ResourceLocation.fromNamespaceAndPath(MODID, "entries");
 
     private NBTKeys() {
     }

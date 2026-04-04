@@ -5,6 +5,7 @@ import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,7 @@ public record PacketRotateMirror(@Nullable Operation operation) implements Custo
     public static final CustomPacketPayload.Type<PacketRotateMirror> TYPE =
             new CustomPacketPayload.Type<>(PacketHandler.PacketRotateMirror);
 
-    public static final StreamCodec<FriendlyByteBuf, PacketRotateMirror> CODEC = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketRotateMirror> CODEC = StreamCodec.of(
             (buf, packet) -> {
                 buf.writeBoolean(packet.operation != null);
                 if (packet.operation != null) {

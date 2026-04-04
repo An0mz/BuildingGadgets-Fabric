@@ -38,10 +38,7 @@ import com.google.common.collect.Multiset;
 import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.Item;
@@ -84,7 +81,7 @@ import java.util.Random;
 
 @IPNIgnore
 public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerContainer> {
-    private static final ResourceLocation background = new ResourceLocation(Reference.MODID, "textures/gui/template_manager.png");
+    private static final ResourceLocation background = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/template_manager.png");
 
     private final Rect2i panel = new Rect2i(8, 23, 136, 80);
     private boolean panelClicked;
@@ -216,9 +213,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         Random rand = new Random();
         BlockRenderDispatcher dispatcher = getMinecraft().getBlockRenderer();
 
-        BufferBuilder bufferBuilder = new BufferBuilder(2097152);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
-
         for (PlacementTarget target : view) {
             target.placeIn(view.getContext());
             BlockPos targetPos = target.getPos();
@@ -242,7 +236,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             }
         }
 
-        bufferBuilder.end();
+        // end structure preview rendering
     }
 
     private void renderRequirement(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -289,7 +283,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 List<Component> tooltip = stack.getTooltipLines(
                         Item.TooltipContext.of(getMinecraft().level),
                         getMinecraft().player,
-                        TooltipFlag.Default.NORMAL
+                        TooltipFlag.NORMAL
                 );
 
                 guiGraphics.renderTooltip(

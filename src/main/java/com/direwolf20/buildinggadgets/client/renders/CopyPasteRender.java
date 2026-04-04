@@ -18,6 +18,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
 import org.joml.Matrix4f;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
@@ -188,26 +190,32 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         private static final int BUFFER_SIZE = 2 * 1024 * 1024 * 3;
 
         public static MultiVBORenderer of(Consumer<MultiBufferSource> vertexProducer) {
+            final Map<RenderType, ByteBufferBuilder> byteBuilders = Maps.newHashMap();
             final Map<RenderType, BufferBuilder> builders = Maps.newHashMap();
 
             vertexProducer.accept(rt -> builders.computeIfAbsent(rt, (_rt) -> {
-                BufferBuilder builder = new BufferBuilder(BUFFER_SIZE);
-                builder.begin(_rt.mode(), _rt.format());
-
-                return builder;
+                ByteBufferBuilder byteBuilder = new ByteBufferBuilder(BUFFER_SIZE);
+                byteBuilders.put(_rt, byteBuilder);
+                return new BufferBuilder(byteBuilder, _rt.mode(), _rt.format());
             }));
 
-            Map<RenderType, VertexBuffer> buffers = Maps.transformEntries(builders, (rt, builder) -> {
+            ImmutableMap.Builder<RenderType, VertexBuffer> bufferMapBuilder = ImmutableMap.builder();
+            for (Map.Entry<RenderType, BufferBuilder> entry : builders.entrySet()) {
+                RenderType rt = entry.getKey();
+                BufferBuilder builder = entry.getValue();
                 Objects.requireNonNull(rt);
                 Objects.requireNonNull(builder);
 
                 VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vbo.bind();
-                vbo.upload(builder.end());
-                return vbo;
-            });
+                MeshData mesh = builder.buildOrThrow();
+                vbo.upload(mesh);
+                ByteBufferBuilder byteBuilder = byteBuilders.get(rt);
+                if (byteBuilder != null) byteBuilder.close();
+                bufferMapBuilder.put(rt, vbo);
+            }
 
-            return new MultiVBORenderer(buffers);
+            return new MultiVBORenderer(bufferMapBuilder.build());
         }
 
         private final ImmutableMap<RenderType, VertexBuffer> buffers;
