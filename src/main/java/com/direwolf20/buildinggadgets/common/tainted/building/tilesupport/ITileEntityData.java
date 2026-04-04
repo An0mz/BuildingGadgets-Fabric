@@ -6,62 +6,42 @@ import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.Materia
 import com.google.common.collect.Multiset;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Represents the serializable data of an {@link net.minecraft.tileentity.TileEntity}. It also provides actions which can be performed on the
- * underlying data, to either:
- * <ul>
- * <li>Check whether placement should be permitted via {@link #allowPlacement(BuildContext, BlockState, BlockPos)}
- * <li>Place this data with a given {@link BlockState} in an {@link BuildContext} via {@link #placeIn(BuildContext, BlockState, BlockPos)}
- * <li>Query the requiredItems to build this {@link ITileEntityData} via {@link #getRequiredItems(BuildContext, BlockState, RayTraceResult, BlockPos)}.
- * </ul>
- */
 public interface ITileEntityData {
-    /**
-     * @return The {@link ITileDataSerializer} which can be used for serializing this {@link ITileEntityData} instance.
-     */
     ITileDataSerializer getSerializer();
 
-    /**
-     * Attempts to place this {@link ITileEntityData} in the given {@link BuildContext}. If this is called but {@link #allowPlacement(BuildContext, BlockState, BlockPos)}
-     * would have returned false, placement should still be attempted and counted as a "forced placement".<br>
-     * This Method should also set any data on the {@link net.minecraft.tileentity.TileEntity} represented by this {@code ITileEntityData}.
-     *
-     * @param context  The {@link BuildContext} to place in.
-     * @param state    The {@link BlockState} to place.
-     * @param position The {@link BlockPos} at which to place
-     * @return Whether or not placement was performed by this {@link ITileEntityData}. This should only return false if some really hard requirements would not be met,
-     * like for example a required block not being present next to the given position.
-     */
     boolean placeIn(BuildContext context, BlockState state, BlockPos position);
 
-    /**
-     * @param context The context in which to query required items.
-     * @param state   The {@link BlockState} to retrieve items for
-     * @param target  {@link RayTraceResult} the target at which a click is simulated
-     * @param pos     The {@link BlockPos} where a block is simulated for this Method
-     * @return A {@link Multiset} of required Items.
-     */
+    default boolean allowPlacement(BuildContext context, BlockState state, BlockPos pos) {
+        return true;
+    }
+
     default MaterialList getRequiredItems(BuildContext context, BlockState state, @Nullable HitResult target, @Nullable BlockPos pos) {
-        ItemStack stack = null;
+        Item item = null;
         try {
-            stack = new net.minecraft.world.item.ItemStack(state.getBlock().asItem());
+            item = state.getBlock().asItem();
         } catch (Exception e) {
-            BuildingGadgets.LOG.trace("Failed to retrieve pickBlock for {}.", state, e);
+            BuildingGadgets.LOG.trace("Failed to retrieve item for {}.", state, e);
         }
 
-        if (stack == null) {
-            stack = new ItemStack(state.getBlock());
+        if (item == null) {
+            item = state.getBlock().asItem();
         }
 
+        ItemStack stack = new ItemStack(item);
         if (stack.isEmpty()) {
             return MaterialList.empty();
         }
 
-        return MaterialList.of(ItemVariant.of(stack));
+        // Use ItemVariant.of(item) not ItemVariant.of(stack) to avoid DataComponent
+        // mismatches in 1.21.5. A freshly created ItemStack may have different default
+        // DataComponent values than items in the player's inventory, causing match()
+        // to return false even when the player has the correct item.
+        return MaterialList.of(ItemVariant.of(item));
     }
 }

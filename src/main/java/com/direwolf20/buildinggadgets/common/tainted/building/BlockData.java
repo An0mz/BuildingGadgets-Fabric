@@ -50,20 +50,20 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
     public static BlockData tryDeserialize(@Nullable CompoundTag tag, @Nullable IntFunction<ITileDataSerializer> serializerProvider, boolean readDataPersisted) {
         if (tag == null || !(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA)))
             return null;
-        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompoundOrEmpty(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
             else
-                serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
+                serializer = serializerProvider.apply(tag.getIntOr(NBTKeys.KEY_SERIALIZER, 0));
         } catch (Exception e) {
             BuildingGadgets.LOG.error("Failed to create deserializer!", e);
             return null;
         }
         if (serializer == null)
             return null;
-        ITileEntityData data = serializer.deserialize(tag.getCompound(NBTKeys.KEY_DATA), readDataPersisted);
+        ITileEntityData data = serializer.deserialize(tag.getCompoundOrEmpty(NBTKeys.KEY_DATA), readDataPersisted);
         return new BlockData(state, data);
     }
 
@@ -82,19 +82,19 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         Preconditions.checkNotNull(tag, "Cannot deserialize from a null tag compound");
         Preconditions.checkArgument(tag.contains(NBTKeys.KEY_STATE) && tag.contains(NBTKeys.KEY_SERIALIZER) && tag.contains(NBTKeys.KEY_DATA),
                 "Given NBTTagCompound does not contain a valid BlockData instance. Missing NBT-Keys in Tag {}!", tag.toString());
-        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(NBTKeys.KEY_STATE));
+        BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompoundOrEmpty(NBTKeys.KEY_STATE));
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getString(NBTKeys.KEY_SERIALIZER)));
+                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
             else
-                serializer = serializerProvider.apply(tag.getInt(NBTKeys.KEY_SERIALIZER));
+                serializer = serializerProvider.apply(tag.getIntOr(NBTKeys.KEY_SERIALIZER, 0));
         } catch (Exception e) {
             throw new IllegalArgumentException("Could not retrieve serializer with persisted=" + readDataPersisted + "!", e);
         }
         Preconditions.checkArgument(serializer != null,
                 "Failed to retrieve serializer for tag {} and persisted={}", tag.toString(), readDataPersisted);
-        ITileEntityData data = serializer.deserialize(tag.getCompound(NBTKeys.KEY_DATA), readDataPersisted);
+        ITileEntityData data = serializer.deserialize(tag.getCompoundOrEmpty(NBTKeys.KEY_DATA), readDataPersisted);
         return new BlockData(state, data);
     }
 

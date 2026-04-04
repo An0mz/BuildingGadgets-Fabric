@@ -8,7 +8,6 @@ import com.google.gson.*;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -56,14 +55,14 @@ record SimpleMaterialListEntry(
 
         @Override
         public SimpleMaterialListEntry readFromNBT(CompoundTag nbt, boolean persisted) {
-            ListTag nbtList = nbt.getList(NBTKeys.KEY_DATA, NbtType.COMPOUND);
+            ListTag nbtList = nbt.getListOrEmpty(NBTKeys.KEY_DATA);
             ImmutableMultiset.Builder<ItemVariant> builder = ImmutableMultiset.builder();
             for (Tag nbtEntry : nbtList) {
                 CompoundTag compoundEntry = (CompoundTag) nbtEntry;
-                CompoundTag itemData = compoundEntry.getCompound(NBTKeys.KEY_DATA);
+                CompoundTag itemData = compoundEntry.getCompoundOrEmpty(NBTKeys.KEY_DATA);
 
                 // Read Item
-                ResourceLocation itemId = ResourceLocation.parse(itemData.getString("item"));
+                ResourceLocation itemId = ResourceLocation.parse(itemData.getStringOr("item", "minecraft:air"));
                 Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                 // Read DataComponentPatch
@@ -73,7 +72,7 @@ record SimpleMaterialListEntry(
                         .orElse(DataComponentPatch.EMPTY);
 
                 ItemVariant variant = ItemVariant.of(item, components);
-                int count = compoundEntry.getInt(NBTKeys.KEY_COUNT);
+                int count = compoundEntry.getIntOr(NBTKeys.KEY_COUNT, 0);
                 builder.addCopies(variant, count);
             }
             return new SimpleMaterialListEntry(builder.build());
@@ -142,7 +141,7 @@ record SimpleMaterialListEntry(
                     // Convert JSON to NBT, then deserialize
                     CompoundTag itemNbt = (CompoundTag) Dynamic.convert(JsonOps.INSTANCE, NbtOps.INSTANCE, object.get(JsonKeys.MATERIAL_LIST_ITEM));
 
-                    ResourceLocation itemId = ResourceLocation.parse(itemNbt.getString("item"));
+                    ResourceLocation itemId = ResourceLocation.parse(itemNbt.getStringOr("item", "minecraft:air"));
                     Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                     DataComponentPatch components = DataComponentPatch.CODEC

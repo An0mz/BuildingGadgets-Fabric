@@ -140,13 +140,13 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         return ((AbstractGadget) tool.getItem()).tryUseEnergy(tool, getEnergyCost(tool));
     }
 
-    protected void addEnergyInformation(List<Component> tooltip, ItemStack stack) {
+    protected void addEnergyInformation(java.util.function.Consumer<Component> tooltipAdder, ItemStack stack) {
         if (this.getEnergyCapacity() == 0) {
             return;
         }
 
         if (stack.getItem() instanceof SimpleEnergyItem) {
-            tooltip.add(TooltipTranslation.GADGET_ENERGY
+            tooltipAdder.accept(TooltipTranslation.GADGET_ENERGY
                     .componentTranslation(withSuffix((int) getStoredEnergy(stack)), withSuffix((int) getEnergyCapacity()))
                     .setStyle(Styles.GRAY));
         }
@@ -230,8 +230,8 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         player.displayClientMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA), true);
     }
 
-    public static void addInformationRayTraceFluid(List<Component> tooltip, ItemStack stack) {
-        tooltip.add(TooltipTranslation.GADGET_RAYTRACE_FLUID
+    public static void addInformationRayTraceFluid(java.util.function.Consumer<Component> tooltipAdder, ItemStack stack) {
+        tooltipAdder.accept(TooltipTranslation.GADGET_RAYTRACE_FLUID
                 .componentTranslation(String.valueOf(shouldRayTraceFluid(stack)))
                 .setStyle(Styles.BLUE));
     }

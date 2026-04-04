@@ -6,7 +6,6 @@ import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryLinker;
 import com.direwolf20.buildinggadgets.common.world.MockBuilderWorld;
 import com.google.common.collect.Multiset;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
@@ -33,9 +32,7 @@ public abstract class BaseRenderer {
     }
 
     public void render(WorldRenderContext evt, Player player, ItemStack heldItem) {
-        // This is necessary to prevent issues with not rendering the overlay's at all (when Botania being present) - See #329 for more information
         bindBlocks();
-
         if (this.isLinkable()) {
             BaseRenderer.renderLinkedInventoryOutline(evt, heldItem, player);
         }
@@ -46,13 +43,8 @@ public abstract class BaseRenderer {
 
     private static void renderLinkedInventoryOutline(WorldRenderContext evt, ItemStack gadget, Player player) {
         InventoryLinker.InventoryLink dataFromStack = InventoryLinker.getDataFromStack(gadget);
-        if (dataFromStack == null) {
-            return;
-        }
-
-        if (!player.level().dimension().equals(dataFromStack.level())) {
-            return;
-        }
+        if (dataFromStack == null) return;
+        if (!player.level().dimension().equals(dataFromStack.level())) return;
 
         BlockPos pos = dataFromStack.blockPos();
         Vec3 renderPos = evt.camera().getPosition()
@@ -60,7 +52,6 @@ public abstract class BaseRenderer {
                 .add(.005f, .005f, .005f);
 
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-
         PoseStack stack = evt.matrixStack();
         stack.pushPose();
         stack.translate(-renderPos.x(), -renderPos.y(), -renderPos.z());
@@ -69,14 +60,12 @@ public abstract class BaseRenderer {
         renderBoxSolid(stack.last().pose(), buffer.getBuffer(OurRenderTypes.MissingBlockOverlay), BlockPos.ZERO, 0, 1, 0, .35f);
 
         stack.popPose();
-        RenderSystem.disableDepthTest();
-        buffer.endBatch(); // @mcp: finish (mcp) = draw (yarn)
+        buffer.endBatch();
     }
 
     long getEnergy(Player player, ItemStack heldItem) {
         if (player.isCreative() || !(heldItem.getItem() instanceof AbstractGadget))
             return Integer.MAX_VALUE;
-
         return SimpleEnergyItem.getStoredEnergyUnchecked(heldItem);
     }
 
@@ -84,69 +73,63 @@ public abstract class BaseRenderer {
         renderBoxSolid(matrix, builder, pos, 1f, 0f, 0f, 0.35f);
     }
 
-    protected static void renderBoxSolid(Matrix4f matrix, VertexConsumer builder, BlockPos pos, float r, float g, float b, float alpha) {
-        double x = pos.getX() - 0.001;
-        double y = pos.getY() - 0.001;
-        double z = pos.getZ() - 0.001;
+    protected static void renderBoxSolid(Matrix4f matrix, VertexConsumer builder, BlockPos pos,
+                                         float r, float g, float b, float alpha) {
+        double x    = pos.getX() - 0.001;
+        double y    = pos.getY() - 0.001;
+        double z    = pos.getZ() - 0.001;
         double xEnd = pos.getX() + 1.0015;
         double yEnd = pos.getY() + 1.0015;
         double zEnd = pos.getZ() + 1.0015;
-
         renderBoxSolid(matrix, builder, x, y, z, xEnd, yEnd, zEnd, r, g, b, alpha);
     }
 
-    protected static void renderBoxSolid(Matrix4f matrix, VertexConsumer builder, double x, double y, double z, double xEnd, double yEnd, double zEnd, float red, float green, float blue, float alpha) {
-        //careful: mc want's it's vertices to be defined CCW - if you do it the other way around weird cullling issues will arise
-        //CCW herby counts as if you were looking at it from the outside
-        float startX = (float) x;
-        float startY = (float) y;
-        float startZ = (float) z;
-        float endX = (float) xEnd;
-        float endY = (float) yEnd;
-        float endZ = (float) zEnd;
+    protected static void renderBoxSolid(Matrix4f matrix, VertexConsumer builder,
+                                         double x, double y, double z,
+                                         double xEnd, double yEnd, double zEnd,
+                                         float red, float green, float blue, float alpha) {
+        // lightning() pipeline is no-cull and uses quad topology (4 vertices per face).
+        // Winding order doesn't matter since culling is disabled.
+        float x0 = (float) x,    y0 = (float) y,    z0 = (float) z;
+        float x1 = (float) xEnd, y1 = (float) yEnd, z1 = (float) zEnd;
 
-//        float startX = 0, startY = 0, startZ = -1, endX = 1, endY = 1, endZ = 0;
+        // Down
+        builder.addVertex(matrix, x0, y0, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y0, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y0, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y0, z1).setColor(red, green, blue, alpha);
 
-        //down
-        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
+        // Up
+        builder.addVertex(matrix, x0, y1, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y1, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z0).setColor(red, green, blue, alpha);
 
-        //up
-        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
+        // North
+        builder.addVertex(matrix, x0, y0, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y1, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y0, z0).setColor(red, green, blue, alpha);
 
-        //east
-        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
+        // South
+        builder.addVertex(matrix, x0, y0, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y0, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y1, z1).setColor(red, green, blue, alpha);
 
-        //west
-        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
+        // West
+        builder.addVertex(matrix, x0, y0, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y0, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y1, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x0, y1, z0).setColor(red, green, blue, alpha);
 
-        //south
-        builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha);
-
-        //north
-        builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha);
-        builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha);
+        // East
+        builder.addVertex(matrix, x1, y0, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z0).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y1, z1).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x1, y0, z1).setColor(red, green, blue, alpha);
     }
 
-    /**
-     * Can the gadget be linked to other inventories?
-     */
     public boolean isLinkable() {
         return false;
     }

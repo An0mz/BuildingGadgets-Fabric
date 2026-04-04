@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Streams;
 import com.google.gson.*;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -124,7 +123,7 @@ abstract class SubMaterialListEntry implements MaterialListEntry<SubMaterialList
 
         @Override
         public SubMaterialListEntry readFromNBT(CompoundTag nbt, boolean persisted) {
-            ListTag list = nbt.getList(NBTKeys.KEY_SUB_ENTRIES, NbtType.COMPOUND);
+            ListTag list = nbt.getListOrEmpty(NBTKeys.KEY_SUB_ENTRIES);
             ImmutableList.Builder<MaterialListEntry<?>> entryBuilder = ImmutableList.builder();
             ImmutableList.Builder<SimpleMaterialListEntry> simpleBuilder = ImmutableList.builder();
             for (Tag subEntry : list) {

@@ -19,7 +19,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.Multisets;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -42,14 +41,14 @@ import java.util.function.ToIntFunction;
 public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Region boundingBox) {
 
     public static Undo deserialize(CompoundTag nbt) {
-        Preconditions.checkArgument(nbt.contains(NBTKeys.WORLD_SAVE_DIM, NbtType.STRING)
-                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST, NbtType.LIST)
-                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_LIST, NbtType.LIST)
-                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST, NbtType.LIST));
+        Preconditions.checkArgument(nbt.contains(NBTKeys.WORLD_SAVE_DIM)
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST)
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_LIST)
+                && nbt.contains(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST));
         DataDecompressor<ITileDataSerializer> serializerReverseObjectIncrementer = new DataDecompressor<>(
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST),
                 inbt -> {
-                    String s = inbt.getAsString();
+                    String s = inbt.asString().orElse("");
                     ITileDataSerializer serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(s));
                     if (serializer == null) {
                         BuildingGadgets.LOG.warn("Found unknown serializer {}. Replacing with dummy!", s);
@@ -71,21 +70,24 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 value -> HashMultiset.create());
         Map<BlockPos, BlockInfo> map = NBTHelper.deserializeMap(
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST), new HashMap<>(),
-                inbt -> NbtUtils.readBlockPos((CompoundTag) inbt, "pos").orElse(BlockPos.ZERO),
+                inbt -> {
+                    CompoundTag posTag = ((CompoundTag) inbt).getCompoundOrEmpty("pos");
+                    return new BlockPos(posTag.getIntOr("X", 0), posTag.getIntOr("Y", 0), posTag.getIntOr("Z", 0));
+                },
                 inbt -> BlockInfo.deserialize((CompoundTag) inbt, dataReverseObjectIncrementer, itemSetReverseObjectIncrementer));
 
-        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, ResourceLocation.parse(nbt.getString(NBTKeys.WORLD_SAVE_DIM)));
-        Region bounds = Region.deserializeFrom(nbt.getCompound(NBTKeys.WORLD_SAVE_UNDO_BOUNDS));
+        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, ResourceLocation.parse(nbt.getStringOr(NBTKeys.WORLD_SAVE_DIM, "")));
+        Region bounds = Region.deserializeFrom(nbt.getCompoundOrEmpty(NBTKeys.WORLD_SAVE_UNDO_BOUNDS));
         return new Undo(dim, map, bounds);
     }
 
     private static Tuple<ItemVariant, Integer> readEntry(Tag inbt) {
         CompoundTag nbt = (CompoundTag) inbt;
-        int count = nbt.getInt(NBTKeys.UNIQUE_ITEM_COUNT);
+        int count = nbt.getIntOr(NBTKeys.UNIQUE_ITEM_COUNT, 0);
 
         // Deserialize ItemVariant from NBT
-        CompoundTag itemData = nbt.getCompound(NBTKeys.UNIQUE_ITEM_ITEM);
-        ResourceLocation itemId = ResourceLocation.parse(itemData.getString("item"));
+        CompoundTag itemData = nbt.getCompoundOrEmpty(NBTKeys.UNIQUE_ITEM_ITEM);
+        ResourceLocation itemId = ResourceLocation.parse(itemData.getStringOr("item", "minecraft:air"));
         Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
         DataComponentPatch components = DataComponentPatch.CODEC
@@ -117,7 +119,11 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
 
         ListTag infoList = NBTHelper.serializeMap(dataMap, pos -> {
             CompoundTag tag = new CompoundTag();
-            tag.put("pos", NbtUtils.writeBlockPos(pos));
+            CompoundTag posTag = new CompoundTag();
+            posTag.putInt("X", pos.getX());
+            posTag.putInt("Y", pos.getY());
+            posTag.putInt("Z", pos.getZ());
+            tag.put("pos", posTag);
             return tag;
         }, i -> i.serialize(dataObjectIncrementer, itemObjectIncrementer));
         ListTag dataList = dataObjectIncrementer.write(d -> d.serialize(serializerObjectIncrementer, true));
@@ -154,10 +160,10 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
     public record BlockInfo(BlockData recordedData, BlockData placedData, Multiset<ItemVariant> usedItems,
                             Multiset<ItemVariant> producedItems) {
         private static BlockInfo deserialize(CompoundTag nbt, IntFunction<BlockData> dataSupplier, IntFunction<Multiset<ItemVariant>> itemSetSupplier) {
-            BlockData data = dataSupplier.apply(nbt.getInt(NBTKeys.WORLD_SAVE_UNDO_RECORDED_DATA));
-            BlockData placedData = dataSupplier.apply(nbt.getInt(NBTKeys.WORLD_SAVE_UNDO_PLACED_DATA));
-            Multiset<ItemVariant> usedItems = itemSetSupplier.apply(nbt.getInt(NBTKeys.WORLD_SAVE_UNDO_ITEMS_USED));
-            Multiset<ItemVariant> producedItems = itemSetSupplier.apply(nbt.getInt(NBTKeys.WORLD_SAVE_UNDO_ITEMS_PRODUCED));
+            BlockData data = dataSupplier.apply(nbt.getIntOr(NBTKeys.WORLD_SAVE_UNDO_RECORDED_DATA, 0));
+            BlockData placedData = dataSupplier.apply(nbt.getIntOr(NBTKeys.WORLD_SAVE_UNDO_PLACED_DATA, 0));
+            Multiset<ItemVariant> usedItems = itemSetSupplier.apply(nbt.getIntOr(NBTKeys.WORLD_SAVE_UNDO_ITEMS_USED, 0));
+            Multiset<ItemVariant> producedItems = itemSetSupplier.apply(nbt.getIntOr(NBTKeys.WORLD_SAVE_UNDO_ITEMS_PRODUCED, 0));
             return new BlockInfo(data, placedData, usedItems, producedItems);
         }
 

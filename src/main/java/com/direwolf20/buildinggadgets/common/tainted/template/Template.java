@@ -14,7 +14,6 @@ import com.direwolf20.buildinggadgets.common.util.compression.DataDecompressor;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.direwolf20.buildinggadgets.common.util.tools.MathUtils;
 import com.google.common.collect.ImmutableMap;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.nbt.*;
@@ -29,17 +28,17 @@ import java.util.function.Function;
 
 public final class Template {
     public static Template deserialize(CompoundTag nbt, @Nullable TemplateHeader externalHeader, boolean persisted) {
-        ListTag posList = nbt.getList(NBTKeys.KEY_POS, NbtType.LONG);
-        TemplateHeader.Builder header = TemplateHeader.builderFromNBT(nbt.getCompound(NBTKeys.KEY_HEADER));
+        ListTag posList = nbt.getListOrEmpty(NBTKeys.KEY_POS);
+        TemplateHeader.Builder header = TemplateHeader.builderFromNBT(nbt.getCompoundOrEmpty(NBTKeys.KEY_HEADER));
         if (externalHeader != null)
             header = header.name(externalHeader.getName()).author(externalHeader.getAuthor());
         DataDecompressor<ITileDataSerializer> serializerDecompressor = persisted ? new DataDecompressor<>(
-                nbt.getList(NBTKeys.KEY_SERIALIZER, NbtType.STRING),
-                inbt -> (ITileDataSerializer) Registries.getTileDataSerializers().getValue(ResourceLocation.parse(inbt.getAsString())),
+                nbt.getListOrEmpty(NBTKeys.KEY_SERIALIZER),
+                inbt -> (ITileDataSerializer) Registries.getTileDataSerializers().getValue(ResourceLocation.parse(inbt.asString().orElse(""))),
                 value -> SerialisationSupport.dummyDataSerializer())
                 : null;
         DataDecompressor<BlockData> dataDecompressor = new DataDecompressor<>(
-                nbt.getList(NBTKeys.KEY_DATA, NbtType.COMPOUND),
+                nbt.getListOrEmpty(NBTKeys.KEY_DATA),
                 inbt -> persisted ?
                         BlockData.tryDeserialize((CompoundTag) inbt, serializerDecompressor, true) :
                         BlockData.tryDeserialize((CompoundTag) inbt, false),
@@ -47,8 +46,8 @@ public final class Template {
         ImmutableMap.Builder<BlockPos, BlockData> mapBuilder = ImmutableMap.builder();
         for (Tag inbt : posList) {
             LongTag longNBT = (LongTag) inbt;
-            BlockPos pos = MathUtils.posFromLong(longNBT.getAsLong());
-            BlockData data = dataDecompressor.apply(MathUtils.readStateId(longNBT.getAsLong()));
+            BlockPos pos = MathUtils.posFromLong(longNBT.longValue());
+            BlockData data = dataDecompressor.apply(MathUtils.readStateId(longNBT.longValue()));
             mapBuilder.put(pos, data);
         }
         return new Template(mapBuilder.build(), header.build());

@@ -2,13 +2,9 @@ package com.direwolf20.buildinggadgets.client.screen.components;
 
 import com.direwolf20.buildinggadgets.client.OurSounds;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -17,11 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.awt.*;
 import java.util.function.Predicate;
 
-/**
- * A one stop shop for all your icon gui related needs. We support colors,
- * icons, selected and deselected states, sound and loads more. Come on
- * down!
- */
 public class GuiIconActionable extends Button {
     private final Predicate<Boolean> action;
     private boolean selected;
@@ -35,25 +26,18 @@ public class GuiIconActionable extends Button {
     private final ResourceLocation deselectedTexture;
 
     public GuiIconActionable(int x, int y, String texture, Component message, boolean isSelectable, Predicate<Boolean> action) {
-        super(x, y, 25, 25, message, (b) -> {
-        }, Button.DEFAULT_NARRATION);
+        super(x, y, 25, 25, message, (b) -> {}, Button.DEFAULT_NARRATION);
         this.activeColor = deselectedColor;
         this.isSelectable = isSelectable;
         this.action = action;
 
         this.setSelected(action.test(false));
 
-        // Set the selected and deselected textures.
         String assetLocation = "textures/gui/setting/%s.png";
-
         this.deselectedTexture = ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture));
         this.selectedTexture = !isSelectable ? this.deselectedTexture : ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture + "_selected"));
     }
 
-    /**
-     * If yo do not need to be able to select / toggle something then use this constructor as
-     * you'll hit missing texture issues if you don't have an active (_selected) texture.
-     */
     public GuiIconActionable(int x, int y, String texture, Component message, Predicate<Boolean> action) {
         this(x, y, texture, message, false, action);
     }
@@ -62,9 +46,6 @@ public class GuiIconActionable extends Button {
         alpha = faded ? .6f : 1f;
     }
 
-    /**
-     * This should be used when ever changing select.
-     */
     public void setSelected(boolean selected) {
         this.selected = selected;
         this.activeColor = selected ? selectedColor : deselectedColor;
@@ -91,14 +72,8 @@ public class GuiIconActionable extends Button {
         if (!visible)
             return;
 
-        RenderSystem.enableBlend();
-        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX);
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                0.15f
-        );
+
+        // Background fill — use the color int directly, guiGraphics.fill ignores setShaderColor
         guiGraphics.fill(
                 this.getX(),
                 this.getY(),
@@ -107,13 +82,10 @@ public class GuiIconActionable extends Button {
                 -1873784752
         );
 
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                alpha
-        );
-
+        // Icon blit — pass ARGB color with alpha baked in as the last parameter.
+        // In 1.21.5, RenderSystem.setShaderColor is ignored by guiGraphics.blit;
+        // the color tint must be passed directly.
+        int argb = toArgb(activeColor, alpha);
         guiGraphics.blit(
                 net.minecraft.client.renderer.RenderType::guiTextured,
                 selected ? selectedTexture : deselectedTexture,
@@ -124,10 +96,11 @@ public class GuiIconActionable extends Button {
                 this.width,
                 this.height,
                 this.width,
-                this.height
+                this.height,
+                argb
         );
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // Tooltip on hover
         if (mouseX >= getX() && mouseY >= getY()
                 && mouseX < getX() + width && mouseY < getY() + height) {
             guiGraphics.drawString(
@@ -141,6 +114,11 @@ public class GuiIconActionable extends Button {
             );
         }
 
-        RenderSystem.disableBlend();
+    }
+
+    /** Pack r,g,b from a Color and a separate float alpha into an ARGB int. */
+    private static int toArgb(Color color, float alpha) {
+        int a = Math.round(alpha * 255f);
+        return (a << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
     }
 }

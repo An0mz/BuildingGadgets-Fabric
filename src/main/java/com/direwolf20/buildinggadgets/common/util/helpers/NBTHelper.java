@@ -46,7 +46,7 @@ public class NBTHelper {
         ListTag list = new ListTag();
         for (Map.Entry<UUID, V> entry : map.entrySet()) {
             CompoundTag compound = new CompoundTag();
-            compound.putUUID(NBTKeys.MAP_SERIALIZE_KEY, entry.getKey());
+            compound.putString(NBTKeys.MAP_SERIALIZE_KEY, entry.getKey().toString());
             compound.put(NBTKeys.MAP_SERIALIZE_VALUE, valueSerializer.apply(entry.getValue()));
             list.add(compound);
         }
@@ -68,10 +68,13 @@ public class NBTHelper {
     public static <V> Map<UUID, V> deserializeUUIDMap(ListTag list, Map<UUID, V> toAppendTo, Function<Tag, ? extends V> valueDeserializer) {
         for (Tag nbt : list) {
             if (nbt instanceof CompoundTag compound) {
-                toAppendTo.put(
-                        compound.getUUID(NBTKeys.MAP_SERIALIZE_KEY),
-                        valueDeserializer.apply(compound.get(NBTKeys.MAP_SERIALIZE_VALUE))
-                );
+                String idStr = compound.getStringOr(NBTKeys.MAP_SERIALIZE_KEY, "");
+                if (!idStr.isEmpty()) {
+                    toAppendTo.put(
+                            UUID.fromString(idStr),
+                            valueDeserializer.apply(compound.get(NBTKeys.MAP_SERIALIZE_VALUE))
+                    );
+                }
             }
         }
         return toAppendTo;

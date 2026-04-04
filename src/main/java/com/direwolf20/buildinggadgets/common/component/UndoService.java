@@ -47,12 +47,12 @@ public final class UndoService implements Component, ServerTickingComponent {
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         histories.clear();
 
-        for (String key : tag.getAllKeys()) {
+        for (String key : tag.keySet()) {
             LinkedList<UndoData> history = new LinkedList<>();
 
-            for (Tag d : tag.getList(key, 0)) {
+            for (Tag d : tag.getListOrEmpty(key)) {
                 CompoundTag data = (CompoundTag) d;
-                history.add(new UndoData(data.getLong("Expiry"), Undo.deserialize(data.getCompound("Undo"))));
+                history.add(new UndoData(data.getLongOr("Expiry", 0L), Undo.deserialize(data.getCompoundOrEmpty("Undo"))));
             }
 
             histories.put(UUID.fromString(key), history);

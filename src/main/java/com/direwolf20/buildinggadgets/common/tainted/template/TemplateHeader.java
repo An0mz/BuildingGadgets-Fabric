@@ -11,7 +11,6 @@ import com.direwolf20.buildinggadgets.common.util.tools.JsonBiDiSerializer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multiset;
 import com.google.gson.*;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.DetectedVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -131,16 +130,16 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
     }
 
     public static Builder builderFromNBT(CompoundTag nbt, boolean persisted) {
-        Preconditions.checkArgument(nbt.contains(NBTKeys.KEY_BOUNDS, NbtType.COMPOUND),
+        Preconditions.checkArgument(nbt.contains(NBTKeys.KEY_BOUNDS),
                 "Cannot construct a TemplateHeader without '" + NBTKeys.KEY_BOUNDS + "'!");
-        Region region = Region.deserializeFrom(nbt.getCompound(NBTKeys.KEY_BOUNDS));
+        Region region = Region.deserializeFrom(nbt.getCompoundOrEmpty(NBTKeys.KEY_BOUNDS));
         Builder builder = builder(region);
-        if (nbt.contains(NBTKeys.KEY_NAME, NbtType.STRING))
-            builder.name(nbt.getString(NBTKeys.KEY_NAME));
-        if (nbt.contains(NBTKeys.KEY_AUTHOR, NbtType.STRING))
-            builder.author(nbt.getString(NBTKeys.KEY_AUTHOR));
-        if (nbt.contains(NBTKeys.KEY_MATERIALS, NbtType.COMPOUND))
-            builder.requiredItems(MaterialList.deserialize(nbt.getCompound(NBTKeys.KEY_MATERIALS), persisted));
+        if (nbt.contains(NBTKeys.KEY_NAME))
+            builder.name(nbt.getStringOr(NBTKeys.KEY_NAME, null));
+        if (nbt.contains(NBTKeys.KEY_AUTHOR))
+            builder.author(nbt.getStringOr(NBTKeys.KEY_AUTHOR, null));
+        if (nbt.contains(NBTKeys.KEY_MATERIALS))
+            builder.requiredItems(MaterialList.deserialize(nbt.getCompoundOrEmpty(NBTKeys.KEY_MATERIALS), persisted));
         return builder;
     }
 
@@ -156,7 +155,16 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
         return builder
                 .setPrettyPrinting()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+                .registerTypeAdapter(ResourceLocation.class, new JsonBiDiSerializer<ResourceLocation>() {
+                    @Override
+                    public ResourceLocation deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                        return ResourceLocation.parse(json.getAsString());
+                    }
+                    @Override
+                    public JsonElement serialize(ResourceLocation src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
+                        return new com.google.gson.JsonPrimitive(src.toString());
+                    }
+                })
                 .registerTypeAdapter(MaterialList.class, new MaterialList.JsonSerializer())
                 .registerTypeAdapter(TemplateHeader.class, BI_DI_SERIALIZER);
     }

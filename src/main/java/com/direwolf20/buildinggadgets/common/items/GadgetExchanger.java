@@ -58,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.*;
@@ -89,31 +90,31 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        addEnergyInformation(tooltip, stack);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
+        addEnergyInformation(tooltipAdder, stack);
 
         ExchangingModes mode = getToolMode(stack);
-        tooltip.add(TooltipTranslation.GADGET_MODE
+        tooltipAdder.accept(TooltipTranslation.GADGET_MODE
                 .componentTranslation((mode == ExchangingModes.SURFACE && getConnectedArea(stack)
                         ? TooltipTranslation.GADGET_CONNECTED.format(Component.translatable(mode.getTranslationKey()).getString())
                         : Component.translatable(mode.getTranslationKey())))
                 .setStyle(Styles.AQUA));
 
-        tooltip.add(TooltipTranslation.GADGET_BLOCK
+        tooltipAdder.accept(TooltipTranslation.GADGET_BLOCK
                 .componentTranslation(LangUtil.getFormattedBlockName(getToolBlock(stack).getState()))
                 .setStyle(Styles.DK_GREEN));
 
         int range = getToolRange(stack);
-        tooltip.add(TooltipTranslation.GADGET_RANGE
+        tooltipAdder.accept(TooltipTranslation.GADGET_RANGE
                 .componentTranslation(range, getRangeInBlocks(range, mode.getMode()))
                 .setStyle(Styles.LT_PURPLE));
 
-        tooltip.add(TooltipTranslation.GADGET_FUZZY
+        tooltipAdder.accept(TooltipTranslation.GADGET_FUZZY
                 .componentTranslation(String.valueOf(getFuzzy(stack)))
                 .setStyle(Styles.GOLD));
 
-        addInformationRayTraceFluid(tooltip, stack);
+        addInformationRayTraceFluid(tooltipAdder, stack);
     }
 
     @Override
@@ -287,3 +288,4 @@ public class GadgetExchanger extends AbstractGadget {
         return getEnergyMaxOutput();
     }
 }
+

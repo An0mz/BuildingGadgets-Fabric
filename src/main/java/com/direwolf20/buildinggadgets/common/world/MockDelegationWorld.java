@@ -71,17 +71,17 @@ public class MockDelegationWorld implements LevelAccessor {
     }
 
     @Override
-    public void playSound(@Nullable Player player, BlockPos pos, SoundEvent soundIn, SoundSource category, float volume, float pitch) {
+    public void playSound(@Nullable Entity entity, BlockPos pos, SoundEvent soundIn, SoundSource category, float volume, float pitch) {
 
     }
 
     @Override
-    public void addParticle(ParticleOptions particleData, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-
+    public void addParticle(ParticleOptions particleOptions, double x, double y, double z, double vx, double vy, double vz) {
+        // no-op
     }
 
     @Override
-    public void levelEvent(@Nullable Player p_217378_1_, int p_217378_2_, BlockPos p_217378_3_, int p_217378_4_) {
+    public void levelEvent(@Nullable Entity p_217378_1_, int p_217378_2_, BlockPos p_217378_3_, int p_217378_4_) {
 
     }
 

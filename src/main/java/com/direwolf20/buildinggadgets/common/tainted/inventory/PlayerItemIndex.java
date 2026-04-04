@@ -8,6 +8,7 @@ import com.google.common.collect.Multiset.Entry;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.world.entity.player.Player;
@@ -15,10 +16,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Iterator;
 
-/**
- * Item Index representation all Items accessible for the Player by BuildingGadgets.
- * To allow for better performance, the Items in the player's Inventory are indexed by their Item and upon query only those with the appropriate Item need to be iterated.
- */
 public final class PlayerItemIndex implements IItemIndex {
 
     private final Player player;
@@ -31,14 +28,13 @@ public final class PlayerItemIndex implements IItemIndex {
 
     @Override
     public void insert(Multiset<ItemVariant> items, TransactionContext transaction) {
-        for (Multiset.Entry<ItemVariant> entry : items.entrySet()) {
+        for (Entry<ItemVariant> entry : items.entrySet()) {
             insertObject(entry.getElement(), entry.getCount(), transaction);
         }
     }
 
     private void insertObject(ItemVariant obj, int count, TransactionContext transaction) {
         int remainingCount = insertIntoProviders(obj, count, transaction);
-
         if (remainingCount != 0) {
             PlayerInventoryStorage.of(player).drop(obj, remainingCount, transaction);
         }
@@ -82,7 +78,7 @@ public final class PlayerItemIndex implements IItemIndex {
         multiset.addAll(list.getRequiredItems());
         MatchResult result = match(list, multiset, transaction);
         if (result.isSuccess())
-            throw new RuntimeException("This should not be possible! The the content changed between matches?!?");
+            throw new RuntimeException("This should not be possible! The content changed between matches?!?");
         Iterator<ImmutableMultiset<ItemVariant>> it = list.iterator();
         return it.hasNext() ? MatchResult.failure(list, result.getFoundItems(), it.next()) : result;
     }
@@ -92,9 +88,13 @@ public final class PlayerItemIndex implements IItemIndex {
         boolean success = true;
 
         for (Entry<ItemVariant> entry : multiset.entrySet()) {
-            int remainingCount = entry.getCount();
-            int extracted = (int) storage.extract(entry.getElement(), remainingCount, transaction);
-            success &= extracted == remainingCount;
+            int needed = entry.getCount();
+            // In 1.21.5, ItemVariant equality includes DataComponents, so
+            // ItemVariant.of(item) won't match inventory slots which store
+            // ItemVariant.of(stack) with default components. We iterate storage
+            // views and extract by item type to bypass this.
+            int extracted = extractByItem(entry.getElement(), needed, transaction);
+            success &= extracted == needed;
             availableBuilder.addCopies(entry.getElement(), extracted);
         }
 
@@ -103,5 +103,24 @@ public final class PlayerItemIndex implements IItemIndex {
         } else {
             return MatchResult.failure(list, availableBuilder.build(), ImmutableMultiset.of());
         }
+    }
+
+    /**
+     * Extract up to {@code amount} of the item in {@code variant} from storage,
+     * matching by item type only (ignoring DataComponents). This is necessary in
+     * 1.21.5 because ItemVariant equality now includes DataComponents, but the
+     * variant from getRequiredItems() has no components while inventory slots do.
+     */
+    private int extractByItem(ItemVariant variant, int amount, TransactionContext transaction) {
+        int remaining = amount;
+        for (StorageView<ItemVariant> view : storage) {
+            if (remaining <= 0) break;
+            // Match by item type only, ignoring DataComponents
+            if (!view.isResourceBlank() && view.getResource().getItem() == variant.getItem()) {
+                long extracted = view.extract(view.getResource(), remaining, transaction);
+                remaining -= (int) extracted;
+            }
+        }
+        return amount - remaining;
     }
 }

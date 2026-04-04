@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity> {
 
@@ -26,11 +27,10 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
     }
 
     @Override
-    public void render(EffectBlockTileEntity tile, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLightIn, int combinedOverlayIn) {
+    public void render(EffectBlockTileEntity tile, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLightIn, int combinedOverlayIn, Vec3 cameraPos) {
         BlockData renderData = tile.getRenderedBlock();
         if (renderData == null)
             return;
-        VertexConsumer builder;
 
         MultiBufferSource.BufferSource buffer2 = Minecraft.getInstance().renderBuffers().bufferSource();
         EffectBlock.Mode toolMode = tile.getReplacementMode();
@@ -47,35 +47,27 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         float trans = (1 - scale) / 2;
 
+        // Apply the same scale/translate for BOTH the block render and the overlay
         stack.pushPose();
         stack.translate(trans, trans, trans);
         stack.scale(scale, scale, scale);
 
         BlockState renderBlockState = renderData.getState();
 
-        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(Minecraft.getInstance().renderBuffers().bufferSource(), .55f);
+        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(buffer2, .55f);
         try {
             dispatcher.renderSingleBlock(
                     renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
             );
         } catch (Exception ignored) {
             BuildingGadgets.LOG.error("Failed to render block.");
-        } // if it fails to render then we'll get a bug report I'm sure.
+        }
 
-        stack.popPose();
-        stack.pushPose();
+        // Draw the colored overlay in the SAME pose (scaled + translated)
+        VertexConsumer builder = buffer2.getBuffer(OurRenderTypes.MissingBlockOverlay);
 
-        builder = buffer.getBuffer(OurRenderTypes.MissingBlockOverlay);
-
-        float x = 0,
-                y = 0,
-                z = 0,
-                maxX = 1,
-                maxY = 1,
-                maxZ = 1,
-                red = 0f,
-                green = 1f,
-                blue = 1f;
+        float x = 0, y = 0, z = 0, maxX = 1, maxY = 1, maxZ = 1;
+        float red = 0f, green = 1f, blue = 1f;
 
         if (toolMode == EffectBlock.Mode.REMOVE || toolMode == EffectBlock.Mode.REPLACE) {
             red = 1f;
@@ -83,58 +75,50 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
             blue = 0.25f;
         }
 
-        float alpha = (1f - (scale));
-        if (alpha < 0.051f)
-            alpha = 0.051f;
-
-        if (alpha > 0.33f)
-            alpha = 0.33f;
+        float alpha = (1f - scale);
+        if (alpha < 0.051f) alpha = 0.051f;
+        if (alpha > 0.33f)  alpha = 0.33f;
 
         Matrix4f matrix = stack.last().pose();
 
-        // Down
         if (tile.getLevel().getBlockState(tile.getBlockPos().below()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    y, z   ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y, z   ).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    y, maxZ).setColor(red, green, blue, alpha);
         }
-        // Up
         if (tile.getLevel().getBlockState(tile.getBlockPos().above()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    maxY, z   ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    maxY, maxZ).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, z   ).setColor(red, green, blue, alpha);
         }
-        // North
         if (tile.getLevel().getBlockState(tile.getBlockPos().north()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    y,    z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    maxY, z).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y,    z).setColor(red, green, blue, alpha);
         }
-        // South
         if (tile.getLevel().getBlockState(tile.getBlockPos().south()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    y,    maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y,    maxZ).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x,    maxY, maxZ).setColor(red, green, blue, alpha);
         }
-        // East
         if (tile.getLevel().getBlockState(tile.getBlockPos().east()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, maxX, y, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y,    z   ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, maxY, z   ).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, maxX, y,    maxZ).setColor(red, green, blue, alpha);
         }
-        // West
         if (tile.getLevel().getBlockState(tile.getBlockPos().west()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, y, maxZ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, y,    z   ).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, y,    maxZ).setColor(red, green, blue, alpha);
             builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, z).setColor(red, green, blue, alpha);
+            builder.addVertex(matrix, x, maxY, z   ).setColor(red, green, blue, alpha);
         }
+
         stack.popPose();
-        buffer2.endBatch(); // @mcp: draw (yarn) = finish (mcp)
+        buffer2.endBatch();
     }
 }

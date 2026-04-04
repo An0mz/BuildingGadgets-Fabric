@@ -1,8 +1,6 @@
 package com.direwolf20.buildinggadgets.client.screen.components;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -45,7 +43,6 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         renderHeader(guiGraphics, k, l);
 
         this.renderListItems(guiGraphics, mouseX, mouseY, partialTicks);
-        RenderSystem.disableDepthTest();
 
         int j1 = maxScrollAmount();
         if (j1 > 0) {
@@ -58,32 +55,15 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
             int x1 = scrollBarX();
             int x2 = x1 + 6;
 
-            GlStateManager._bindTexture(0);
-            RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_COLOR);
-
-            Tesselator tessellator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-            bufferbuilder.addVertex(x1, getY() + getHeight(), 0.0f).setColor(0, 0, 0, 255);
-            bufferbuilder.addVertex(x2, getY() + getHeight(), 0.0f).setColor(0, 0, 0, 255);
-            bufferbuilder.addVertex(x2, getY(), 0.0f).setColor(0, 0, 0, 255);
-            bufferbuilder.addVertex(x1, getY(), 0.0f).setColor(0, 0, 0, 255);
-
-            bufferbuilder.addVertex(x1, (l1 + k1), 0.0f).setColor(128, 128, 128, 255);
-            bufferbuilder.addVertex(x2, (l1 + k1), 0.0f).setColor(128, 128, 128, 255);
-            bufferbuilder.addVertex(x2, l1, 0.0f).setColor(128, 128, 128, 255);
-            bufferbuilder.addVertex(x1, l1, 0.0f).setColor(128, 128, 128, 255);
-
-            bufferbuilder.addVertex(x1, (l1 + k1 - 1), 0.0f).setColor(192, 192, 192, 255);
-            bufferbuilder.addVertex((x2 - 1), (l1 + k1 - 1), 0.0f).setColor(192, 192, 192, 255);
-            bufferbuilder.addVertex((x2 - 1), l1, 0.0f).setColor(192, 192, 192, 255);
-            bufferbuilder.addVertex(x1, l1, 0.0f).setColor(192, 192, 192, 255);
-
-            BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+            // Draw scrollbar background (black)
+            guiGraphics.fill(x1, getY(), x2, getY() + getHeight(), 0xFF000000);
+            // Draw scrollbar thumb (gray)
+            guiGraphics.fill(x1, l1, x2, l1 + k1, 0xFF808080);
+            // Draw scrollbar thumb highlight (light gray)
+            guiGraphics.fill(x1, l1, x2 - 1, l1 + k1 - 1, 0xFFC0C0C0);
         }
 
         renderDecorations(guiGraphics, mouseX, mouseY);
-        RenderSystem.disableBlend();
     }
 
     protected void renderContentBackground(GuiGraphics guiGraphics) {

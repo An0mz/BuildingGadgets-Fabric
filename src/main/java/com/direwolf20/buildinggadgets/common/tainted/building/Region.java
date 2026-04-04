@@ -49,12 +49,12 @@ public final class Region {
 
     public static Region deserializeFrom(CompoundTag tag) {
         return new Region(
-                tag.getInt(NBTKeys.KEY_MIN_X),
-                tag.getInt(NBTKeys.KEY_MIN_Y),
-                tag.getInt(NBTKeys.KEY_MIN_Z),
-                tag.getInt(NBTKeys.KEY_MAX_X),
-                tag.getInt(NBTKeys.KEY_MAX_Y),
-                tag.getInt(NBTKeys.KEY_MAX_Z)
+                tag.getIntOr(NBTKeys.KEY_MIN_X, 0),
+                tag.getIntOr(NBTKeys.KEY_MIN_Y, 0),
+                tag.getIntOr(NBTKeys.KEY_MIN_Z, 0),
+                tag.getIntOr(NBTKeys.KEY_MAX_X, 0),
+                tag.getIntOr(NBTKeys.KEY_MAX_Y, 0),
+                tag.getIntOr(NBTKeys.KEY_MAX_Z, 0)
         );
     }
 

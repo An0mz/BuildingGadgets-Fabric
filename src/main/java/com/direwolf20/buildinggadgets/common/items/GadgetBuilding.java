@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.*;
 
@@ -92,35 +93,35 @@ public class GadgetBuilding extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
         BuildingModes mode = getToolMode(stack);
-        addEnergyInformation(tooltip, stack);
+        addEnergyInformation(tooltipAdder, stack);
 
-        tooltip.add(TooltipTranslation.GADGET_MODE
+        tooltipAdder.accept(TooltipTranslation.GADGET_MODE
                 .componentTranslation((mode == BuildingModes.SURFACE && getConnectedArea(stack)
                         ? TooltipTranslation.GADGET_CONNECTED.format(Component.translatable(mode.getTranslationKey()).getString())
                         : Component.translatable(mode.getTranslationKey())))
                 .setStyle(Styles.AQUA));
 
-        tooltip.add(TooltipTranslation.GADGET_BLOCK
+        tooltipAdder.accept(TooltipTranslation.GADGET_BLOCK
                 .componentTranslation(LangUtil.getFormattedBlockName(getToolBlock(stack).getState()))
                 .setStyle(Styles.DK_GREEN));
 
         int range = getToolRange(stack);
         if (getToolMode(stack) != BuildingModes.BUILD_TO_ME)
-            tooltip.add(TooltipTranslation.GADGET_RANGE
+            tooltipAdder.accept(TooltipTranslation.GADGET_RANGE
                     .componentTranslation(range, getRangeInBlocks(range, mode.getMode()))
                     .setStyle(Styles.LT_PURPLE));
 
         if (getToolMode(stack) == BuildingModes.SURFACE)
-            tooltip.add(TooltipTranslation.GADGET_FUZZY
+            tooltipAdder.accept(TooltipTranslation.GADGET_FUZZY
                     .componentTranslation(String.valueOf(getFuzzy(stack)))
                     .setStyle(Styles.GOLD));
 
-        addInformationRayTraceFluid(tooltip, stack);
+        addInformationRayTraceFluid(tooltipAdder, stack);
 
-        tooltip.add(TooltipTranslation.GADGET_BUILDING_PLACE_ATOP
+        tooltipAdder.accept(TooltipTranslation.GADGET_BUILDING_PLACE_ATOP
                 .componentTranslation(String.valueOf(shouldPlaceAtop(stack)))
                 .setStyle(Styles.YELLOW));
     }
@@ -274,3 +275,4 @@ public class GadgetBuilding extends AbstractGadget {
         return getEnergyMaxOutput();
     }
 }
+

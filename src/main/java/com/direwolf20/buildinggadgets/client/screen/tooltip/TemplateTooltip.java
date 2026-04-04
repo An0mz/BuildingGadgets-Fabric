@@ -123,8 +123,6 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 int by = yin;
                 int j = 0;
                 int totalMissing = 0;
-                RenderSystem.enableBlend();
-                RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 for (Multiset.Entry<ItemVariant> entry : sortedEntries) {
                     int x = xin + (j % EventUtil.STACKS_PER_LINE) * 18;
                     int y = yin + (j / EventUtil.STACKS_PER_LINE) * 20;
@@ -161,15 +159,13 @@ public class TemplateTooltip implements ClientTooltipComponent {
         boolean hasReq = req > 0;
 
         itemRenderer.renderStatic(
-                null,
                 itemStack,
                 ItemDisplayContext.GUI,
-                false,
+                0xF000F0,
+                OverlayTexture.NO_OVERLAY,
                 guiGraphics.pose(),
                 net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
                 Minecraft.getInstance().level,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
                 0
         );
 

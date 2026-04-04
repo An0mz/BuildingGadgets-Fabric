@@ -6,7 +6,6 @@ import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.Materia
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.HitResult;
@@ -14,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * {@link BlockPos} and {@link BlockData} combined, to allow for placement of an {@link BlockData} in an {@link BuildContext}. Ths class also offers serialisation
@@ -33,9 +31,9 @@ public record PlacementTarget(@NotNull BlockPos pos, @NotNull BlockData data) {
      * @see BlockData#deserialize(CompoundNBT, boolean)
      */
     public static PlacementTarget deserialize(CompoundTag nbt, boolean persisted) {
-        Optional<BlockPos> posOpt = NbtUtils.readBlockPos(nbt, NBTKeys.KEY_POS);
-        BlockPos pos = posOpt.orElseThrow(() -> new IllegalArgumentException("BlockPos missing in NBT"));
-        BlockData data = BlockData.deserialize(nbt.getCompound(NBTKeys.KEY_DATA), persisted);
+        CompoundTag posTag = nbt.getCompoundOrEmpty(NBTKeys.KEY_POS);
+        BlockPos pos = new BlockPos(posTag.getIntOr("X", 0), posTag.getIntOr("Y", 0), posTag.getIntOr("Z", 0));
+        BlockData data = BlockData.deserialize(nbt.getCompoundOrEmpty(NBTKeys.KEY_DATA), persisted);
         return new PlacementTarget(pos, data);
     }
 
@@ -101,7 +99,11 @@ public record PlacementTarget(@NotNull BlockPos pos, @NotNull BlockData data) {
     public CompoundTag serialize(boolean persisted) {
         CompoundTag compound = new CompoundTag();
         compound.put(NBTKeys.KEY_DATA, data.serialize(persisted));
-        compound.put(NBTKeys.KEY_POS, NbtUtils.writeBlockPos(pos));
+        CompoundTag posTag = new CompoundTag();
+        posTag.putInt("X", pos.getX());
+        posTag.putInt("Y", pos.getY());
+        posTag.putInt("Z", pos.getZ());
+        compound.put(NBTKeys.KEY_POS, posTag);
         return compound;
     }
 }

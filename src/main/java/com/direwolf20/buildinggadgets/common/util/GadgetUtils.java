@@ -59,7 +59,7 @@ public class GadgetUtils {
         return LINK_STARTS.stream().anyMatch(s::startsWith);
     }
 
-    public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, List<Component> tooltip) {
+    public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipAdder) {
         if (world == null) return;
 
         BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent(provider -> {
@@ -68,9 +68,9 @@ public class GadgetUtils {
                 Template template = provider.getTemplateForKey(key);
                 TemplateHeader header = template.getHeader();
                 if (header.getName() != null && !header.getName().isEmpty())
-                    tooltip.add(TooltipTranslation.TEMPLATE_NAME.componentTranslation(header.getName()).setStyle(Styles.AQUA));
+                    tooltipAdder.accept(TooltipTranslation.TEMPLATE_NAME.componentTranslation(header.getName()).setStyle(Styles.AQUA));
                 if (header.getAuthor() != null && !header.getAuthor().isEmpty())
-                    tooltip.add(TooltipTranslation.TEMPLATE_AUTHOR.componentTranslation(header.getAuthor()).setStyle(Styles.AQUA));
+                    tooltipAdder.accept(TooltipTranslation.TEMPLATE_AUTHOR.componentTranslation(header.getAuthor()).setStyle(Styles.AQUA));
             }
         });
     }

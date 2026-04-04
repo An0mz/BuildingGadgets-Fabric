@@ -5,7 +5,6 @@ import com.direwolf20.buildinggadgets.common.tainted.Tainted;
 import com.direwolf20.buildinggadgets.common.tainted.building.BlockData;
 import com.direwolf20.buildinggadgets.common.tainted.building.tilesupport.TileSupport;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -106,15 +105,15 @@ public class EffectBlockTileEntity extends BlockEntity {
     protected void loadAdditional(CompoundTag nbt, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(nbt, registries);
 
-        if (nbt.contains(NBTKeys.GADGET_TICKS, NbtType.INT) &&
-                nbt.contains(NBTKeys.GADGET_MODE, NbtType.INT) &&
-                nbt.contains(NBTKeys.GADGET_SOURCE_BLOCK, NbtType.COMPOUND) &&
-                nbt.contains(NBTKeys.GADGET_REPLACEMENT_BLOCK, NbtType.COMPOUND)) {
+        if (nbt.contains(NBTKeys.GADGET_TICKS) &&
+                nbt.contains(NBTKeys.GADGET_MODE) &&
+                nbt.contains(NBTKeys.GADGET_SOURCE_BLOCK) &&
+                nbt.contains(NBTKeys.GADGET_REPLACEMENT_BLOCK)) {
 
-            ticks = nbt.getInt(NBTKeys.GADGET_TICKS);
-            mode = Mode.values()[nbt.getInt(NBTKeys.GADGET_MODE)];
-            setRenderedBlock(BlockData.tryDeserialize(nbt.getCompound(NBTKeys.GADGET_REPLACEMENT_BLOCK), true));
-            sourceBlock = BlockData.tryDeserialize(nbt.getCompound(NBTKeys.GADGET_SOURCE_BLOCK), true);
+            ticks = nbt.getIntOr(NBTKeys.GADGET_TICKS, 0);
+            mode = Mode.values()[nbt.getIntOr(NBTKeys.GADGET_MODE, 0)];
+            setRenderedBlock(BlockData.tryDeserialize(nbt.getCompoundOrEmpty(NBTKeys.GADGET_REPLACEMENT_BLOCK), true));
+            sourceBlock = BlockData.tryDeserialize(nbt.getCompoundOrEmpty(NBTKeys.GADGET_SOURCE_BLOCK), true);
         }
     }
 

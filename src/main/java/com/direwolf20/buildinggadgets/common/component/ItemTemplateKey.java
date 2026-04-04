@@ -29,13 +29,14 @@ public final class ItemTemplateKey implements Component, AutoSyncedComponent, IT
 
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         if (tag.contains(NBTKeys.TEMPLATE_KEY_ID)) {
-            id = tag.getUUID(NBTKeys.TEMPLATE_KEY_ID);
+            String idStr = tag.getStringOr(NBTKeys.TEMPLATE_KEY_ID, "");
+            id = idStr.isEmpty() ? null : UUID.fromString(idStr);
         }
     }
 
     public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         if (id != null) {
-            tag.putUUID(NBTKeys.TEMPLATE_KEY_ID, id);
+            tag.putString(NBTKeys.TEMPLATE_KEY_ID, id.toString());
         }
     }
 }

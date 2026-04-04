@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class TemplateItem extends Item {
 
@@ -25,9 +26,9 @@ public class TemplateItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, context, tooltip, flagIn);
-        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltip);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<net.minecraft.network.chat.Component> tooltipAdder, TooltipFlag flagIn) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flagIn);
+        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltipAdder);
     }
 
     @Override

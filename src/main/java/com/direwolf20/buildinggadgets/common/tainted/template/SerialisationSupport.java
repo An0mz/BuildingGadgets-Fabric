@@ -7,7 +7,6 @@ import com.direwolf20.buildinggadgets.common.tainted.building.tilesupport.TileSu
 import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.MaterialList;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import com.google.common.base.Preconditions;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.nbt.CompoundTag;
 
 public final class SerialisationSupport {
@@ -63,11 +62,11 @@ public final class SerialisationSupport {
 
         @Override
         public ITileEntityData deserialize(CompoundTag tagCompound, boolean persisted) {
-            CompoundTag data = tagCompound.getCompound(NBTKeys.KEY_DATA);
+            CompoundTag data = tagCompound.getCompoundOrEmpty(NBTKeys.KEY_DATA);
             MaterialList materialList = null;
 
-            if (tagCompound.contains(NBTKeys.KEY_MATERIALS, NbtType.COMPOUND)) {
-                materialList = MaterialList.deserialize(tagCompound.getCompound(NBTKeys.KEY_MATERIALS), persisted);
+            if (tagCompound.contains(NBTKeys.KEY_MATERIALS)) {
+                materialList = MaterialList.deserialize(tagCompound.getCompoundOrEmpty(NBTKeys.KEY_MATERIALS), persisted);
             }
 
             return new NBTTileEntityData(data, materialList);

@@ -51,7 +51,6 @@ public class DestructionRender extends BaseRenderer {
                 .forEach(pos -> renderMissingBlock(stack.last().pose(), builder, pos));
 
         stack.popPose();
-        RenderSystem.disableDepthTest();
         buffer.endBatch(); // @mcp: draw = finish
     }
 }

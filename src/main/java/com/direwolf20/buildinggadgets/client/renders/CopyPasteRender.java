@@ -16,13 +16,12 @@ import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.world.MockDelegationWorld;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import org.joml.Matrix4f;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -33,20 +32,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.io.Closeable;
 import java.util.*;
-import java.util.function.Consumer;
 
 
 public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
-    private MultiVBORenderer renderBuffer;
     private int tickTrack = 0;
     private UUID lastRendered = null;
 
     @Override
     public void onTemplateUpdate(ITemplateProvider provider, ITemplateKey key, Template template) {
         if (provider.getId(key).equals(lastRendered))
-            renderBuffer = null;
+            lastRendered = null;
     }
 
     @Override
@@ -159,7 +155,6 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                     }
                     UUID id = provider.getId(key);
                     if (!id.equals(lastRendered)) {
-                        renderBuffer = null;
                         System.gc();
                     }
 
@@ -172,11 +167,6 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
 
     private void renderTargets(PoseStack matrix, Vec3 projectedView, BuildContext context, List<PlacementTarget> targets, BlockPos startPos) {
         tickTrack = 0;
-
-        if (renderBuffer != null) {
-            renderBuffer.close();
-            renderBuffer = null;
-        }
 
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(
@@ -208,88 +198,5 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     @Override
     public boolean isLinkable() {
         return true;
-    }
-
-    /**
-     * Vertex Buffer Object for caching the render. Pretty similar to how the chunk caching works
-     */
-    public static class MultiVBORenderer implements Closeable {
-        private static final int BUFFER_SIZE = 2 * 1024 * 1024 * 3;
-
-        public static MultiVBORenderer of(Consumer<MultiBufferSource> vertexProducer) {
-            final Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder> byteBuilders = Maps.newHashMap();
-            final Map<RenderType, BufferBuilder> builders = Maps.newHashMap();
-
-            vertexProducer.accept(rt -> builders.computeIfAbsent(rt, (_rt) -> {
-                com.mojang.blaze3d.vertex.ByteBufferBuilder byteBuf =
-                        new com.mojang.blaze3d.vertex.ByteBufferBuilder(BUFFER_SIZE);
-                byteBuilders.put(_rt, byteBuf);
-                return new BufferBuilder(byteBuf, _rt.mode(), _rt.format());
-            }));
-
-            Map<RenderType, VertexBuffer> buffers = new java.util.HashMap<>();
-            for (Map.Entry<RenderType, BufferBuilder> entry : builders.entrySet()) {
-                RenderType rt = entry.getKey();
-                BufferBuilder builder = entry.getValue();
-                Objects.requireNonNull(rt);
-                Objects.requireNonNull(builder);
-
-                com.mojang.blaze3d.vertex.MeshData mesh = builder.buildOrThrow();
-                VertexBuffer vbo = new VertexBuffer(com.mojang.blaze3d.buffers.BufferUsage.DYNAMIC_WRITE);
-                vbo.bind();
-                vbo.upload(mesh);
-                mesh.close();
-
-                com.mojang.blaze3d.vertex.ByteBufferBuilder byteBuf = byteBuilders.get(rt);
-                if (byteBuf != null) byteBuf.close();
-
-                buffers.put(rt, vbo);
-            }
-
-            return new MultiVBORenderer(buffers);
-        }
-
-        private final ImmutableMap<RenderType, VertexBuffer> buffers;
-
-        protected MultiVBORenderer(Map<RenderType, VertexBuffer> buffers) {
-            this.buffers = ImmutableMap.copyOf(buffers);
-        }
-
-        //TODO: Sort verts
-        public void sort(float x, float y, float z) {
-            // Dire the fucking depth buffer. WHAT THE FUCK
-            // Fuck you for putting me through this pain
-
-
-//            for (Map.Entry<RenderType, DireBufferBuilder.State> kv : sortCaches.entrySet()) {
-//                RenderType rt = kv.getKey();
-//                DireBufferBuilder.State state = kv.getValue();
-//                DireBufferBuilder builder = new DireBufferBuilder(BUFFER_SIZE);
-//                builder.begin(rt.mode().asGLMode, rt.format());
-//                builder.setVertexState(state);
-//                builder.sortVertexData(x, y, z);
-//                builder.finishDrawing();
-//
-//                DireVertexBuffer vbo = buffers.get(rt);
-//                vbo.upload(builder);
-//            }
-        }
-
-        public void render(Matrix4f modelViewMatrix) {
-            buffers.forEach((rt, vbo) -> {
-
-                rt.setupRenderState();
-                vbo.bind();
-                vbo.drawWithShader(modelViewMatrix, RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
-                rt.clearRenderState();
-            });
-        }
-
-        @Override
-        public void close() {
-            for (VertexBuffer value : buffers.values()) {
-                value.close();
-            }
-        }
     }
 }

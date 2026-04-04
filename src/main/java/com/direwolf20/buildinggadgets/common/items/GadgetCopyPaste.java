@@ -58,6 +58,7 @@ import team.reborn.energy.api.EnergyStorage;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class GadgetCopyPaste extends AbstractGadget {
 
@@ -245,18 +246,18 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        addEnergyInformation(tooltip, stack);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
+        addEnergyInformation(tooltipAdder, stack);
 
-        tooltip.add(TooltipTranslation.GADGET_MODE
+        tooltipAdder.accept(TooltipTranslation.GADGET_MODE
                 .componentTranslation(getToolMode(stack).translation.format())
                 .setStyle(Styles.AQUA));
 
-        addInformationRayTraceFluid(tooltip, stack);
+        addInformationRayTraceFluid(tooltipAdder, stack);
 
         // Pass null - template name/author won't show in creative tab but will work in-game
-        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltip);
+        GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltipAdder);
     }
 
     public void setMode(ItemStack heldItem, int modeInt) {

@@ -26,7 +26,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -309,8 +308,7 @@ public class ModeRadialMenu extends Screen {
 
         float angle = mouseAngle(x, y, mouseX, mouseY);
 
-        RenderSystem.enableBlend();
-//        RenderSystem.shadeModel(GL11.GL_SMOOTH);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         float totalDeg = 0;
         float degPer = 360F / segments;
 
@@ -335,14 +333,10 @@ public class ModeRadialMenu extends Screen {
             signs = signsCopyPaste;
         }
 
-        Tesselator tessellator = Tesselator.getInstance();
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_COLOR);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-
+        org.joml.Matrix4f poseMatrix = guiGraphics.pose().last().pose();
+        net.minecraft.client.renderer.MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        net.minecraft.client.renderer.RenderType guiRenderType = net.minecraft.client.renderer.RenderType.gui();
+        VertexConsumer vc = bufSource.getBuffer(guiRenderType);
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
         int indexBottom = segments / 4;
@@ -365,28 +359,33 @@ public class ModeRadialMenu extends Screen {
                 r = g = b = 1F;
             }
 
-            RenderSystem.setShaderColor(r, g, b, a);
-
-
+            double prevInnerX = 0, prevInnerY = 0, prevOuterX = 0, prevOuterY = 0;
+            boolean firstVert = true;
             for (float i = degPer; i >= 0; i--) {
                 float rad = (float) ((i + totalDeg) / 180F * Math.PI);
 
-
                 double xp = x + Math.cos(rad) * radius;
                 double yp = y + Math.sin(rad) * radius;
+                double xpInner = x + Math.cos(rad) * radius / 2.3;
+                double ypInner = y + Math.sin(rad) * radius / 2.3;
                 if ((int) i == (int) (degPer / 2))
                     nameData.add(new NameDisplayData((int) xp, (int) yp, mouseInSector, shouldCenter && (seg == indexBottom || seg == indexTop)));
 
-                bufferBuilder.addVertex((float)(x + Math.cos(rad) * radius / 2.3F), (float)(y + Math.sin(rad) * radius / 2.3F), 0).setColor(r, g, b, a);
-                bufferBuilder.addVertex((float)xp, (float)yp, 0).setColor(r, g, b, a);
+                if (!firstVert) {
+                    vc.addVertex(poseMatrix, (float) xpInner, (float) ypInner, 0).setColor(r, g, b, a);
+                    vc.addVertex(poseMatrix, (float) prevInnerX, (float) prevInnerY, 0).setColor(r, g, b, a);
+                    vc.addVertex(poseMatrix, (float) prevOuterX, (float) prevOuterY, 0).setColor(r, g, b, a);
+                    vc.addVertex(poseMatrix, (float) xp, (float) yp, 0).setColor(r, g, b, a);
+                }
+                prevInnerX = xpInner; prevInnerY = ypInner;
+                prevOuterX = xp; prevOuterY = yp;
+                firstVert = false;
             }
 
             totalDeg += degPer;
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
-
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
-        RenderSystem.disableBlend();
+        bufSource.endBatch(guiRenderType);
 
         for (int i = 0; i < nameData.size(); i++) {
             stack.pushPose();
@@ -419,10 +418,7 @@ public class ModeRadialMenu extends Screen {
             int xdp = (int) ((xp - x) * mod + x);
             int ydp = (int) ((yp - y) * mod + y);
 
-            RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX);
-            RenderSystem.setShaderColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1);
-            RenderSystem.setShaderTexture(0, signs.get(i));
-            guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16);
+            guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16, color.getRGB());
 
             stack.popPose();
         }

@@ -42,7 +42,7 @@ public final class TemplateSave extends TimedDataSave<TemplateInfo> {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        return null;
+        return super.save(tag, registries);
     }
 
     static final class TemplateInfo extends TimedDataSave.TimedValue { //for reasons I don't understand it doesn't compile if you leave the TimedDataSave out!
@@ -50,7 +50,7 @@ public final class TemplateSave extends TimedDataSave<TemplateInfo> {
 
         private TemplateInfo(CompoundTag nbt) {
             super(nbt);
-            template = Template.deserialize(nbt.getCompound(NBTKeys.KEY_DATA), null, true);
+            template = Template.deserialize(nbt.getCompoundOrEmpty(NBTKeys.KEY_DATA), null, true);
         }
 
         private TemplateInfo(Template template) {

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class GadgetDestruction extends AbstractGadget {
@@ -58,28 +59,28 @@ public class GadgetDestruction extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        addEnergyInformation(tooltip, stack);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
+        addEnergyInformation(tooltipAdder, stack);
 
-        tooltip.add(TooltipTranslation.GADGET_DESTROYWARNING
+        tooltipAdder.accept(TooltipTranslation.GADGET_DESTROYWARNING
                 .componentTranslation()
                 .setStyle(Styles.RED));
 
-        tooltip.add(TooltipTranslation.GADGET_DESTROYSHOWOVERLAY
+        tooltipAdder.accept(TooltipTranslation.GADGET_DESTROYSHOWOVERLAY
                 .componentTranslation(String.valueOf(getOverlay(stack)))
                 .setStyle(Styles.AQUA));
 
-        tooltip.add(TooltipTranslation.GADGET_BUILDING_PLACE_ATOP
+        tooltipAdder.accept(TooltipTranslation.GADGET_BUILDING_PLACE_ATOP
                 .componentTranslation(String.valueOf(getConnectedArea(stack)))
                 .setStyle(Styles.YELLOW));
 
         if (BuildingGadgets.getConfig().gadgets.gadgetDestruction.nonFuzzyEnabled)
-            tooltip.add(TooltipTranslation.GADGET_FUZZY
+            tooltipAdder.accept(TooltipTranslation.GADGET_FUZZY
                     .componentTranslation(String.valueOf(getFuzzy(stack)))
                     .setStyle(Styles.GOLD));
 
-        addInformationRayTraceFluid(tooltip, stack);
+        addInformationRayTraceFluid(tooltipAdder, stack);
     }
 
     public static void setAnchorSide(ItemStack stack, Direction side) {

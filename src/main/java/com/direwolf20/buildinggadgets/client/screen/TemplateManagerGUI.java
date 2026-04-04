@@ -54,7 +54,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
@@ -218,7 +217,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             BlockEntity be = view.getContext().getWorld().getBlockEntity(targetPos);
 
             if (renderBlockState.getRenderShape() == RenderShape.MODEL) {
-                BakedModel model = dispatcher.getBlockModel(renderBlockState);
+                // Block model rendering handled by renderSingleBlock
             }
 
             if (be != null) {
@@ -392,12 +391,12 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         Matrix4f perspectiveMatrix = new Matrix4f();
         perspectiveMatrix.perspective(60f, (float) panel.getWidth() / panel.getHeight(), 0.01f, 4000f);
         pose.mulPose(perspectiveMatrix);
-        RenderSystem.viewport((int) Math.round((leftPos + panel.getX()) * scale),
+        GL11.glViewport((int) Math.round((leftPos + panel.getX()) * scale),
                 (int) Math.round(getMinecraft().getWindow().getHeight() - (topPos + panel.getY() + panel.getHeight()) * scale),
                 (int) Math.round(panel.getWidth() * scale),
                 (int) Math.round(panel.getHeight() * scale));
 
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT);
+        GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 
         sc = (293 * sc) + zoom / zoomScale;
         pose.scale((float) sc, (float) sc, (float) sc);
@@ -416,7 +415,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         pose.mulPose(new Quaternionf().rotateY((float)Math.toRadians(rotY)));
         pose.translate(((startPos.getX() - endPos.getX()) / 2f), ((startPos.getY() - endPos.getY()) / 2f), ((startPos.getZ() - endPos.getZ()) / 2f));
 
-        RenderSystem.disableDepthTest();
 
         IBuildView view = template.createViewInContext(
                 BuildContext.builder()
@@ -427,7 +425,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         renderStructure(view, partialTicks);
         pose.popPose();
         pose.popPose();
-        RenderSystem.viewport(0, 0, getMinecraft().getWindow().getWidth(), getMinecraft().getWindow().getHeight());
+        GL11.glViewport(0, 0, getMinecraft().getWindow().getWidth(), getMinecraft().getWindow().getHeight());
     }
 
     private void resetViewport() {
@@ -650,7 +648,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         }
 
         try {
-            CompoundTag tagFromJson = TagParser.parseTag(CBString);
+            CompoundTag tagFromJson = TagParser.parseCompoundFully(CBString);
             if (!tagFromJson.contains("header")) {
                 BuildingGadgets.LOG.error("Attempted to use a 1.12 compound on a newer MC version");
                 getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION

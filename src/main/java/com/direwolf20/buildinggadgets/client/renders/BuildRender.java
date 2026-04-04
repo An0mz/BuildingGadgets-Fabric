@@ -14,7 +14,6 @@ import com.direwolf20.buildinggadgets.common.tainted.inventory.InventoryHelper;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.MatchResult;
 import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.MaterialList;
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -28,7 +27,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -45,6 +43,11 @@ public class BuildRender extends BaseRenderer {
     private final boolean isExchanger;
     private static final BlockState DEFAULT_EFFECT_BLOCK = OurBlocks.EFFECT_BLOCK.defaultBlockState();
     private BlockState errorState;
+
+    // White overlay tinted at ~55% opacity packed as ARGB for OverlayTexture.
+    // OverlayTexture packs UV as: U = hurt overlay (0=no hurt), V = flash (0=no flash).
+    // We use NO_OVERLAY so the block renders normally but passes through our alpha buffer.
+    private static final int GHOST_OVERLAY = OverlayTexture.NO_OVERLAY;
 
     public BuildRender(boolean isExchanger) {
         this.isExchanger = isExchanger;
@@ -69,11 +72,10 @@ public class BuildRender extends BaseRenderer {
             return;
         }
 
-        if(errorState != null) {
+        if (errorState != null) {
             errorState = null;
         }
 
-        // Get the coordinates from the anchor. If the anchor isn't present then build the collector.
         List<BlockPos> coordinates = anchor.orElseGet(() -> {
             AbstractMode mode = !this.isExchanger ? GadgetBuilding.getToolMode(heldItem).getMode() : GadgetExchanger.getToolMode(heldItem).getMode();
             return mode.getCollection(
@@ -84,23 +86,18 @@ public class BuildRender extends BaseRenderer {
 
         BlockPos targetPos = lookingAt.getBlockPos();
         coordinates.sort(Comparator.comparingDouble(pos -> pos.distSqr(targetPos)));
-        // Sort them on a new line for readability
-//        coordinates = SortingHelper.Blocks.byDistance(coordinates, player);
 
-        //Prepare the fake world -- using a fake world lets us render things properly, like fences connecting.
         getBuilderWorld().setWorldAndState(player.level(), renderBlockState, coordinates);
 
         Vec3 playerPos = evt.camera().getPosition();
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
-        //Save the current position that is being rendered (I think)
         PoseStack matrix = evt.matrixStack();
         matrix.pushPose();
         matrix.translate(-playerPos.x(), -playerPos.y(), -playerPos.z());
 
         BlockRenderDispatcher dispatcher = evt.gameRenderer().getMinecraft().getBlockRenderer();
 
-        RenderSystem.enableDepthTest();
         for (BlockPos coordinate : coordinates) {
             matrix.pushPose();
             matrix.translate(coordinate.getX(), coordinate.getY(), coordinate.getZ());
@@ -110,11 +107,15 @@ public class BuildRender extends BaseRenderer {
                 matrix.scale(1.001f, 1.001f, 1.001f);
             }
 
-            try{
-                OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(Minecraft.getInstance().renderBuffers().bufferSource(), .55f);
-                dispatcher.renderSingleBlock(renderBlockState, matrix, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-            }
-            catch (Exception e) {
+            try {
+                // Pass the alpha through the light texture value — FULL_BRIGHT gives full
+                // brightness. We use MultiplyAlphaRenderTypeBuffer to reduce opacity to 55%.
+                OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer =
+                        new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(
+                                Minecraft.getInstance().renderBuffers().bufferSource(), .55f);
+                dispatcher.renderSingleBlock(renderBlockState, matrix, mutatedBuffer,
+                        LightTexture.FULL_BRIGHT, GHOST_OVERLAY);
+            } catch (Exception e) {
                 BuildingGadgets.LOG.log(Level.ERROR, "Failed to render blockstate with gadget, not rendering blockstate");
                 errorState = renderBlockState;
             }
@@ -122,14 +123,11 @@ public class BuildRender extends BaseRenderer {
             matrix.popPose();
             buffer.endBatch();
         }
-        RenderSystem.disableDepthTest();
 
-        // Don't even waste the time checking to see if we have the right energy, items, etc for creative mode
         if (!player.isCreative()) {
             boolean hasLinkedInventory = getCacheInventory().maintainCache(heldItem);
             int remainingCached = getCacheInventory().getCache() == null ? -1 : getCacheInventory().getCache().count(ItemVariant.of(data.getState().getBlock().asItem()));
 
-            // Figure out how many of the block we're rendering we have in the inventory of the player.
             IItemIndex index = InventoryHelper.index(heldItem, player);
             BuildContext context = new BuildContext(player.level(), player, heldItem);
 
@@ -137,7 +135,7 @@ public class BuildRender extends BaseRenderer {
             long hasEnergy = getEnergy(player, heldItem);
 
             try (Transaction transaction = Transaction.openOuter()) {
-                for (BlockPos coordinate : coordinates) { //Now run through the UNSORTED list of coords, to show which blocks won't place if you don't have enough of them.
+                for (BlockPos coordinate : coordinates) {
                     boolean renderFree = false;
                     hasEnergy -= ((AbstractGadget) heldItem.getItem()).getEnergyCost(heldItem);
                     MatchResult match = index.match(materials, transaction);
@@ -162,13 +160,11 @@ public class BuildRender extends BaseRenderer {
         }
 
         matrix.popPose();
-        RenderSystem.disableDepthTest();
-        buffer.endBatch(); // @mcp: finish (mcp) = draw (yarn)
+        buffer.endBatch();
     }
 
     @Override
     public boolean isLinkable() {
         return true;
     }
-
 }

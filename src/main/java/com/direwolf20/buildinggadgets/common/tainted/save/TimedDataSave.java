@@ -5,7 +5,6 @@ import com.direwolf20.buildinggadgets.common.util.helpers.NBTHelper;
 import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import it.unimi.dsi.fastutil.longs.Long2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectSortedMap;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -71,7 +70,7 @@ public abstract class TimedDataSave<T extends TimedValue> extends SavedData {
         }
     }
 
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag data = NBTHelper.serializeUUIDMap(idToValue, TimedValue::write);
         compound.put(NBTKeys.WORD_SAVE_DATA_MAP, data);
         return compound;
@@ -85,7 +84,7 @@ public abstract class TimedDataSave<T extends TimedValue> extends SavedData {
         private long lastUpdateTime;
 
         protected TimedValue(CompoundTag nbt) {
-            this(nbt.contains(NBTKeys.WORLD_SAVE_TIME, NbtType.LONG) ? nbt.getLong(NBTKeys.WORLD_SAVE_TIME) : System.currentTimeMillis());
+            this(nbt.contains(NBTKeys.WORLD_SAVE_TIME) ? nbt.getLongOr(NBTKeys.WORLD_SAVE_TIME, System.currentTimeMillis()) : System.currentTimeMillis());
         }
 
         protected TimedValue(long lastUpdateTime) {
