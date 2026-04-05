@@ -151,42 +151,21 @@ public class TemplateTooltip implements ClientTooltipComponent {
             int req
     ) {
         if (itemStack.isEmpty()) return 0;
-        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         String s1 = req == Integer.MAX_VALUE ? "\u221E" : Integer.toString(req);
         int w1 = font.width(s1);
 
         boolean hasReq = req > 0;
 
-        itemRenderer.renderStatic(
-                itemStack,
-                ItemDisplayContext.GUI,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
-                guiGraphics.pose(),
-                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
-                Minecraft.getInstance().level,
-                0
-        );
-
+        guiGraphics.renderItem(itemStack, x, y);
         guiGraphics.renderItemDecorations(font, itemStack, x, y);
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14), 500f);
-        guiGraphics.pose().scale(0.5f, 0.5f, 1f);
-        font.drawInBatch(
-                s1,
-                0f,
-                0f,
-                0xFFFFFF,
-                true,
-                guiGraphics.pose().last().pose(),
-                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
-                Font.DisplayMode.NORMAL,
-                0,
-                15728880
-        );
-        guiGraphics.pose().popPose();
+        // Draw count text at 0.5x scale using Matrix3x2fStack
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14));
+        guiGraphics.pose().scale(0.5f, 0.5f);
+        guiGraphics.drawString(font, s1, 0, 0, 0xFFFFFF, true);
+        guiGraphics.pose().popMatrix();
 
         int missingCount = 0;
 
@@ -194,22 +173,11 @@ public class TemplateTooltip implements ClientTooltipComponent {
             String s2 = "(" + (req - count) + ")";
             int w2 = font.width(s2);
 
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(x + 8 - w2 / 2f, y + 17, 500f);
-            guiGraphics.pose().scale(0.5f, 0.5f, 1f);
-            font.drawInBatch(
-                    s2,
-                    0f,
-                    0f,
-                    0xFF0000,
-                    true,
-                    guiGraphics.pose().last().pose(),
-                    net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
-                    Font.DisplayMode.NORMAL,
-                    0,
-                    15728880
-            );
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().translate(x + 8 - w2 / 2f, y + 17);
+            guiGraphics.pose().scale(0.5f, 0.5f);
+            guiGraphics.drawString(font, s2, 0, 0, 0xFF0000, true);
+            guiGraphics.pose().popMatrix();
 
             missingCount = req - count;
         }

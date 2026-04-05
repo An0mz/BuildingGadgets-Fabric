@@ -2,14 +2,16 @@ package com.direwolf20.buildinggadgets.common.component;
 
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.tainted.save.Undo;
-import net.minecraft.core.HolderLookup;
-import org.ladysnake.cca.api.v3.component.Component;
-import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.ladysnake.cca.api.v3.component.Component;
+import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.*;
+import java.util.LinkedList;
 
 public final class UndoService implements Component, ServerTickingComponent {
 
@@ -44,7 +46,49 @@ public final class UndoService implements Component, ServerTickingComponent {
         return Optional.empty();
     }
 
-    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
+    @Override
+    public void readData(ValueInput input) {
+        histories.clear();
+        for (String key : input.childrenListOrEmpty("__keys__").stream()
+                .map(vi -> vi.getStringOr("k", ""))
+                .filter(s -> !s.isEmpty())
+                .toList()) {
+            // fallback: just skip if format doesn't match
+        }
+        // Use nested child approach per UUID
+        // Since there's no direct way to list all child keys in ValueInput,
+        // we rely on the writeData format using a childrenList
+        input.childrenListOrEmpty("histories").stream().forEach(entry -> {
+            String uuidStr = entry.getStringOr("uuid", "");
+            if (uuidStr.isEmpty()) return;
+            LinkedList<UndoData> history = new LinkedList<>();
+            entry.childrenListOrEmpty("data").stream().forEach(d -> {
+                long expiry = d.getLongOr("Expiry", 0L);
+                d.read("Undo", CompoundTag.CODEC)
+                        .ifPresent(undoTag -> history.add(new UndoData(expiry, Undo.deserialize(undoTag))));
+            });
+            if (!history.isEmpty()) {
+                histories.put(UUID.fromString(uuidStr), history);
+            }
+        });
+    }
+
+    @Override
+    public void writeData(ValueOutput output) {
+        ValueOutput.ValueOutputList historiesList = output.childrenList("histories");
+        histories.forEach((uuid, history) -> {
+            ValueOutput entry = historiesList.addChild();
+            entry.putString("uuid", uuid.toString());
+            ValueOutput.ValueOutputList dataList = entry.childrenList("data");
+            for (UndoData data : history) {
+                ValueOutput child = dataList.addChild();
+                child.putLong("Expiry", data.expiry());
+                child.store("Undo", CompoundTag.CODEC, data.undo().serialize());
+            }
+        });
+    }
+
+    public void readFromNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
         histories.clear();
 
         for (String key : tag.keySet()) {
@@ -59,7 +103,7 @@ public final class UndoService implements Component, ServerTickingComponent {
         }
     }
 
-    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
+    public void writeToNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
         histories.forEach((uuid, history) -> {
             ListTag list = new ListTag();
 

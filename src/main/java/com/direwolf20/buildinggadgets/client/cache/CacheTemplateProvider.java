@@ -14,6 +14,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -126,11 +128,16 @@ public final class CacheTemplateProvider implements ITemplateProvider {
     }
 
     @Override
-    public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
-
+    public void readData(ValueInput input) {
     }
 
     @Override
+    public void writeData(ValueOutput output) {
+    }
+
+    public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
+    }
+
     public void writeToNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
 
     }

@@ -33,7 +33,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
@@ -296,19 +296,18 @@ public class ModeRadialMenu extends Screen {
             }
         }
 
-        PoseStack stack = guiGraphics.pose();
-        stack.pushPose();
-        stack.translate((1 - fract) * x, (1 - fract) * y, 0);
-        stack.scale(fract, fract, fract);
+        org.joml.Matrix3x2fStack pose2d = guiGraphics.pose();
+        pose2d.pushMatrix();
+        pose2d.translate((1 - fract) * x, (1 - fract) * y);
+        pose2d.scale(fract, fract);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
-        stack.popPose();
+        pose2d.popMatrix();
 
         if (segments == 0)
             return;
 
         float angle = mouseAngle(x, y, mouseX, mouseY);
 
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         float totalDeg = 0;
         float degPer = 360F / segments;
 
@@ -333,9 +332,8 @@ public class ModeRadialMenu extends Screen {
             signs = signsCopyPaste;
         }
 
-        org.joml.Matrix4f poseMatrix = guiGraphics.pose().last().pose();
         net.minecraft.client.renderer.MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        net.minecraft.client.renderer.RenderType guiRenderType = net.minecraft.client.renderer.RenderType.gui();
+        net.minecraft.client.renderer.RenderType guiRenderType = net.minecraft.client.renderer.RenderType.lightning();
         VertexConsumer vc = bufSource.getBuffer(guiRenderType);
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
@@ -372,10 +370,10 @@ public class ModeRadialMenu extends Screen {
                     nameData.add(new NameDisplayData((int) xp, (int) yp, mouseInSector, shouldCenter && (seg == indexBottom || seg == indexTop)));
 
                 if (!firstVert) {
-                    vc.addVertex(poseMatrix, (float) xpInner, (float) ypInner, 0).setColor(r, g, b, a);
-                    vc.addVertex(poseMatrix, (float) prevInnerX, (float) prevInnerY, 0).setColor(r, g, b, a);
-                    vc.addVertex(poseMatrix, (float) prevOuterX, (float) prevOuterY, 0).setColor(r, g, b, a);
-                    vc.addVertex(poseMatrix, (float) xp, (float) yp, 0).setColor(r, g, b, a);
+                    vc.addVertex((float) xpInner, (float) ypInner, 0).setColor(r, g, b, a);
+                    vc.addVertex((float) prevInnerX, (float) prevInnerY, 0).setColor(r, g, b, a);
+                    vc.addVertex((float) prevOuterX, (float) prevOuterY, 0).setColor(r, g, b, a);
+                    vc.addVertex((float) xp, (float) yp, 0).setColor(r, g, b, a);
                 }
                 prevInnerX = xpInner; prevInnerY = ypInner;
                 prevOuterX = xp; prevOuterY = yp;
@@ -383,12 +381,11 @@ public class ModeRadialMenu extends Screen {
             }
 
             totalDeg += degPer;
-            RenderSystem.setShaderColor(1, 1, 1, 1);
         }
         bufSource.endBatch(guiRenderType);
 
         for (int i = 0; i < nameData.size(); i++) {
-            stack.pushPose();
+            pose2d.pushMatrix();
             NameDisplayData data = nameData.get(i);
             int xp = data.getX();
             int yp = data.getY();
@@ -418,9 +415,9 @@ public class ModeRadialMenu extends Screen {
             int xdp = (int) ((xp - x) * mod + x);
             int ydp = (int) ((yp - y) * mod + y);
 
-            guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16, color.getRGB());
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16, color.getRGB());
 
-            stack.popPose();
+            pose2d.popMatrix();
         }
 
         float s = 2.25F * fract;
@@ -428,23 +425,22 @@ public class ModeRadialMenu extends Screen {
         Minecraft mc = Minecraft.getInstance();
         ItemRenderer itemRenderer = mc.getItemRenderer();
 
-        Lighting.setupForFlatItems();
-        stack.pushPose();
-        stack.scale(s, s, s);
-        stack.translate(x / s - (tool.getItem() instanceof GadgetCopyPaste ? 8 : 8.5), y / s - 8, 0);
+        mc.gameRenderer.getLighting().setupFor(com.mojang.blaze3d.platform.Lighting.Entry.ITEMS_FLAT);
+        PoseStack itemPose = new PoseStack();
+        itemPose.scale(s, s, s);
+        itemPose.translate(x / s - (tool.getItem() instanceof GadgetCopyPaste ? 8 : 8.5), y / s - 8, 0);
         itemRenderer.renderStatic(
                 tool,
                 ItemDisplayContext.GUI,
                 0xF000F0,
                 OverlayTexture.NO_OVERLAY,
-                stack,
+                itemPose,
                 mc.renderBuffers().bufferSource(),
                 mc.level,
                 0
         );
         mc.renderBuffers().bufferSource().endBatch();
-        stack.popPose();
-        Lighting.setupFor3DItems();
+        mc.gameRenderer.getLighting().setupFor(com.mojang.blaze3d.platform.Lighting.Entry.ITEMS_3D);
     }
 
     private boolean isCursorInSlice(float angle, float totalDeg, float degPer, boolean inRange) {

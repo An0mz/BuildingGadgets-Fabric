@@ -9,6 +9,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerChunkCache;
@@ -91,29 +95,29 @@ public class EffectBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag compound, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (mode != null && getRenderedBlock() != null && sourceBlock != null) {
-            compound.putInt(NBTKeys.GADGET_TICKS, ticks);
-            compound.putInt(NBTKeys.GADGET_MODE, mode.ordinal());
-            compound.put(NBTKeys.GADGET_REPLACEMENT_BLOCK, getRenderedBlock().serialize(true));
-            compound.put(NBTKeys.GADGET_SOURCE_BLOCK, sourceBlock.serialize(true));
+            output.putInt(NBTKeys.GADGET_TICKS, ticks);
+            output.putInt(NBTKeys.GADGET_MODE, mode.ordinal());
+            output.store(NBTKeys.GADGET_REPLACEMENT_BLOCK, CompoundTag.CODEC, getRenderedBlock().serialize(true));
+            output.store(NBTKeys.GADGET_SOURCE_BLOCK, CompoundTag.CODEC, sourceBlock.serialize(true));
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag nbt, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(nbt, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-        if (nbt.contains(NBTKeys.GADGET_TICKS) &&
-                nbt.contains(NBTKeys.GADGET_MODE) &&
-                nbt.contains(NBTKeys.GADGET_SOURCE_BLOCK) &&
-                nbt.contains(NBTKeys.GADGET_REPLACEMENT_BLOCK)) {
-
-            ticks = nbt.getIntOr(NBTKeys.GADGET_TICKS, 0);
-            mode = Mode.values()[nbt.getIntOr(NBTKeys.GADGET_MODE, 0)];
-            setRenderedBlock(BlockData.tryDeserialize(nbt.getCompoundOrEmpty(NBTKeys.GADGET_REPLACEMENT_BLOCK), true));
-            sourceBlock = BlockData.tryDeserialize(nbt.getCompoundOrEmpty(NBTKeys.GADGET_SOURCE_BLOCK), true);
+        java.util.Optional<Integer> ticksOpt = input.getInt(NBTKeys.GADGET_TICKS);
+        java.util.Optional<Integer> modeOpt = input.getInt(NBTKeys.GADGET_MODE);
+        java.util.Optional<CompoundTag> replacementOpt = input.read(NBTKeys.GADGET_REPLACEMENT_BLOCK, CompoundTag.CODEC);
+        java.util.Optional<CompoundTag> sourceOpt = input.read(NBTKeys.GADGET_SOURCE_BLOCK, CompoundTag.CODEC);
+        if (ticksOpt.isPresent() && modeOpt.isPresent() && replacementOpt.isPresent() && sourceOpt.isPresent()) {
+            ticks = ticksOpt.get();
+            mode = Mode.values()[modeOpt.get()];
+            setRenderedBlock(BlockData.tryDeserialize(replacementOpt.get(), true));
+            sourceBlock = BlockData.tryDeserialize(sourceOpt.get(), true);
         }
     }
 
@@ -127,9 +131,9 @@ public class EffectBlockTileEntity extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        saveAdditional(output);
+        return output.buildResult();
     }
 
     @Nullable

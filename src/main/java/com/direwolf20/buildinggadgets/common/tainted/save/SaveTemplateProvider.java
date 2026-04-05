@@ -11,6 +11,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.Collections;
@@ -108,13 +110,24 @@ public final class SaveTemplateProvider implements ITemplateProvider {
     }
 
     @Override
+    public void readData(ValueInput input) {
+        input.read("template_save", CompoundTag.CODEC).ifPresent(save::load);
+    }
+
+    @Override
+    public void writeData(ValueOutput output) {
+        CompoundTag tag = new CompoundTag();
+        save.save(tag, null);
+        output.store("template_save", CompoundTag.CODEC, tag);
+    }
+
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider)  {
         save.load(tag);
     }
 
-    @Override
     public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         save.save(tag, provider);
     }
 
 }
+

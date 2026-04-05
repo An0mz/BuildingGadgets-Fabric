@@ -10,21 +10,15 @@ import com.direwolf20.buildinggadgets.common.util.lang.MaterialListTranslation;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.glfw.GLFW;
@@ -159,7 +153,7 @@ class ScrollingMaterialList extends EntryList<Entry> {
             int slotX = leftX + MARGIN;
             int slotY = topY + MARGIN;
 
-            drawIcon(guiGraphics.pose(), stack, slotX, slotY);
+            guiGraphics.renderItem(stack, slotX, slotY);
             drawTextOverlay(guiGraphics, right, topY, bottom, slotX);
             drawHoveringText(stack, slotX, slotY, mouseX, mouseY);
         }
@@ -205,36 +199,6 @@ class ScrollingMaterialList extends EntryList<Entry> {
 
 
 
-        private void drawIcon(PoseStack matrices, ItemStack item, int slotX, int slotY) {
-            if (item.isEmpty()) return;
-
-            Minecraft mc = Minecraft.getInstance();
-            ItemRenderer itemRenderer = mc.getItemRenderer();
-
-            Lighting.setupForFlatItems();
-
-            PoseStack poseStack = matrices;
-
-            poseStack.pushPose();
-            poseStack.translate(slotX, slotY, 0);
-
-            itemRenderer.renderStatic(
-                    item,
-                    ItemDisplayContext.GUI,
-                    0xF000F0,
-                    OverlayTexture.NO_OVERLAY,
-                    poseStack,
-                    mc.renderBuffers().bufferSource(),
-                    mc.level,
-                    0
-            );
-
-            mc.renderBuffers().bufferSource().endBatch();
-
-            poseStack.popPose();
-
-            Lighting.setupFor3DItems();
-        }
 
         private boolean hasEnoughItems() {
             return required == available;

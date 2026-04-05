@@ -5,6 +5,8 @@ import com.direwolf20.buildinggadgets.common.util.ref.NBTKeys;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
@@ -25,6 +27,19 @@ public final class ItemTemplateKey implements Component, AutoSyncedComponent, IT
             id = freeIdAllocator.get();
         }
         return id;
+    }
+
+    @Override
+    public void readData(ValueInput input) {
+        String idStr = input.getStringOr(NBTKeys.TEMPLATE_KEY_ID, "");
+        id = idStr.isEmpty() ? null : UUID.fromString(idStr);
+    }
+
+    @Override
+    public void writeData(ValueOutput output) {
+        if (id != null) {
+            output.putString(NBTKeys.TEMPLATE_KEY_ID, id.toString());
+        }
     }
 
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {

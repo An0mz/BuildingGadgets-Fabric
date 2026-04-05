@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.ObjectSelectionList.Entry;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import org.lwjgl.opengl.GL11;
 
@@ -67,7 +66,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     }
 
     protected void renderContentBackground(GuiGraphics guiGraphics) {
-        guiGraphics.fillGradient(RenderType.guiOverlay().bufferSize(), getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xC0101010, 0xD0101010);
+        guiGraphics.fillGradient(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xC0101010, 0xD0101010);
     }
 
     @Override

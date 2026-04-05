@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
@@ -83,11 +84,10 @@ public class GuiIconActionable extends Button {
         );
 
         // Icon blit — pass ARGB color with alpha baked in as the last parameter.
-        // In 1.21.5, RenderSystem.setShaderColor is ignored by guiGraphics.blit;
-        // the color tint must be passed directly.
+        // In 1.21.6, RenderType::guiTextured is replaced by RenderPipelines.GUI_TEXTURED
         int argb = toArgb(activeColor, alpha);
         guiGraphics.blit(
-                net.minecraft.client.renderer.RenderType::guiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 selected ? selectedTexture : deselectedTexture,
                 this.getX(),
                 this.getY(),

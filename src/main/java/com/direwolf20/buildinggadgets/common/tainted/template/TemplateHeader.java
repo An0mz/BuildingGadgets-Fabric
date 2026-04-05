@@ -36,7 +36,7 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
      * ~~Must be updated for each new MC version :cry:~~
      * Not anymore :smile:
      */
-    public static final String HIGHEST_MC_VERSION = DetectedVersion.tryDetectVersion().getName();
+    public static final String HIGHEST_MC_VERSION = DetectedVersion.tryDetectVersion().name();
 
     /**
      * The lowest possible minecraft version we support. This could be lower but seeing as the mod only uses

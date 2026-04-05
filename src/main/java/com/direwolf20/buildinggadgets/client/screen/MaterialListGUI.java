@@ -18,6 +18,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -139,7 +142,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float particleTicks) {
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, BACKGROUND_TEXTURE, backgroundX, backgroundY, (float)0, (float)0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, backgroundX, backgroundY, (float)0, (float)0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, 256, 256);
 
 
         scrollingList.render(guiGraphics, mouseX, mouseY, particleTicks);
@@ -149,16 +152,20 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         if (buttonCopyList.isMouseOver(mouseX, mouseY)) {
             guiGraphics.renderTooltip(
                     this.font,
-                    (Component) List.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()),
+                    java.util.List.of(ClientTooltipComponent.create(MaterialListTranslation.HELP_COPY_LIST.componentTranslation().getVisualOrderText())),
                     mouseX,
-                    mouseY
+                    mouseY,
+                    DefaultTooltipPositioner.INSTANCE,
+                    null
             );
         } else if (hoveringText != null) {
             guiGraphics.renderTooltip(
                     this.font,
-                    (Component) hoveringText,
+                    hoveringText.stream().map(c -> ClientTooltipComponent.create(c.getVisualOrderText())).collect(java.util.stream.Collectors.toList()),
                     mouseX,
-                    mouseY
+                    mouseY,
+                    DefaultTooltipPositioner.INSTANCE,
+                    null
             );
             hoveringText = null;
         }

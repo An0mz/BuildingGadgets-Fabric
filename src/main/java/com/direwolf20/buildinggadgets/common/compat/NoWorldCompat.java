@@ -7,6 +7,8 @@ import com.direwolf20.buildinggadgets.common.tainted.template.Template;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.UUID;
 
@@ -57,11 +59,16 @@ public class NoWorldCompat implements ITemplateProvider {
     }
 
     @Override
-    public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
-
+    public void readData(ValueInput input) {
     }
 
     @Override
+    public void writeData(ValueOutput output) {
+    }
+
+    public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
+    }
+
     public void writeToNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
 
     }

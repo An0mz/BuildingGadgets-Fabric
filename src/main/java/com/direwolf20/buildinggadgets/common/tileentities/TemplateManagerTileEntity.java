@@ -18,6 +18,10 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,15 +67,15 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
     }
 
     @Override
-    protected void loadAdditional(CompoundTag compound, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(compound, registries);
-        ContainerHelper.loadAllItems(compound, inventory, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, inventory);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(compound, registries);
-        ContainerHelper.saveAllItems(compound, inventory, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, inventory);
     }
 
     public boolean canInteractWith(Player playerIn) {
@@ -89,9 +93,9 @@ public class TemplateManagerTileEntity extends BlockEntity implements ExtendedSc
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        saveAdditional(output);
+        return output.buildResult();
     }
 
     @Nullable

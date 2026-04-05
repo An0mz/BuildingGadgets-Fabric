@@ -2,6 +2,8 @@ package com.direwolf20.buildinggadgets.common.tainted.template;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -38,12 +40,21 @@ public final class TemplateKey implements ITemplateKey {
     }
 
     @Override
+    public void readData(ValueInput input) {
+        String idStr = input.getStringOr("id", "");
+        id = idStr.isEmpty() ? null : UUID.fromString(idStr);
+    }
+
+    @Override
+    public void writeData(ValueOutput output) {
+        if (id != null) output.putString("id", id.toString());
+    }
+
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         String idStr = tag.getStringOr("id", "");
         id = idStr.isEmpty() ? null : UUID.fromString(idStr);
     }
 
-    @Override
     public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         if (id != null) tag.putString("id", id.toString());
     }

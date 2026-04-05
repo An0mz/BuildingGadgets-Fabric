@@ -7,8 +7,10 @@ import com.direwolf20.buildinggadgets.common.tainted.template.SerialisationSuppo
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +24,7 @@ public record NBTTileEntityData(@NotNull CompoundTag nbt,
                 : null;
 
         if (registries != null) {
-            nbt = be.saveWithId(registries);
+            nbt = be.saveWithFullMetadata(registries);
         } else {
             BuildingGadgets.LOG.warn("Unable to get registry access for BlockEntity at {}, saving without full context", be.getBlockPos());
         }
@@ -49,9 +51,9 @@ public record NBTTileEntityData(@NotNull CompoundTag nbt,
         BlockEntity be = context.getWorld().getBlockEntity(position);
         if (be != null) {
             try {
-                // In 1.20.6, loadWithComponents requires HolderLookup.Provider
+                // In 1.21.6, loadWithComponents requires ValueInput
                 HolderLookup.Provider registries = context.getWorld().registryAccess();
-                be.loadWithComponents(getNBTModifiable(), registries);
+                be.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries, getNBTModifiable()));
             } catch (Exception e) {
                 BuildingGadgets.LOG.debug("Failed to apply Tile NBT Data to {} at {} in Context {}", state, position, context, e);
             }

@@ -163,17 +163,17 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, leftPos, topPos, (float)0, (float)0, 176, 192, 256, 256);
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, leftPos + 176, topPos + 29, 176f, 28f, 76, 113, 256, 256);
+        guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, leftPos, topPos, (float)0, (float)0, 176, 192, 256, 256);
+        guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, leftPos + 176, topPos + 29, 176f, 28f, 76, 113, 256, 256);
 
         if (!buttonCopy.isHoveredOrFocused() && !buttonPaste.isHoveredOrFocused()) {
             int x = (leftPos + imageWidth) - 98;
             int y = topPos + 49;
 
             if (buttonLoad.isHoveredOrFocused())
-                guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, x, y, (float)176, (float)0, 17, 24, 256, 256);
+                guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, x, y, (float)176, (float)0, 17, 24, 256, 256);
             else
-                guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, background, x, y, (float)193, (float)0, 16, 24, 256, 256);
+                guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, x, y, (float)193, (float)0, 16, 24, 256, 256);
         }
 
         this.nameField.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -239,13 +239,9 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         MaterialList requirements = this.template.getHeaderAndForceMaterials(BuildContext.builder().build(getWorld())).getRequiredItems();
         if (requirements == null) return;
 
-        Lighting.setupForFlatItems();
-
-        PoseStack poseStack = guiGraphics.pose();
-
-        poseStack.pushPose();
-        poseStack.translate(leftPos - 30, topPos - 5, 200);
-        poseStack.scale(0.8f, 0.8f, 0.8f);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(leftPos - 30, topPos - 5);
+        guiGraphics.pose().scale(0.8f, 0.8f);
 
         String title = "Requirements";
         guiGraphics.drawString(getMinecraft().font, title, 5 - getMinecraft().font.width(title), 0, Color.WHITE.getRGB());
@@ -262,6 +258,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 list.getChosenOption().entrySet()
         );
 
+        List<Component> hoveredTooltip = null;
         int index = 0, column = 0;
         for (Multiset.Entry<ItemVariant> e : sortedEntries) {
             ItemStack stack = e.getElement().toStack();
@@ -276,17 +273,10 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             int zoneY = (topPos - 9) + (20 + (index * space));
 
             if (mouseX > zoneX && mouseX < (zoneX + space) && mouseY > zoneY && mouseY < (zoneY + space)) {
-                List<Component> tooltip = stack.getTooltipLines(
+                hoveredTooltip = stack.getTooltipLines(
                         Item.TooltipContext.of(getMinecraft().level),
                         getMinecraft().player,
                         TooltipFlag.NORMAL
-                );
-
-                guiGraphics.renderTooltip(
-                        getMinecraft().font,
-                        (Component) tooltip,
-                        mouseX,
-                        mouseY
                 );
             }
 
@@ -297,8 +287,19 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             }
         }
 
-        Lighting.setupFor3DItems();
-        poseStack.popPose();
+        guiGraphics.pose().popMatrix();
+
+        if (hoveredTooltip != null) {
+            guiGraphics.renderTooltip(
+                    getMinecraft().font,
+                    hoveredTooltip.stream()
+                            .map(c -> net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent.create(c.getVisualOrderText()))
+                            .toList(),
+                    mouseX, mouseY,
+                    net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner.INSTANCE,
+                    null
+            );
+        }
     }
 
 

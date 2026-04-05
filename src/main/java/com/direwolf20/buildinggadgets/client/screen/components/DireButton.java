@@ -1,7 +1,6 @@
 package com.direwolf20.buildinggadgets.client.screen.components;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
@@ -27,12 +26,12 @@ public class DireButton extends Button {
 
         this.isHovered = this.isMouseOver(mouseX, mouseY);
 
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, WIDGETS_LOCATION, this.getX(), this.getY(), 0f, 46f, this.width / 2, this.height, 256, 256);
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, WIDGETS_LOCATION, this.getX() + this.width / 2, this.getY(), (float)(200 - this.width / 2), 46f, this.width / 2, this.height, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, this.getX(), this.getY(), 0f, 46f, this.width / 2, this.height, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, this.getX() + this.width / 2, this.getY(), (float)(200 - this.width / 2), 46f, this.width / 2, this.height, 256, 256);
 
         int bottomToDraw = 2;
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, WIDGETS_LOCATION, this.getX(), this.getY() + this.height - bottomToDraw, 0f, (float)(66 - bottomToDraw), this.width / 2, bottomToDraw, 256, 256);
-        guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, WIDGETS_LOCATION, this.getX() + this.width / 2, this.getY() + this.height - bottomToDraw, (float)(200 - this.width / 2), (float)(66 - bottomToDraw), this.width / 2, bottomToDraw, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, this.getX(), this.getY() + this.height - bottomToDraw, 0f, (float)(66 - bottomToDraw), this.width / 2, bottomToDraw, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, this.getX() + this.width / 2, this.getY() + this.height - bottomToDraw, (float)(200 - this.width / 2), (float)(66 - bottomToDraw), this.width / 2, bottomToDraw, 256, 256);
 
         int textColor = 14737632;
         if (!this.active) textColor = 10526880;
