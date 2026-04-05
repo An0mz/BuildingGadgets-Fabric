@@ -15,8 +15,6 @@ import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
@@ -24,11 +22,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
@@ -88,7 +81,8 @@ public class TemplateTooltip implements ClientTooltipComponent {
         return count;
     }
 
-    public void renderImage(GuiGraphics guiGraphics, Font font, int xin, int yin, int k) {
+    @Override
+    public void renderImage(Font font, int xin, int yin, int tooltipWidth, int tooltipHeight, GuiGraphics guiGraphics) {
         if (!Screen.hasShiftDown())
             return;
 
@@ -120,7 +114,6 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 Multiset<ItemVariant> existing = match.getFoundItems();
                 List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(EventUtil.ENTRY_COMPARATOR, match.getChosenOption().entrySet());
 
-                int by = yin;
                 int j = 0;
                 int totalMissing = 0;
                 RenderSystem.enableBlend();
@@ -153,26 +146,13 @@ public class TemplateTooltip implements ClientTooltipComponent {
             int req
     ) {
         if (itemStack.isEmpty()) return 0;
-        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         String s1 = req == Integer.MAX_VALUE ? "\u221E" : Integer.toString(req);
         int w1 = font.width(s1);
 
         boolean hasReq = req > 0;
 
-        itemRenderer.renderStatic(
-                null,
-                itemStack,
-                ItemDisplayContext.GUI,
-                false,
-                guiGraphics.pose(),
-                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource(),
-                Minecraft.getInstance().level,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
-                0
-        );
-
+        guiGraphics.renderItem(itemStack, x, y);
         guiGraphics.renderItemDecorations(font, itemStack, x, y);
 
         guiGraphics.pose().pushPose();

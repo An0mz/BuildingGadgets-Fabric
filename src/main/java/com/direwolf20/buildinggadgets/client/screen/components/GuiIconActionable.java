@@ -2,13 +2,9 @@ package com.direwolf20.buildinggadgets.client.screen.components;
 
 import com.direwolf20.buildinggadgets.client.OurSounds;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -91,14 +87,7 @@ public class GuiIconActionable extends Button {
         if (!visible)
             return;
 
-        RenderSystem.enableBlend();
-        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX);
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                0.15f
-        );
+        // Background fill — guiGraphics.fill uses the ARGB int directly
         guiGraphics.fill(
                 this.getX(),
                 this.getY(),
@@ -107,13 +96,10 @@ public class GuiIconActionable extends Button {
                 -1873784752
         );
 
-        RenderSystem.setShaderColor(
-                activeColor.getRed() / 255f,
-                activeColor.getGreen() / 255f,
-                activeColor.getBlue() / 255f,
-                alpha
-        );
-
+        // Icon blit — pass ARGB color with alpha baked in as the last parameter.
+        // In MC 1.21.4, RenderSystem.setShaderColor is ignored by guiGraphics.blit;
+        // the color tint must be passed directly via the 11-param blit overload.
+        int argb = toArgb(activeColor, alpha);
         guiGraphics.blit(
                 net.minecraft.client.renderer.RenderType::guiTextured,
                 selected ? selectedTexture : deselectedTexture,
@@ -124,10 +110,11 @@ public class GuiIconActionable extends Button {
                 this.width,
                 this.height,
                 this.width,
-                this.height
+                this.height,
+                argb
         );
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // Tooltip on hover
         if (mouseX >= getX() && mouseY >= getY()
                 && mouseX < getX() + width && mouseY < getY() + height) {
             guiGraphics.drawString(
@@ -140,7 +127,11 @@ public class GuiIconActionable extends Button {
                     activeColor.getRGB()
             );
         }
+    }
 
-        RenderSystem.disableBlend();
+    /** Pack r,g,b from a Color and a separate float alpha into an ARGB int. */
+    private static int toArgb(Color color, float alpha) {
+        int a = Math.round(alpha * 255f);
+        return (a << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
     }
 }

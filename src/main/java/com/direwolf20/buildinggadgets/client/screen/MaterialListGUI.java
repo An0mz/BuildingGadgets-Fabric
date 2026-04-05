@@ -147,16 +147,16 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         super.render(guiGraphics, mouseX, mouseY, particleTicks);
 
         if (buttonCopyList.isMouseOver(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(
+            guiGraphics.renderComponentTooltip(
                     this.font,
-                    (Component) List.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()),
+                    List.of(MaterialListTranslation.HELP_COPY_LIST.componentTranslation()),
                     mouseX,
                     mouseY
             );
         } else if (hoveringText != null) {
-            guiGraphics.renderTooltip(
+            guiGraphics.renderComponentTooltip(
                     this.font,
-                    (Component) hoveringText,
+                    hoveringText,
                     mouseX,
                     mouseY
             );

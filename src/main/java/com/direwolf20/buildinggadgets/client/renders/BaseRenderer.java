@@ -77,6 +77,11 @@ public abstract class BaseRenderer {
         if (player.isCreative() || !(heldItem.getItem() instanceof AbstractGadget))
             return Integer.MAX_VALUE;
 
+        // If the gadget has no energy capacity, energy is disabled — treat as unlimited
+        AbstractGadget gadget = (AbstractGadget) heldItem.getItem();
+        if (gadget.getEnergyCapacity() == 0)
+            return Integer.MAX_VALUE;
+
         return SimpleEnergyItem.getStoredEnergyUnchecked(heldItem);
     }
 

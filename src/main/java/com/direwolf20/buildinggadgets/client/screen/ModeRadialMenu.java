@@ -26,7 +26,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -419,10 +418,7 @@ public class ModeRadialMenu extends Screen {
             int xdp = (int) ((xp - x) * mod + x);
             int ydp = (int) ((yp - y) * mod + y);
 
-            RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX);
-            RenderSystem.setShaderColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1);
-            RenderSystem.setShaderTexture(0, signs.get(i));
-            guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16);
+            guiGraphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, signs.get(i), xdp - 8, ydp - 8, (float)0, (float)0, 16, 16, 16, 16, color.getRGB());
 
             stack.popPose();
         }
