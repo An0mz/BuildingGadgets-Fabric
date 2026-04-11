@@ -7,33 +7,33 @@ import com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemote
 import com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PacketHandler {
 
     // Keep ResourceLocations for reference in packet classes
-    public static final ResourceLocation PacketAnchor = BuildingGadgets.id("packet_anchor");
-    public static final ResourceLocation PacketBindTool = BuildingGadgets.id("packet_bind_tool");
-    public static final ResourceLocation PacketToggleFuzzy = BuildingGadgets.id("packet_toggle_fuzzy");
-    public static final ResourceLocation PacketToggleFluidOnly = BuildingGadgets.id("packet_toggle_fluid_only");
-    public static final ResourceLocation PacketToggleConnectedArea = BuildingGadgets.id("packet_toggle_connected_area");
-    public static final ResourceLocation PacketToggleRayTraceFluid = BuildingGadgets.id("packet_toggle_ray_trace_fluid");
-    public static final ResourceLocation PacketToggleBlockPlacement = BuildingGadgets.id("packet_toggle_block_placement");
-    public static final ResourceLocation PacketChangeRange = BuildingGadgets.id("packet_change_range");
-    public static final ResourceLocation PacketRotateMirror = BuildingGadgets.id("packet_rotate_mirror");
-    public static final ResourceLocation PacketCopyCoords = BuildingGadgets.id("packet_copy_coords");
-    public static final ResourceLocation PacketDestructionGUI = BuildingGadgets.id("packet_destruction_gui");
-    public static final ResourceLocation PacketPasteGUI = BuildingGadgets.id("packet_paste_gui");
-    public static final ResourceLocation PacketToggleMode = BuildingGadgets.id("packet_toggle_mode");
-    public static final ResourceLocation PacketUndo = BuildingGadgets.id("packet_undo");
+    public static final Identifier PacketAnchor = BuildingGadgets.id("packet_anchor");
+    public static final Identifier PacketBindTool = BuildingGadgets.id("packet_bind_tool");
+    public static final Identifier PacketToggleFuzzy = BuildingGadgets.id("packet_toggle_fuzzy");
+    public static final Identifier PacketToggleFluidOnly = BuildingGadgets.id("packet_toggle_fluid_only");
+    public static final Identifier PacketToggleConnectedArea = BuildingGadgets.id("packet_toggle_connected_area");
+    public static final Identifier PacketToggleRayTraceFluid = BuildingGadgets.id("packet_toggle_ray_trace_fluid");
+    public static final Identifier PacketToggleBlockPlacement = BuildingGadgets.id("packet_toggle_block_placement");
+    public static final Identifier PacketChangeRange = BuildingGadgets.id("packet_change_range");
+    public static final Identifier PacketRotateMirror = BuildingGadgets.id("packet_rotate_mirror");
+    public static final Identifier PacketCopyCoords = BuildingGadgets.id("packet_copy_coords");
+    public static final Identifier PacketDestructionGUI = BuildingGadgets.id("packet_destruction_gui");
+    public static final Identifier PacketPasteGUI = BuildingGadgets.id("packet_paste_gui");
+    public static final Identifier PacketToggleMode = BuildingGadgets.id("packet_toggle_mode");
+    public static final Identifier PacketUndo = BuildingGadgets.id("packet_undo");
 
-    public static final ResourceLocation PacketTemplateManagerTemplateCreated = BuildingGadgets.id("packet_template_manager_template_created");
-    public static final ResourceLocation SplitPacketUpdateTemplate = BuildingGadgets.id("split_packet_update_template");
-    public static final ResourceLocation PacketSetRemoteInventoryCache = BuildingGadgets.id("packet_set_remote_inventory_cache");
+    public static final Identifier PacketTemplateManagerTemplateCreated = BuildingGadgets.id("packet_template_manager_template_created");
+    public static final Identifier SplitPacketUpdateTemplate = BuildingGadgets.id("split_packet_update_template");
+    public static final Identifier PacketSetRemoteInventoryCache = BuildingGadgets.id("packet_set_remote_inventory_cache");
 
-    public static final ResourceLocation PacketRequestTemplate = BuildingGadgets.id("packet_request_template");
+    public static final Identifier PacketRequestTemplate = BuildingGadgets.id("packet_request_template");
 
-    public static final ResourceLocation PacketLookupResult = BuildingGadgets.id("packet_lookup_result");
+    public static final Identifier PacketLookupResult = BuildingGadgets.id("packet_lookup_result");
 
     public static void registerMessages() {
         // Register payload types (codecs) - C2S packets

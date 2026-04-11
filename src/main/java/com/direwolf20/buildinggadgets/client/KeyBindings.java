@@ -4,13 +4,13 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyBindings {
 
     private static final KeyMapping.Category BG_CATEGORY =
-            new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(Reference.MODID, "category"));
+            new KeyMapping.Category(Identifier.fromNamespaceAndPath(Reference.MODID, "category"));
 
     public static final KeyMapping menuSettings = createBinding("settings_menu", GLFW.GLFW_KEY_G);
     public static final KeyMapping range = createBinding("range", GLFW.GLFW_KEY_R);

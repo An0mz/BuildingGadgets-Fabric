@@ -161,6 +161,13 @@ public class CopyGUI extends Screen {
             super(0, y, width, 20, text, onPress, DEFAULT_NARRATION);
         }
 
+        @Override
+        protected void renderContents(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            int textColor = isActive() ? 0xFFFFFF : 0xA0A0A0;
+            guiGraphics.drawCenteredString(net.minecraft.client.Minecraft.getInstance().font,
+                    getMessage(), getX() + width / 2, getY() + (height - 8) / 2, textColor);
+        }
+
         static void centerButtonList(List<AbstractButton> buttons, int startX) {
             int collectiveWidth = buttons.stream().mapToInt(AbstractButton::getWidth).sum() + (buttons.size() - 1) * 5;
 

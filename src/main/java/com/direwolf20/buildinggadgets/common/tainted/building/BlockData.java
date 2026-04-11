@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -54,7 +54,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
+                serializer = Registries.getTileDataSerializers().getValue(Identifier.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
             else
                 serializer = serializerProvider.apply(tag.getIntOr(NBTKeys.KEY_SERIALIZER, 0));
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public record BlockData(BlockState state, ITileEntityData tileData) {
         ITileDataSerializer serializer;
         try {
             if (serializerProvider == null)
-                serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
+                serializer = Registries.getTileDataSerializers().getValue(Identifier.parse(tag.getStringOr(NBTKeys.KEY_SERIALIZER, "")));
             else
                 serializer = serializerProvider.apply(tag.getIntOr(NBTKeys.KEY_SERIALIZER, 0));
         } catch (Exception e) {

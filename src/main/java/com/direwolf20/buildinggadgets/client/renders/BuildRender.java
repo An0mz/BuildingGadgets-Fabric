@@ -87,7 +87,7 @@ public class BuildRender extends BaseRenderer {
 
         getBuilderWorld().setWorldAndState(player.level(), renderBlockState, coordinates);
 
-        Vec3 playerPos = evt.camera().getPosition();
+        Vec3 playerPos = evt.camera().position();
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
         PoseStack matrix = evt.matrixStack();

@@ -9,7 +9,6 @@ import com.direwolf20.buildinggadgets.common.tileentities.OurTileEntities;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-@MethodsReturnNonnullByDefault
 public class EffectBlock extends BaseEntityBlock {
 
     public enum Mode {

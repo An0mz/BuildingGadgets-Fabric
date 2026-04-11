@@ -14,7 +14,7 @@ import com.google.gson.*;
 import net.minecraft.DetectedVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.util.VersionNumber;
@@ -155,13 +155,13 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
         return builder
                 .setPrettyPrinting()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .registerTypeAdapter(ResourceLocation.class, new JsonBiDiSerializer<ResourceLocation>() {
+                .registerTypeAdapter(Identifier.class, new JsonBiDiSerializer<Identifier>() {
                     @Override
-                    public ResourceLocation deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                        return ResourceLocation.parse(json.getAsString());
+                    public Identifier deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                        return Identifier.parse(json.getAsString());
                     }
                     @Override
-                    public JsonElement serialize(ResourceLocation src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
+                    public JsonElement serialize(Identifier src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
                         return new com.google.gson.JsonPrimitive(src.toString());
                     }
                 })

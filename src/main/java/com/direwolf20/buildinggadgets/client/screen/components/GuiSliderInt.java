@@ -49,7 +49,7 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     public void setValueInt(int i) {
-        setValue((double) (i - minVal) / (maxVal - minVal + 1));
+        setSliderValue((double) (i - minVal) / (maxVal - minVal + 1));
     }
 
     @Override
@@ -60,7 +60,7 @@ public class GuiSliderInt extends AbstractSliderButton {
         this.setMessage(this.prefix.copy().append(String.valueOf(getValueInt())));
     }
 
-    private void setValue(double d) {
+    private void setSliderValue(double d) {
         int oldIntValue = getValueInt();
         this.value = Mth.clamp(d, 0.0D, 1.0D);
 
@@ -73,7 +73,7 @@ public class GuiSliderInt extends AbstractSliderButton {
 
     @Override
     protected void onDrag(MouseButtonEvent event, double deltaX, double deltaY) {
-        this.setValue((Minecraft.getInstance().mouseHandler.xpos() - this.getX() - 4) / (this.width - 8));
+        this.setSliderValue((Minecraft.getInstance().mouseHandler.xpos() - this.getX() - 4) / (this.width - 8));
     }
 
     @Override
@@ -146,7 +146,8 @@ public class GuiSliderInt extends AbstractSliderButton {
             this.parent = parent;
         }
 
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+        @Override
+        protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
             if (!visible) {
                 return;
             }

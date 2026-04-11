@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -38,7 +38,7 @@ public class InventoryLinker {
         }
 
         // Set the relevant data using DataComponents
-        stack.set(BGDataComponents.REMOTE_INVENTORY_DIM, world.dimension().location().toString());
+        stack.set(BGDataComponents.REMOTE_INVENTORY_DIM, world.dimension().identifier().toString());
         stack.set(BGDataComponents.REMOTE_INVENTORY_POS, trace.getBlockPos());
         stack.set(BGDataComponents.REMOTE_INVENTORY_FACE, trace.getDirection().name());
         return Result.success();
@@ -117,7 +117,7 @@ public class InventoryLinker {
             return null;
         }
 
-        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimStr));
+        ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimStr));
         Direction face;
 
         try {

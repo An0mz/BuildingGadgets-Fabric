@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.nbt.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ public final class Template {
             header = header.name(externalHeader.getName()).author(externalHeader.getAuthor());
         DataDecompressor<ITileDataSerializer> serializerDecompressor = persisted ? new DataDecompressor<>(
                 nbt.getListOrEmpty(NBTKeys.KEY_SERIALIZER),
-                inbt -> (ITileDataSerializer) Registries.getTileDataSerializers().getValue(ResourceLocation.parse(inbt.asString().orElse(""))),
+                inbt -> (ITileDataSerializer) Registries.getTileDataSerializers().getValue(Identifier.parse(inbt.asString().orElse(""))),
                 value -> SerialisationSupport.dummyDataSerializer())
                 : null;
         DataDecompressor<BlockData> dataDecompressor = new DataDecompressor<>(

@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,14 +110,14 @@ abstract class SubMaterialListEntry implements MaterialListEntry<SubMaterialList
     }
 
     protected static abstract class Serializer implements MaterialListEntry.Serializer<SubMaterialListEntry> {
-        private final ResourceLocation registryName;
+        private final Identifier registryName;
 
-        public Serializer(ResourceLocation registryName) {
+        public Serializer(Identifier registryName) {
             this.registryName = registryName;
         }
 
         @Override
-        public ResourceLocation getRegistryName() {
+        public Identifier getRegistryName() {
             return registryName;
         }
 
@@ -173,7 +173,7 @@ abstract class SubMaterialListEntry implements MaterialListEntry<SubMaterialList
                 ImmutableList.Builder<MaterialListEntry<?>> subEntries = ImmutableList.builder();
                 for (JsonElement element : array) {
                     JsonObject object = element.getAsJsonObject();
-                    ResourceLocation id = context.deserialize(object.get(JsonKeys.MATERIAL_ENTRY_TYPE), ResourceLocation.class);
+                    Identifier id = context.deserialize(object.get(JsonKeys.MATERIAL_ENTRY_TYPE), Identifier.class);
                     MaterialListEntry.Serializer<?> serializer = MaterialList.getSerializerForId(id);
                     if (serializer == null)
                         continue;

@@ -5,7 +5,6 @@ import com.direwolf20.buildinggadgets.common.tainted.Tainted;
 import com.google.common.base.Preconditions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -17,6 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.attribute.EnvironmentAttributeReader;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
@@ -52,7 +52,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-@MethodsReturnNonnullByDefault
 public class MockDelegationWorld implements LevelAccessor {
     private final LevelAccessor delegate;
     private final Map<BlockPos, BlockInfo> posToBlock;
@@ -144,11 +143,6 @@ public class MockDelegationWorld implements LevelAccessor {
         return false;
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public int getMoonPhase() {
-        return delegate.getMoonPhase();
-    }
 
     @Override
     public long nextSubTickCount() {
@@ -178,11 +172,6 @@ public class MockDelegationWorld implements LevelAccessor {
         return delegate.getLevelData();
     }
 
-    @Override
-    public DifficultyInstance getCurrentDifficultyAt(BlockPos pos) {
-        return delegate.getCurrentDifficultyAt(pos);
-    }
-
     @Nullable
     @Override
     public MinecraftServer getServer() {
@@ -192,6 +181,11 @@ public class MockDelegationWorld implements LevelAccessor {
     @Override
     public Difficulty getDifficulty() {
         return delegate.getDifficulty();
+    }
+
+    @Override
+    public EnvironmentAttributeReader environmentAttributes() {
+        return delegate.environmentAttributes();
     }
 
     /**

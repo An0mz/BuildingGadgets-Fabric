@@ -14,7 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ record SimpleMaterialListEntry(
 
     private static class Serializer implements MaterialListEntry.Serializer<SimpleMaterialListEntry> {
         private static final Comparator<Entry<ItemVariant>> COMPARATOR = Comparator
-                .<Entry<ItemVariant>, ResourceLocation>comparing(e -> BuiltInRegistries.ITEM.getKey(e.getElement().getItem()))
+                .<Entry<ItemVariant>, Identifier>comparing(e -> BuiltInRegistries.ITEM.getKey(e.getElement().getItem()))
                 .thenComparingInt(Entry::getCount);
 
         @Override
@@ -62,7 +62,7 @@ record SimpleMaterialListEntry(
                 CompoundTag itemData = compoundEntry.getCompoundOrEmpty(NBTKeys.KEY_DATA);
 
                 // Read Item
-                ResourceLocation itemId = ResourceLocation.parse(itemData.getStringOr("item", "minecraft:air"));
+                Identifier itemId = Identifier.parse(itemData.getStringOr("item", "minecraft:air"));
                 Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                 // Read DataComponentPatch
@@ -141,7 +141,7 @@ record SimpleMaterialListEntry(
                     // Convert JSON to NBT, then deserialize
                     CompoundTag itemNbt = (CompoundTag) Dynamic.convert(JsonOps.INSTANCE, NbtOps.INSTANCE, object.get(JsonKeys.MATERIAL_LIST_ITEM));
 
-                    ResourceLocation itemId = ResourceLocation.parse(itemNbt.getStringOr("item", "minecraft:air"));
+                    Identifier itemId = Identifier.parse(itemNbt.getStringOr("item", "minecraft:air"));
                     Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
                     DataComponentPatch components = DataComponentPatch.CODEC
@@ -157,7 +157,7 @@ record SimpleMaterialListEntry(
         }
 
         @Override
-        public ResourceLocation getRegistryName() {
+        public Identifier getRegistryName() {
             return NBTKeys.SIMPLE_SERIALIZER_ID;
         }
     }

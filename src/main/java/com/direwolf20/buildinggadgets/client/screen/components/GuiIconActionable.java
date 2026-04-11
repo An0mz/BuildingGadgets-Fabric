@@ -9,7 +9,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.minecraft.client.input.MouseButtonEvent;
 import java.awt.*;
@@ -24,8 +24,8 @@ public class GuiIconActionable extends Button {
     private final Color deselectedColor = new Color(255, 255, 255);
     private Color activeColor;
 
-    private final ResourceLocation selectedTexture;
-    private final ResourceLocation deselectedTexture;
+    private final Identifier selectedTexture;
+    private final Identifier deselectedTexture;
 
     public GuiIconActionable(int x, int y, String texture, Component message, boolean isSelectable, Predicate<Boolean> action) {
         super(x, y, 25, 25, message, (b) -> {}, Button.DEFAULT_NARRATION);
@@ -36,8 +36,8 @@ public class GuiIconActionable extends Button {
         this.setSelected(action.test(false));
 
         String assetLocation = "textures/gui/setting/%s.png";
-        this.deselectedTexture = ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture));
-        this.selectedTexture = !isSelectable ? this.deselectedTexture : ResourceLocation.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture + "_selected"));
+        this.deselectedTexture = Identifier.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture));
+        this.selectedTexture = !isSelectable ? this.deselectedTexture : Identifier.fromNamespaceAndPath(Reference.MODID, String.format(assetLocation, texture + "_selected"));
     }
 
     public GuiIconActionable(int x, int y, String texture, Component message, Predicate<Boolean> action) {
@@ -70,7 +70,7 @@ public class GuiIconActionable extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!visible)
             return;
 

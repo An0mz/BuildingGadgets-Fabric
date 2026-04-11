@@ -6,11 +6,11 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class DireButton extends Button {
 
-    private static final ResourceLocation WIDGETS_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png");
+    private static final Identifier WIDGETS_LOCATION = Identifier.withDefaultNamespace("textures/gui/widgets.png");
     
     public DireButton(int x, int y, int widthIn, int heightIn, Component buttonText, OnPress action) {
         super(x, y, widthIn, heightIn, buttonText, action, Button.DEFAULT_NARRATION);
@@ -18,7 +18,7 @@ public class DireButton extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (!this.visible) return;
 
         Minecraft mc = Minecraft.getInstance();

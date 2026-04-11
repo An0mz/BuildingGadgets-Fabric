@@ -5,7 +5,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -15,7 +15,7 @@ import java.util.Optional;
 public class GadgetSilkTouch {
 
     public static final ResourceKey<Enchantment> GADGET_SILKTOUCH_KEY =
-            ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(Reference.MODID, "gadget_silktouch"));
+            ResourceKey.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath(Reference.MODID, "gadget_silktouch"));
 
     public static boolean hasSilkTouch(ItemStack stack, HolderLookup.Provider registries) {
         if (stack.isEmpty()) return false;

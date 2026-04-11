@@ -3,7 +3,7 @@ package com.direwolf20.buildinggadgets.client;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.core.Registry;
 
@@ -12,7 +12,7 @@ public class OurSounds {
     public static SoundEvent BEEP;
 
     public static void initSounds() {
-        ResourceLocation loc = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "beep");
+        Identifier loc = Identifier.fromNamespaceAndPath(Reference.MODID, "beep");
 
         BEEP = SoundEvent.createVariableRangeEvent(loc);
         Registry.register(BuiltInRegistries.SOUND_EVENT, loc, BEEP);

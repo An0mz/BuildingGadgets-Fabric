@@ -3,7 +3,7 @@ package com.direwolf20.buildinggadgets.common.enchants;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -16,7 +16,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 public class ExchangeEnchantment {
 
     public static final ResourceKey<Enchantment> EXCHANGE_KEY =
-            ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(Reference.MODID, "exchange"));
+            ResourceKey.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath(Reference.MODID, "exchange"));
 
     public static boolean hasExchange(ItemStack stack, net.minecraft.core.HolderLookup.Provider registries) {
         if (stack.isEmpty()) return false;

@@ -1,4 +1,1 @@
 accessWidener	v1	named
-accessible  class   net/minecraft/client/renderer/RenderType$CompositeRenderType
-accessible  method  net/minecraft/client/renderer/RenderType    create  (Ljava/lang/String;ILcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
-accessible  method  net/minecraft/client/renderer/RenderType    create  (Ljava/lang/String;IZZLcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;

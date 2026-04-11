@@ -60,7 +60,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     public void render(WorldRenderContextWrapper context, Player player, ItemStack heldItem) {
         super.render(context, player, heldItem);
 
-        Vec3 cameraView = context.camera().getPosition();
+        Vec3 cameraView = context.camera().position();
         PoseStack stack = context.matrixStack();
 
         stack.pushPose();

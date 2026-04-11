@@ -26,7 +26,7 @@ public final class WorldRenderContextWrapper {
     }
 
     public Vec3 cameraPos() {
-        return camera.getPosition();
+        return camera.position();
     }
 }
 

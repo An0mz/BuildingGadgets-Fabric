@@ -11,7 +11,7 @@ import com.google.common.collect.PeekingIterator;
 import com.google.gson.*;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +70,7 @@ public final class MaterialList implements Iterable<ImmutableMultiset<ItemVarian
     }
 
     @Nullable
-    static MaterialListEntry.Serializer<?> getSerializerForId(ResourceLocation id) {
+    static MaterialListEntry.Serializer<?> getSerializerForId(Identifier id) {
         MaterialListEntry.Serializer<?> serializer = null;
         if (id.equals(NBTKeys.SIMPLE_SERIALIZER_ID))
             serializer = SimpleMaterialListEntry.SERIALIZER;
@@ -82,7 +82,7 @@ public final class MaterialList implements Iterable<ImmutableMultiset<ItemVarian
     }
 
     static MaterialListEntry<?> readEntry(CompoundTag nbt, boolean persisted) {
-        ResourceLocation id = ResourceLocation.parse(nbt.getStringOr(NBTKeys.KEY_SERIALIZER, ""));
+        Identifier id = Identifier.parse(nbt.getStringOr(NBTKeys.KEY_SERIALIZER, ""));
         MaterialListEntry.Serializer<?> serializer = getSerializerForId(id);
         Preconditions.checkArgument(serializer != null,
                 "Failed to recognize Serializer " + id +
@@ -263,7 +263,7 @@ public final class MaterialList implements Iterable<ImmutableMultiset<ItemVarian
             if (json.isJsonNull())
                 return MaterialList.empty();
             JsonObject object = json.getAsJsonObject();
-            MaterialListEntry.Serializer<?> serializer = getSerializerForId(context.deserialize(object.get(JsonKeys.MATERIAL_LIST_ROOT_TYPE), ResourceLocation.class));
+            MaterialListEntry.Serializer<?> serializer = getSerializerForId(context.deserialize(object.get(JsonKeys.MATERIAL_LIST_ROOT_TYPE), Identifier.class));
             if (serializer == null)
                 return MaterialList.empty();
             JsonDeserializer<?> jsonSerializer = serializer.asJsonDeserializer();

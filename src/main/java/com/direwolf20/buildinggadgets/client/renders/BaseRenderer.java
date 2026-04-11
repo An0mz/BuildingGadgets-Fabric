@@ -47,7 +47,7 @@ public abstract class BaseRenderer {
         if (!player.level().dimension().equals(dataFromStack.level())) return;
 
         BlockPos pos = dataFromStack.blockPos();
-        Vec3 renderPos = evt.camera().getPosition()
+        Vec3 renderPos = evt.camera().position()
                 .subtract(pos.getX(), pos.getY(), pos.getZ())
                 .add(.005f, .005f, .005f);
 

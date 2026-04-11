@@ -31,7 +31,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
@@ -51,8 +51,8 @@ public final class BuildingGadgets implements ModInitializer {
             })
             .build();
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Reference.MODID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Reference.MODID, path);
     }
 
     public static Config getConfig() {

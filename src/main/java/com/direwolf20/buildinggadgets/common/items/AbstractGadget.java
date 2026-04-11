@@ -22,7 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -49,7 +49,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     private final TagKey<Block> whiteList;
     private final TagKey<Block> blackList;
 
-    public AbstractGadget(Properties builder, ResourceLocation whiteListTag, ResourceLocation blackListTag) {
+    public AbstractGadget(Properties builder, Identifier whiteListTag, Identifier blackListTag) {
         super(builder);
 
         this.whiteList = TagKey.create(BuiltInRegistries.BLOCK.key(), whiteListTag);

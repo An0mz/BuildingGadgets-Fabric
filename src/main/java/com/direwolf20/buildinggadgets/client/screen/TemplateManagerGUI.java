@@ -60,7 +60,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -82,7 +82,7 @@ import java.util.Random;
 
 @IPNIgnore
 public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerContainer> {
-    private static final ResourceLocation background = ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/template_manager.png");
+    private static final Identifier background = Identifier.fromNamespaceAndPath(Reference.MODID, "textures/gui/template_manager.png");
 
     private final Rect2i panel = new Rect2i(8, 23, 136, 80);
     private boolean panelClicked;

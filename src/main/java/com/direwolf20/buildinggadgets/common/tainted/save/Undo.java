@@ -24,7 +24,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
@@ -49,7 +49,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 (ListTag) nbt.get(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST),
                 inbt -> {
                     String s = inbt.asString().orElse("");
-                    ITileDataSerializer serializer = Registries.getTileDataSerializers().getValue(ResourceLocation.parse(s));
+                    ITileDataSerializer serializer = Registries.getTileDataSerializers().getValue(Identifier.parse(s));
                     if (serializer == null) {
                         BuildingGadgets.LOG.warn("Found unknown serializer {}. Replacing with dummy!", s);
                         serializer = TileSupport.dummyTileEntityData().getSerializer();
@@ -76,7 +76,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
                 },
                 inbt -> BlockInfo.deserialize((CompoundTag) inbt, dataReverseObjectIncrementer, itemSetReverseObjectIncrementer));
 
-        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, ResourceLocation.parse(nbt.getStringOr(NBTKeys.WORLD_SAVE_DIM, "")));
+        ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, Identifier.parse(nbt.getStringOr(NBTKeys.WORLD_SAVE_DIM, "")));
         Region bounds = Region.deserializeFrom(nbt.getCompoundOrEmpty(NBTKeys.WORLD_SAVE_UNDO_BOUNDS));
         return new Undo(dim, map, bounds);
     }
@@ -87,7 +87,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
 
         // Deserialize ItemVariant from NBT
         CompoundTag itemData = nbt.getCompoundOrEmpty(NBTKeys.UNIQUE_ITEM_ITEM);
-        ResourceLocation itemId = ResourceLocation.parse(itemData.getStringOr("item", "minecraft:air"));
+        Identifier itemId = Identifier.parse(itemData.getStringOr("item", "minecraft:air"));
         Item item = BuiltInRegistries.ITEM.getValue(itemId);
 
         DataComponentPatch components = DataComponentPatch.CODEC
@@ -130,7 +130,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
         ListTag itemSetList = itemObjectIncrementer.write(ms -> NBTHelper.writeIterable(ms.entrySet(), this::writeEntry));
         ListTag dataSerializerList = serializerObjectIncrementer.write(ts -> StringTag.valueOf(Registries.getTileDataSerializers().getKey(ts).toString()));
 
-        res.putString(NBTKeys.WORLD_SAVE_DIM, dim.location().toString());
+        res.putString(NBTKeys.WORLD_SAVE_DIM, dim.identifier().toString());
         res.put(NBTKeys.WORLD_SAVE_UNDO_BLOCK_LIST, infoList);
         res.put(NBTKeys.WORLD_SAVE_UNDO_DATA_LIST, dataList);
         res.put(NBTKeys.WORLD_SAVE_UNDO_DATA_SERIALIZER_LIST, dataSerializerList);

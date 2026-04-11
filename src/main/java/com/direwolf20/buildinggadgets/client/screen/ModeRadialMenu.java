@@ -35,7 +35,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -53,9 +53,9 @@ public class ModeRadialMenu extends Screen {
         RIGHT, LEFT, BOTTOM, TOP
     }
 
-    private static final ImmutableList<ResourceLocation> signsCopyPaste = ImmutableList.of(
-            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/copy.png"),
-            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/paste.png")
+    private static final ImmutableList<Identifier> signsCopyPaste = ImmutableList.of(
+            Identifier.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/copy.png"),
+            Identifier.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/paste.png")
     );
 
     private int timeIn = 0;
@@ -315,21 +315,21 @@ public class ModeRadialMenu extends Screen {
 
         slotSelected = -1;
 
-        List<ResourceLocation> signs;
+        List<Identifier> signs;
         int modeIndex;
         if (tool.getItem() instanceof GadgetBuilding) {
             modeIndex = GadgetBuilding.getToolMode(tool).ordinal();
-            signs = Arrays.stream(BuildingModes.values()).map(e -> ResourceLocation.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
+            signs = Arrays.stream(BuildingModes.values()).map(e -> Identifier.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
         } else if (tool.getItem() instanceof GadgetExchanger) {
             modeIndex = GadgetExchanger.getToolMode(tool).ordinal();
-            signs = Arrays.stream(ExchangingModes.values()).map(e -> ResourceLocation.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
+            signs = Arrays.stream(ExchangingModes.values()).map(e -> Identifier.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
         } else {
             modeIndex = GadgetCopyPaste.getToolMode(tool).ordinal();
             signs = signsCopyPaste;
         }
 
         net.minecraft.client.renderer.MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        net.minecraft.client.renderer.RenderType guiRenderType = net.minecraft.client.renderer.RenderType.lightning();
+        net.minecraft.client.renderer.rendertype.RenderType guiRenderType = net.minecraft.client.renderer.rendertype.RenderTypes.lightning();
         VertexConsumer vc = bufSource.getBuffer(guiRenderType);
 
         boolean shouldCenter = (segments + 2) % 4 == 0;

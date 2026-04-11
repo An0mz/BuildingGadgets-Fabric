@@ -34,7 +34,7 @@ public final class OverrideCopySizeCommand {
 
     public static LiteralArgumentBuilder<CommandSourceStack> registerToggle() {
         return Commands.literal("OverrideCopySize")
-                .requires(commandSource -> commandSource.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.argument("player", EntityArgument.player())
                         .executes(context -> executeToggle(context, EntityArgument.getPlayer(context, "player")))
                 );
@@ -42,7 +42,7 @@ public final class OverrideCopySizeCommand {
 
     public static LiteralArgumentBuilder<CommandSourceStack> registerList() {
         return Commands.literal("OverrideCopySizeList")
-                .requires(commandSource -> commandSource.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .executes(OverrideCopySizeCommand::executeList);
     }
 
