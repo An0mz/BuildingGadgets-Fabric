@@ -32,8 +32,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedSet;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import org.lwjgl.glfw.GLFW;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.PacketFlow;
@@ -286,7 +286,7 @@ public class GadgetCopyPaste extends AbstractGadget {
                 getActivePos(player, stack).ifPresent(pos -> build(stack, world, player, pos, hand));
             }
         } else {
-            if (player.isShiftKeyDown() && Screen.hasControlDown() && lookingAtInventory) {
+            if (player.isShiftKeyDown() && (GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS) && lookingAtInventory) {
                 PacketBindTool.send();
                 return super.use(world, player, hand);
             }

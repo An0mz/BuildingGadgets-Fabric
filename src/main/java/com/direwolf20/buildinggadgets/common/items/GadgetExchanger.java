@@ -32,8 +32,8 @@ import com.google.common.collect.Multiset;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import org.lwjgl.glfw.GLFW;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -123,7 +123,7 @@ public class GadgetExchanger extends AbstractGadget {
 
         player.startUsingItem(hand);
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
@@ -140,7 +140,8 @@ public class GadgetExchanger extends AbstractGadget {
             if (!player.isShiftKeyDown()) {
                 BaseRenderer.updateInventoryCache();
             } else {
-                if (Screen.hasControlDown()) {
+                if (GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+                        || GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS) {
                     PacketBindTool.send();
                 }
             }

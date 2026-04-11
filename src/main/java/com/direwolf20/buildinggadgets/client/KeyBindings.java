@@ -4,9 +4,13 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyBindings {
+
+    private static final KeyMapping.Category BG_CATEGORY =
+            new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(Reference.MODID, "category"));
 
     public static final KeyMapping menuSettings = createBinding("settings_menu", GLFW.GLFW_KEY_G);
     public static final KeyMapping range = createBinding("range", GLFW.GLFW_KEY_R);
@@ -22,7 +26,7 @@ public class KeyBindings {
     }
 
     private static KeyMapping createBinding(String name, int key) {
-        return KeyBindingHelper.registerKeyBinding(new KeyMapping(getKey(name), InputConstants.Type.KEYSYM, key, getKey("category")));
+        return KeyBindingHelper.registerKeyBinding(new KeyMapping(getKey(name), InputConstants.Type.KEYSYM, key, BG_CATEGORY));
     }
 
     private static String getKey(String name) {

@@ -9,7 +9,7 @@ import com.google.common.collect.Multiset;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import com.direwolf20.buildinggadgets.client.events.WorldRenderContextWrapper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -28,10 +28,10 @@ public abstract class BaseRenderer {
     private static final MockBuilderWorld builderWorld = new MockBuilderWorld();
     private static final RemoteInventoryCache cacheInventory = new RemoteInventoryCache(false);
 
-    public void renderAfterSetup(WorldRenderContext context, Player player, ItemStack heldItem) {
+    public void renderAfterSetup(WorldRenderContextWrapper context, Player player, ItemStack heldItem) {
     }
 
-    public void render(WorldRenderContext evt, Player player, ItemStack heldItem) {
+    public void render(WorldRenderContextWrapper evt, Player player, ItemStack heldItem) {
         bindBlocks();
         if (this.isLinkable()) {
             BaseRenderer.renderLinkedInventoryOutline(evt, heldItem, player);
@@ -41,7 +41,7 @@ public abstract class BaseRenderer {
     private void bindBlocks() {
     }
 
-    private static void renderLinkedInventoryOutline(WorldRenderContext evt, ItemStack gadget, Player player) {
+    private static void renderLinkedInventoryOutline(WorldRenderContextWrapper evt, ItemStack gadget, Player player) {
         InventoryLinker.InventoryLink dataFromStack = InventoryLinker.getDataFromStack(gadget);
         if (dataFromStack == null) return;
         if (!player.level().dimension().equals(dataFromStack.level())) return;

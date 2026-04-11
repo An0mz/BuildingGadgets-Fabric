@@ -17,7 +17,7 @@ import com.direwolf20.buildinggadgets.common.world.MockDelegationWorld;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.*;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import com.direwolf20.buildinggadgets.client.events.WorldRenderContextWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -51,13 +51,13 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     }
 
     @Override
-    public void renderAfterSetup(WorldRenderContext context, Player player, ItemStack heldItem) {
+    public void renderAfterSetup(WorldRenderContextWrapper context, Player player, ItemStack heldItem) {
         // Remove this method entirely or leave it empty
         // The matrix stack isn't available at this render phase
     }
 
     @Override
-    public void render(WorldRenderContext context, Player player, ItemStack heldItem) {
+    public void render(WorldRenderContextWrapper context, Player player, ItemStack heldItem) {
         super.render(context, player, heldItem);
 
         Vec3 cameraView = context.camera().getPosition();

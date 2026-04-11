@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.ObjectSelectionList.Entry;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.util.Mth;
 import org.lwjgl.opengl.GL11;
 
@@ -39,7 +40,6 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
 
         int k = getRowLeft();
         int l = getY() + 4 - (int) scrollAmount();
-        renderHeader(guiGraphics, k, l);
 
         this.renderListItems(guiGraphics, mouseX, mouseY, partialTicks);
 
@@ -54,15 +54,10 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
             int x1 = scrollBarX();
             int x2 = x1 + 6;
 
-            // Draw scrollbar background (black)
             guiGraphics.fill(x1, getY(), x2, getY() + getHeight(), 0xFF000000);
-            // Draw scrollbar thumb (gray)
             guiGraphics.fill(x1, l1, x2, l1 + k1, 0xFF808080);
-            // Draw scrollbar thumb highlight (light gray)
             guiGraphics.fill(x1, l1, x2 - 1, l1 + k1 - 1, 0xFFC0C0C0);
         }
-
-        renderDecorations(guiGraphics, mouseX, mouseY);
     }
 
     protected void renderContentBackground(GuiGraphics guiGraphics) {
@@ -70,15 +65,15 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     }
 
     @Override
-    public boolean mouseClicked(double x, double y, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean ingame) {
         setDragging(true);
-        super.mouseClicked(x, y, button);
+        super.mouseClicked(event, ingame);
         return true;
     }
 
     @Override
-    public boolean mouseReleased(double x, double y, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         setDragging(false);
-        return super.mouseReleased(x, y, button);
+        return super.mouseReleased(event);
     }
 }

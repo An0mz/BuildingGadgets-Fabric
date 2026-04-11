@@ -6,40 +6,87 @@ import com.direwolf20.buildinggadgets.common.blocks.OurBlocks;
 import com.direwolf20.buildinggadgets.common.tainted.building.BlockData;
 import com.direwolf20.buildinggadgets.common.tileentities.EffectBlockTileEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity> {
+import java.util.List;
 
-    public BlockRenderDispatcher dispatcher;
+public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity, EffectBlockTER.RenderState> {
+
+    public static class RenderState extends BlockEntityRenderState {
+        public BlockData renderedBlock;
+        public EffectBlock.Mode mode;
+        public int ticksExisted;
+        public int maxLife;
+        // which faces to render (not adjacent to another EffectBlock): down, up, north, south, east, west
+        public boolean renderDown, renderUp, renderNorth, renderSouth, renderEast, renderWest;
+    }
 
     public EffectBlockTER(BlockEntityRendererProvider.Context ctx) {
-        dispatcher = ctx.getBlockRenderDispatcher();
     }
 
     @Override
-    public void render(EffectBlockTileEntity tile, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLightIn, int combinedOverlayIn, Vec3 cameraPos) {
-        BlockData renderData = tile.getRenderedBlock();
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
+
+    @Override
+    public void extractRenderState(EffectBlockTileEntity tile, RenderState state, float partialTick, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        // MUST populate blockEntityType (and blockPos, lightCoords, etc.) via extractBase,
+        // otherwise BlockEntityRenderDispatcher.submit() looks up the renderer by state.blockEntityType
+        // which would be null, causing the renderer to be silently skipped.
+        BlockEntityRenderState.extractBase(tile, state, crumbling);
+        state.renderedBlock = tile.getRenderedBlock();
+        state.mode = tile.getReplacementMode();
+        state.ticksExisted = tile.getTicksExisted();
+        state.maxLife = tile.getLifespan();
+
+        Level level = tile.getLevel();
+        BlockPos pos = tile.getBlockPos();
+        if (level != null) {
+            state.renderDown  = level.getBlockState(pos.below()).getBlock()  != OurBlocks.EFFECT_BLOCK;
+            state.renderUp    = level.getBlockState(pos.above()).getBlock()  != OurBlocks.EFFECT_BLOCK;
+            state.renderNorth = level.getBlockState(pos.north()).getBlock()  != OurBlocks.EFFECT_BLOCK;
+            state.renderSouth = level.getBlockState(pos.south()).getBlock()  != OurBlocks.EFFECT_BLOCK;
+            state.renderEast  = level.getBlockState(pos.east()).getBlock()   != OurBlocks.EFFECT_BLOCK;
+            state.renderWest  = level.getBlockState(pos.west()).getBlock()   != OurBlocks.EFFECT_BLOCK;
+        } else {
+            state.renderDown = state.renderUp = state.renderNorth =
+            state.renderSouth = state.renderEast = state.renderWest = true;
+        }
+    }
+
+    @Override
+    public void submit(RenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+        BlockData renderData = state.renderedBlock;
         if (renderData == null)
             return;
 
-        MultiBufferSource.BufferSource buffer2 = Minecraft.getInstance().renderBuffers().bufferSource();
-        EffectBlock.Mode toolMode = tile.getReplacementMode();
+        EffectBlock.Mode toolMode = state.mode;
 
-        int teCounter = tile.getTicksExisted();
-        int maxLife = tile.getLifespan();
+        int teCounter = state.ticksExisted;
+        int maxLife = state.maxLife;
         teCounter = Math.min(teCounter, maxLife);
 
-        float scale = (float) (teCounter) / (float) maxLife;
+        float scale = (float) teCounter / (float) maxLife;
         if (scale >= 1.0f)
             scale = 0.99f;
         if (toolMode == EffectBlock.Mode.REMOVE || toolMode == EffectBlock.Mode.REPLACE)
@@ -47,28 +94,41 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         float trans = (1 - scale) / 2;
 
-        // Apply the same scale/translate for BOTH the block render and the overlay
         stack.pushPose();
         stack.translate(trans, trans, trans);
         stack.scale(scale, scale, scale);
 
         BlockState renderBlockState = renderData.getState();
 
-        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(buffer2, .55f);
+        // --- Ghost block rendering via submitCustomGeometry ---
+        // Collect block model parts (using a fresh random for variant selection)
         try {
-            dispatcher.renderSingleBlock(
-                    renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
-            );
-        } catch (Exception ignored) {
-            BuildingGadgets.LOG.error("Failed to render block.");
+            BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
+            BlockStateModel model = dispatcher.getBlockModel(renderBlockState);
+            List<BlockModelPart> parts = model.collectParts(RandomSource.create());
+
+            collector.submitCustomGeometry(stack, OurRenderTypes.RenderBlock, (pose, consumer) -> {
+                for (BlockModelPart part : parts) {
+                    // Quads not belonging to any specific face
+                    for (BakedQuad quad : part.getQuads(null)) {
+                        consumer.putBulkData(pose, quad, 1f, 1f, 1f, 0.55f,
+                                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                    }
+                    // Quads per face direction
+                    for (Direction dir : Direction.values()) {
+                        for (BakedQuad quad : part.getQuads(dir)) {
+                            consumer.putBulkData(pose, quad, 1f, 1f, 1f, 0.55f,
+                                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            BuildingGadgets.LOG.error("Failed to render effect block: {}", e.getMessage());
         }
 
-        // Draw the colored overlay in the SAME pose (scaled + translated)
-        VertexConsumer builder = buffer2.getBuffer(OurRenderTypes.MissingBlockOverlay);
-
-        float x = 0, y = 0, z = 0, maxX = 1, maxY = 1, maxZ = 1;
+        // --- Colored overlay box rendering ---
         float red = 0f, green = 1f, blue = 1f;
-
         if (toolMode == EffectBlock.Mode.REMOVE || toolMode == EffectBlock.Mode.REPLACE) {
             red = 1f;
             green = 0.25f;
@@ -79,46 +139,53 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         if (alpha < 0.051f) alpha = 0.051f;
         if (alpha > 0.33f)  alpha = 0.33f;
 
-        Matrix4f matrix = stack.last().pose();
+        final float fr = red, fg = green, fb = blue, fa = alpha;
+        final boolean rd = state.renderDown,  ru = state.renderUp;
+        final boolean rn = state.renderNorth, rs = state.renderSouth;
+        final boolean re = state.renderEast,  rw = state.renderWest;
 
-        if (tile.getLevel().getBlockState(tile.getBlockPos().below()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x,    y, z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x,    y, maxZ).setColor(red, green, blue, alpha);
-        }
-        if (tile.getLevel().getBlockState(tile.getBlockPos().above()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x,    maxY, z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x,    maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, z   ).setColor(red, green, blue, alpha);
-        }
-        if (tile.getLevel().getBlockState(tile.getBlockPos().north()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x,    y,    z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x,    maxY, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, z).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y,    z).setColor(red, green, blue, alpha);
-        }
-        if (tile.getLevel().getBlockState(tile.getBlockPos().south()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x,    y,    maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y,    maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x,    maxY, maxZ).setColor(red, green, blue, alpha);
-        }
-        if (tile.getLevel().getBlockState(tile.getBlockPos().east()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, maxX, y,    z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, maxX, y,    maxZ).setColor(red, green, blue, alpha);
-        }
-        if (tile.getLevel().getBlockState(tile.getBlockPos().west()).getBlock() != OurBlocks.EFFECT_BLOCK) {
-            builder.addVertex(matrix, x, y,    z   ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, y,    maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, maxZ).setColor(red, green, blue, alpha);
-            builder.addVertex(matrix, x, maxY, z   ).setColor(red, green, blue, alpha);
-        }
+        collector.submitCustomGeometry(stack, OurRenderTypes.MissingBlockOverlay, (pose, builder) -> {
+            Matrix4f matrix = pose.pose();
+            float x = 0, y = 0, z = 0, maxX = 1, maxY = 1, maxZ = 1;
+
+            if (rd) {
+                builder.addVertex(matrix, x,    y, z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, y, z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, y, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x,    y, maxZ).setColor(fr, fg, fb, fa);
+            }
+            if (ru) {
+                builder.addVertex(matrix, x,    maxY, z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x,    maxY, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, z   ).setColor(fr, fg, fb, fa);
+            }
+            if (rn) {
+                builder.addVertex(matrix, x,    y,    z).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x,    maxY, z).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, z).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, y,    z).setColor(fr, fg, fb, fa);
+            }
+            if (rs) {
+                builder.addVertex(matrix, x,    y,    maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, y,    maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x,    maxY, maxZ).setColor(fr, fg, fb, fa);
+            }
+            if (re) {
+                builder.addVertex(matrix, maxX, y,    z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, maxY, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, maxX, y,    maxZ).setColor(fr, fg, fb, fa);
+            }
+            if (rw) {
+                builder.addVertex(matrix, x, y,    z   ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x, y,    maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x, maxY, maxZ).setColor(fr, fg, fb, fa);
+                builder.addVertex(matrix, x, maxY, z   ).setColor(fr, fg, fb, fa);
+            }
+        });
 
         stack.popPose();
-        buffer2.endBatch();
     }
 }

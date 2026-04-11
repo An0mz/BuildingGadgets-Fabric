@@ -26,8 +26,8 @@ import com.direwolf20.buildinggadgets.common.world.MockBuilderWorld;
 import com.google.common.collect.ImmutableMultiset;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import org.lwjgl.glfw.GLFW;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -131,7 +131,7 @@ public class GadgetBuilding extends AbstractGadget {
         ItemStack itemstack = player.getItemInHand(hand);
 
         player.startUsingItem(hand);
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
@@ -145,7 +145,8 @@ public class GadgetBuilding extends AbstractGadget {
             if (!player.isShiftKeyDown()) {
                 BaseRenderer.updateInventoryCache();
             } else {
-                if (Screen.hasControlDown()) {
+                if (GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+                        || GLFW.glfwGetKey(GLFW.glfwGetCurrentContext(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS) {
                     PacketBindTool.send();
                 }
             }

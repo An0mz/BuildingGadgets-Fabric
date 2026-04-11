@@ -23,8 +23,6 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
@@ -32,16 +30,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
@@ -422,25 +418,12 @@ public class ModeRadialMenu extends Screen {
 
         float s = 2.25F * fract;
 
-        Minecraft mc = Minecraft.getInstance();
-        ItemRenderer itemRenderer = mc.getItemRenderer();
-
-        mc.gameRenderer.getLighting().setupFor(com.mojang.blaze3d.platform.Lighting.Entry.ITEMS_FLAT);
-        PoseStack itemPose = new PoseStack();
-        itemPose.scale(s, s, s);
-        itemPose.translate(x / s - (tool.getItem() instanceof GadgetCopyPaste ? 8 : 8.5), y / s - 8, 0);
-        itemRenderer.renderStatic(
-                tool,
-                ItemDisplayContext.GUI,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
-                itemPose,
-                mc.renderBuffers().bufferSource(),
-                mc.level,
-                0
-        );
-        mc.renderBuffers().bufferSource().endBatch();
-        mc.gameRenderer.getLighting().setupFor(com.mojang.blaze3d.platform.Lighting.Entry.ITEMS_3D);
+        float itemOffsetX = tool.getItem() instanceof GadgetCopyPaste ? 8.0f : 8.5f;
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(x - itemOffsetX * s, y - 8.0f * s);
+        guiGraphics.pose().scale(s, s);
+        guiGraphics.renderItem(tool, 0, 0);
+        guiGraphics.pose().popMatrix();
     }
 
     private boolean isCursorInSlice(float angle, float totalDeg, float degPer, boolean inRange) {
@@ -470,14 +453,14 @@ public class ModeRadialMenu extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean ingame) {
         changeMode();
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
+        return super.mouseClicked(event, ingame);
     }
 
     @Override
     public void tick() {
-        if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), KeyBindingHelper.getBoundKeyOf(KeyBindings.menuSettings).getValue())) {
+        if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), KeyBindingHelper.getBoundKeyOf(KeyBindings.menuSettings).getValue())) {
             onClose();
             changeMode();
         }

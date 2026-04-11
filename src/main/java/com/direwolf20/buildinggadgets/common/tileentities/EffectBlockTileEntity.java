@@ -63,7 +63,7 @@ public class EffectBlockTileEntity extends BlockEntity {
     }
 
     private void complete() {
-        if (level == null || level.isClientSide || mode == null || getRenderedBlock() == null) {
+        if (level == null || level.isClientSide() || mode == null || getRenderedBlock() == null) {
             return;
         }
 

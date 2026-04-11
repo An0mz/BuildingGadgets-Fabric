@@ -2,14 +2,13 @@ package com.direwolf20.buildinggadgets.client.events;
 
 import com.direwolf20.buildinggadgets.client.renders.BGRenderers;
 import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 public class EventRenderWorldLast {
 
-    public static void renderAfterSetup(WorldRenderContext evt) {
+    public static void renderAfterSetup(WorldRenderContextWrapper evt) {
         Player player = Minecraft.getInstance().player;
 
         if (player == null) {
@@ -25,7 +24,7 @@ public class EventRenderWorldLast {
         BGRenderers.find(heldItem.getItem()).renderAfterSetup(evt, player, heldItem);
     }
 
-    public static void renderWorldLastEvent(WorldRenderContext evt) {
+    public static void renderWorldLastEvent(WorldRenderContextWrapper evt) {
         Player player = Minecraft.getInstance().player;
 
         if (player == null) {

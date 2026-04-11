@@ -156,7 +156,7 @@ public class GadgetDestruction extends AbstractGadget {
         ItemStack stack = player.getItemInHand(hand);
         player.startUsingItem(hand);
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             if (!player.isShiftKeyDown()) {
                 BlockPos anchorPos = getAnchor(stack);
                 Direction anchorSide = getAnchorSide(stack);

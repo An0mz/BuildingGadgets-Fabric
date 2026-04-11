@@ -74,7 +74,7 @@ public class TemplateManager extends BaseEntityBlock {
     }
 
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        if (!worldIn.isClientSide && worldIn.getBlockEntity(pos) instanceof TemplateManagerTileEntity be) {
+        if (!worldIn.isClientSide() && worldIn.getBlockEntity(pos) instanceof TemplateManagerTileEntity be) {
             ITemplateProvider templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.get(worldIn);
 
             for (ItemStack item : be.getItems()) {

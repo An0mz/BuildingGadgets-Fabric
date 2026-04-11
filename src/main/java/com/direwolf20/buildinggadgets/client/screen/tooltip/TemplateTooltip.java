@@ -14,23 +14,14 @@ import com.direwolf20.buildinggadgets.common.tainted.template.TemplateHeader;
 import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -44,9 +35,15 @@ public class TemplateTooltip implements ClientTooltipComponent {
         itemStack = data.getStack();
     }
 
+    private static boolean isShiftDown() {
+        long handle = GLFW.glfwGetCurrentContext();
+        return GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+                || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
+    }
+
     @Override
     public int getHeight(net.minecraft.client.gui.Font font) {
-        if(this.getCount() > 0 && Screen.hasShiftDown()) {
+        if(this.getCount() > 0 && isShiftDown()) {
             return (((count - 1) / EventUtil.STACKS_PER_LINE) + 1) * 21;
         }
         return 0;
@@ -54,7 +51,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
 
     @Override
     public int getWidth(Font font) {
-        if(this.getCount() > 0 && Screen.hasShiftDown()) {
+        if(this.getCount() > 0 && isShiftDown()) {
             return Math.min(EventUtil.STACKS_PER_LINE, count) * 18;
         }
         return 0;
@@ -88,8 +85,9 @@ public class TemplateTooltip implements ClientTooltipComponent {
         return count;
     }
 
-    public void renderImage(GuiGraphics guiGraphics, Font font, int xin, int yin, int k) {
-        if (!Screen.hasShiftDown())
+    @Override
+    public void renderImage(Font font, int xin, int yin, int width, int height, GuiGraphics guiGraphics) {
+        if (!isShiftDown())
             return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -120,13 +118,11 @@ public class TemplateTooltip implements ClientTooltipComponent {
                 Multiset<ItemVariant> existing = match.getFoundItems();
                 List<Multiset.Entry<ItemVariant>> sortedEntries = ImmutableList.sortedCopyOf(EventUtil.ENTRY_COMPARATOR, match.getChosenOption().entrySet());
 
-                int by = yin;
                 int j = 0;
-                int totalMissing = 0;
                 for (Multiset.Entry<ItemVariant> entry : sortedEntries) {
                     int x = xin + (j % EventUtil.STACKS_PER_LINE) * 18;
                     int y = yin + (j / EventUtil.STACKS_PER_LINE) * 20;
-                    totalMissing += renderRequiredBlocks(
+                    renderRequiredBlocks(
                             guiGraphics,
                             entry.getElement().toStack(),
                             font,

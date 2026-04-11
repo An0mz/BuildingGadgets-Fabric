@@ -36,7 +36,7 @@ public class TemplateItem extends Item {
         if (!playerIn.isShiftKeyDown())
             return super.use(worldIn, playerIn, handIn);
 
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return GuiMod.MATERIAL_LIST.openScreen(playerIn)
                     ? InteractionResult.SUCCESS
                     : super.use(worldIn, playerIn, handIn);

@@ -20,7 +20,7 @@ public final class OurBlocks {
             Block.Properties.of()
                     .setId(EFFECT_BLOCK_KEY)
                     .strength(20f)
-                    .noCollission()
+                    .noCollision()
                     .noLootTable()
     );
     public static final Block TEMPLATE_MANGER_BLOCK = new TemplateManager(

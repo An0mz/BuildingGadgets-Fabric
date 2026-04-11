@@ -1,14 +1,16 @@
 package com.direwolf20.buildinggadgets.client.screen.components;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 public class GuiIncrementer extends AbstractWidget {
     // this is the width of all components in a line
@@ -53,7 +55,9 @@ public class GuiIncrementer extends AbstractWidget {
 
     private void updateValue(boolean isMinus) {
         int modifier = 1;
-        if (Screen.hasShiftDown())
+        long handle = GLFW.glfwGetCurrentContext();
+        if (GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+                || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS)
             modifier *= 10;
 
         int value = isMinus ? this.value - modifier : this.value + modifier;
@@ -80,29 +84,28 @@ public class GuiIncrementer extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseClicked(double p_mouseClicked_1_, double p_mouseClicked_3_, int p_mouseClicked_5_) {
-        this.field.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
-        this.plusButton.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
-        this.minusButton.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
-
+    public boolean mouseClicked(MouseButtonEvent event, boolean ingame) {
+        this.field.mouseClicked(event, ingame);
+        this.plusButton.mouseClicked(event, ingame);
+        this.minusButton.mouseClicked(event, ingame);
         return false;
     }
 
     @Override
-    public boolean keyPressed(int p_keyPressed_1_, int p_keyPressed_2_, int p_keyPressed_3_) {
+    public boolean keyPressed(KeyEvent event) {
         if (!this.field.isFocused())
             return false;
 
-        this.field.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+        this.field.keyPressed(event);
         return true;
     }
 
     @Override
-    public boolean charTyped(char p_charTyped_1_, int p_charTyped_2_) {
+    public boolean charTyped(CharacterEvent event) {
         if (!this.field.isFocused())
             return false;
 
-        this.field.charTyped(p_charTyped_1_, p_charTyped_2_);
+        this.field.charTyped(event);
         if (this.field.getValue().length() > 1 && this.field.getValue().charAt(0) == '0')
             this.field.setValue(String.valueOf(this.field.getInt()));
 

@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -52,7 +53,7 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     @Override
-    public void onRelease(double d, double e) {}
+    public void onRelease(MouseButtonEvent event) {}
 
     @Override
     protected void updateMessage() {
@@ -71,8 +72,8 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     @Override
-    protected void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
-        this.setValue((mouseX - this.getX() - 4) / (this.width - 8));
+    protected void onDrag(MouseButtonEvent event, double deltaX, double deltaY) {
+        this.setValue((Minecraft.getInstance().mouseHandler.xpos() - this.getX() - 4) / (this.width - 8));
     }
 
     @Override

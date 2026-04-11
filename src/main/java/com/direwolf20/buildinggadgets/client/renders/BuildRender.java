@@ -12,7 +12,7 @@ import com.direwolf20.buildinggadgets.common.tainted.inventory.materials.Materia
 import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import com.direwolf20.buildinggadgets.client.events.WorldRenderContextWrapper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
@@ -52,7 +52,7 @@ public class BuildRender extends BaseRenderer {
     }
 
     @Override
-    public void render(WorldRenderContext evt, Player player, ItemStack heldItem) {
+    public void render(WorldRenderContextWrapper evt, Player player, ItemStack heldItem) {
         super.render(evt, player, heldItem);
 
         BlockHitResult lookingAt = VectorHelper.getLookingAt(player, heldItem);
@@ -94,7 +94,7 @@ public class BuildRender extends BaseRenderer {
         matrix.pushPose();
         matrix.translate(-playerPos.x(), -playerPos.y(), -playerPos.z());
 
-        BlockRenderDispatcher dispatcher = evt.gameRenderer().getMinecraft().getBlockRenderer();
+        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
 
         for (BlockPos coordinate : coordinates) {
             matrix.pushPose();

@@ -12,6 +12,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -138,14 +140,14 @@ public class CopyGUI extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int mouseX, int mouseY, int __unused) {
-        fields.forEach(button -> button.keyPressed(mouseX, mouseY, __unused));
-        return super.keyPressed(mouseX, mouseY, __unused);
+    public boolean keyPressed(KeyEvent event) {
+        fields.forEach(button -> button.keyPressed(event));
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(char charTyped, int __unused) {
-        fields.forEach(button -> button.charTyped(charTyped, __unused));
+    public boolean charTyped(CharacterEvent event) {
+        fields.forEach(button -> button.charTyped(event));
         return false;
     }
 

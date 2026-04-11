@@ -51,6 +51,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -222,7 +224,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
             if (be != null) {
                 try {
-                    BlockEntityRenderer<BlockEntity> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
+                    BlockEntityRenderer<?, ?> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
                     if (renderer != null) {
                     }
                     //remember vanilla Tiles rebinding the TextureAtlas
@@ -440,7 +442,10 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean ingame) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int mouseButton = event.button();
         if (panel.contains((int) mouseX - leftPos, (int) mouseY - topPos)) {
             clickButton = mouseButton;
             panelClicked = true;
@@ -448,11 +453,11 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             clickY = (int) getMinecraft().mouseHandler.ypos();
         }
 
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
+        return super.mouseClicked(event, ingame);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int state) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         panelClicked = false;
         initRotX = rotX;
         initRotY = rotY;
@@ -460,20 +465,21 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         initPanY = panY;
         initZoom = zoom;
 
-        return super.mouseReleased(mouseX, mouseY, state);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean keyPressed(int p_keyPressed_1_, int p_keyPressed_2_, int p_keyPressed_3_) {
-        if (p_keyPressed_1_ == 256) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 256) {
             this.onClose();
             return true;
         }
 
-        return this.nameField.isFocused() ? this.nameField.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_) : super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+        return this.nameField.isFocused() ? this.nameField.keyPressed(event) : super.keyPressed(event);
     }
 
-    protected void renderLabels(PoseStack matrices, int mouseX, int mouseY, GuiGraphics guiGraphics) {
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (panelClicked) {
             if (clickButton == 0) {
                 float prevRotX = rotX;
@@ -507,15 +513,12 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         // Draw slot overlays if buttons hovered
         if (buttonSave.isHoveredOrFocused() || buttonLoad.isHoveredOrFocused() || buttonPaste.isHoveredOrFocused()) {
             Slot slotToHighlight = buttonLoad.isHoveredOrFocused() ? container.getSlot(0) : container.getSlot(1);
-            drawSlotOverlay(matrices, slotToHighlight, guiGraphics);
+            drawSlotOverlay(slotToHighlight, guiGraphics);
         }
     }
 
-    private void drawSlotOverlay(PoseStack matrices, Slot slot, GuiGraphics guiGraphics) {
-        matrices.pushPose();
-        matrices.translate(0, 0, 1000);
+    private void drawSlotOverlay(Slot slot, GuiGraphics guiGraphics) {
         guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x9E000000);
-        matrices.popPose();
     }
 
 

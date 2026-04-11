@@ -17,6 +17,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -93,14 +95,13 @@ class ScrollingMaterialList extends EntryList<Entry> {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_E) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_E) {
             assert Minecraft.getInstance().player != null;
-
             Minecraft.getInstance().player.closeContainer();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
@@ -143,9 +144,9 @@ class ScrollingMaterialList extends EntryList<Entry> {
             this.widthAmount = Minecraft.getInstance().font.width(amount);
         }
 
-        public void render(GuiGraphics guiGraphics, int index, int topY, int leftX, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float particleTicks) {
-            // Weird render issue with GuiSlot where the right border is slightly offset
-            // MARGIN * 2 is just a magic number that made it look nice
+        public void renderContent(GuiGraphics guiGraphics, int topY, int leftX, boolean hovered, float particleTicks) {
+            int entryWidth = parent.getRowWidth();
+            int entryHeight = ENTRY_HEIGHT;
             int right = leftX + entryWidth - MARGIN * 2;
             // Centralize entry vertically, for some reason this.getY() is not inclusive on the bottom
             int bottom = topY + entryHeight;
@@ -155,6 +156,8 @@ class ScrollingMaterialList extends EntryList<Entry> {
 
             guiGraphics.renderItem(stack, slotX, slotY);
             drawTextOverlay(guiGraphics, right, topY, bottom, slotX);
+            int mouseX = (int)(Minecraft.getInstance().mouseHandler.xpos() / Minecraft.getInstance().getWindow().getGuiScale());
+            int mouseY = (int)(Minecraft.getInstance().mouseHandler.ypos() / Minecraft.getInstance().getWindow().getGuiScale());
             drawHoveringText(stack, slotX, slotY, mouseX, mouseY);
         }
 
@@ -238,12 +241,7 @@ class ScrollingMaterialList extends EntryList<Entry> {
         }
 
         @Override
-        public boolean mouseClicked(double x, double y, int button) {
-            // TODO add replacement function and make entries selectable
-//            if (isMouseOver(x, y)) {
-//                parent.setSelected(this);
-//                return true;
-//            }
+        public boolean mouseClicked(MouseButtonEvent event, boolean ingame) {
             return false;
         }
 

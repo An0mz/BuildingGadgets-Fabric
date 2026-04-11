@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 
+import net.minecraft.client.input.MouseButtonEvent;
 import java.awt.*;
 import java.util.function.Predicate;
 
@@ -58,8 +59,8 @@ public class GuiIconActionable extends Button {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        super.onClick(mouseX, mouseY);
+    public void onClick(MouseButtonEvent event, boolean ingame) {
+        super.onClick(event, ingame);
         this.action.test(true);
 
         if (!this.isSelectable)

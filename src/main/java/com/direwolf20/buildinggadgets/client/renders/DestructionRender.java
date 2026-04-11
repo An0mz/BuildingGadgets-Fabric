@@ -8,7 +8,7 @@ import com.direwolf20.buildinggadgets.common.util.helpers.VectorHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import com.direwolf20.buildinggadgets.client.events.WorldRenderContextWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
 public class DestructionRender extends BaseRenderer {
 
     @Override
-    public void render(WorldRenderContext evt, Player player, ItemStack heldItem) {
+    public void render(WorldRenderContextWrapper evt, Player player, ItemStack heldItem) {
         if (!GadgetDestruction.getOverlay(heldItem))
             return;
 
