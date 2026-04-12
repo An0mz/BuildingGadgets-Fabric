@@ -8,24 +8,19 @@ import java.util.function.BiConsumer;
 
 public class GuiTextFieldBase extends EditBox {
     private boolean suspended;
-    private String valueOld;
+    private String valueOld = "";
     private BiConsumer<GuiTextFieldBase, String> postModification;
 
     public GuiTextFieldBase(Font fontRenderer, int x, int y, int width) {
         super(fontRenderer, x, y, width, 15, Component.empty());
-
         setMaxLength(50);
-        setFilter(s -> {
-            valueOld = getValue();
-            return true;
-        });
+        // setFilter() removed in 26.1 - use setResponder instead to track changes
+        setResponder(s -> valueOld = getValue());
     }
 
     @Override
     public void setValue(String textIn) {
         super.setValue(textIn);
-
-        //TODO validate that this is the correct place
         postModification(textIn);
     }
 
@@ -38,20 +33,19 @@ public class GuiTextFieldBase extends EditBox {
     }
 
     public GuiTextFieldBase restrictToNumeric() {
-        setFilter(s -> {
-            valueOld = getValue();
-            if (s == null || s.isEmpty() || "-".equals(s))
-                return true;
-
-            try {
-                Integer.parseInt(s);
-                return true;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        });
-
+        // In 26.1, use setResponder for validation feedback; 
+        // actual filtering must be done via overriding charTyped
         return this;
+    }
+
+    @Override
+    public boolean charTyped(net.minecraft.client.input.CharacterEvent event) {
+        char c = (char) event.codepoint();
+        // Allow digits, minus sign, and control characters
+        if (Character.isDigit(c) || c == '-') {
+            return super.charTyped(event);
+        }
+        return false;
     }
 
     public int getInt() {

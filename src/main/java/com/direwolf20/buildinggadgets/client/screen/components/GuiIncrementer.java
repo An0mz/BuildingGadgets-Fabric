@@ -1,7 +1,7 @@
 package com.direwolf20.buildinggadgets.client.screen.components;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -77,10 +77,10 @@ public class GuiIncrementer extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.plusButton.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.minusButton.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.field.render(guiGraphics, mouseX, mouseY, partialTick);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.plusButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        this.minusButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        this.field.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     @Override

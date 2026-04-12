@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleFluidOnly() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleFluidOnly> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleFluidOnly);
+    public static final Type<PacketToggleFluidOnly> TYPE =
+            new Type<>(PacketHandler.PacketToggleFluidOnly);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleFluidOnly> CODEC = StreamCodec.of(
             (buf, packet) -> {},

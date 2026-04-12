@@ -148,7 +148,7 @@ public record Undo(ResourceKey<Level> dim, Map<BlockPos, BlockInfo> dataMap, Reg
         CompoundTag itemData = new CompoundTag();
         itemData.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
 
-        DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+        DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.toStack().getComponentsPatch())
                 .resultOrPartial(error -> {})
                 .ifPresent(tag -> itemData.put("components", tag));
 

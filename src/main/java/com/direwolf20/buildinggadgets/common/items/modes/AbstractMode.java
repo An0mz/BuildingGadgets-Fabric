@@ -63,9 +63,11 @@ public abstract class AbstractMode {
         if (context.world.isOutsideBuildHeight(pos))
             return false;
 
+        // allowOverwriteBlocks=true  → accept any replaceable block (water, grass, etc.)
+        // allowOverwriteBlocks=false → only accept truly empty (air) positions
         return BuildingGadgets.getConfig().general.allowOverwriteBlocks
                 ? context.getWorldState(pos).canBeReplaced(context.createBlockUseContext(player))
-                : !context.getWorldState(pos).isAir();
+                : context.getWorldState(pos).isAir();
     }
 
     private boolean exchangingValidator(BlockPos pos, BlockState lookingAtState, UseContext context) {

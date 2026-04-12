@@ -14,12 +14,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -102,9 +100,8 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
                         b -> {
                             Minecraft.getInstance().keyboardHandler.setClipboard(getJson());
                             if (Minecraft.getInstance().player != null) {
-                                Minecraft.getInstance().player.displayClientMessage(
-                                        Component.translatable(MaterialListTranslation.MESSAGE_COPY_SUCCESS.getTranslationKey()),
-                                        true
+                                Minecraft.getInstance().player.sendSystemMessage(
+                                        Component.translatable(MaterialListTranslation.MESSAGE_COPY_SUCCESS.getTranslationKey())
                                 );
                             }
                         }
@@ -141,31 +138,27 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         return header;
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float particleTicks) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float particleTicks) {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, backgroundX, backgroundY, (float)0, (float)0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, 256, 256);
 
 
-        scrollingList.render(guiGraphics, mouseX, mouseY, particleTicks);
-        guiGraphics.drawString(font, title, titleLeft, titleTop, Color.WHITE.getRGB());
-        super.render(guiGraphics, mouseX, mouseY, particleTicks);
+        scrollingList.extractRenderState(guiGraphics, mouseX, mouseY, particleTicks);
+        guiGraphics.text(font, title, titleLeft, titleTop, Color.WHITE.getRGB());
+        super.extractRenderState(guiGraphics, mouseX, mouseY, particleTicks);
 
         if (buttonCopyList.isMouseOver(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(
+            guiGraphics.setTooltipForNextFrame(
                     this.font,
-                    java.util.List.of(ClientTooltipComponent.create(MaterialListTranslation.HELP_COPY_LIST.componentTranslation().getVisualOrderText())),
+                    MaterialListTranslation.HELP_COPY_LIST.componentTranslation(),
                     mouseX,
-                    mouseY,
-                    DefaultTooltipPositioner.INSTANCE,
-                    null
+                    mouseY
             );
         } else if (hoveringText != null) {
-            guiGraphics.renderTooltip(
+            guiGraphics.setComponentTooltipForNextFrame(
                     this.font,
-                    hoveringText.stream().map(c -> ClientTooltipComponent.create(c.getVisualOrderText())).collect(java.util.stream.Collectors.toList()),
+                    hoveringText,
                     mouseX,
-                    mouseY,
-                    DefaultTooltipPositioner.INSTANCE,
-                    null
+                    mouseY
             );
             hoveringText = null;
         }
@@ -196,7 +189,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null)
             return null;
 
-        Optional<ITemplateProvider> providerCap = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(minecraft.level);
+        Optional<ITemplateProvider> providerCap = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(minecraft.level.getLevelData());
         if (providerCap.isPresent()) {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(item);
             if (key != null) {
@@ -290,16 +283,16 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         return top + (bottom - top) / 2 - height / 2;
     }
 
-    public static void renderTextVerticalCenter(GuiGraphics guiGraphics, String text, int leftX, int top, int bottom, int color) {
+    public static void renderTextVerticalCenter(GuiGraphicsExtractor guiGraphics, String text, int leftX, int top, int bottom, int color) {
         Font font = Minecraft.getInstance().font;
         int y = getYForAlignedCenter(top, bottom, font.lineHeight);
-        guiGraphics.drawString(font, text, leftX, y, color);
+        guiGraphics.text(font, text, leftX, y, color);
     }
 
-    public static void renderTextHorizontalRight(GuiGraphics guiGraphics, String text, int right, int y, int color) {
+    public static void renderTextHorizontalRight(GuiGraphicsExtractor guiGraphics, String text, int right, int y, int color) {
         Font font = Minecraft.getInstance().font;
         int x = getXForAlignedRight(right, font.width(text));
-        guiGraphics.drawString(font, text, x, y, color);
+        guiGraphics.text(font, text, x, y, color);
     }
 
     public static boolean isPointInBox(double x, double y, int bx, int by, int width, int height) {

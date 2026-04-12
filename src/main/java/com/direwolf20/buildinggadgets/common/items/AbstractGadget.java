@@ -17,7 +17,7 @@ import com.direwolf20.buildinggadgets.common.util.lang.MessageTranslation;
 import com.direwolf20.buildinggadgets.common.util.lang.Styles;
 import com.direwolf20.buildinggadgets.common.util.lang.TooltipTranslation;
 import com.google.common.collect.ImmutableSortedSet;
-import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBlockTags;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -82,6 +82,12 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
         return 10000;
     }
 
+    @Override
+    public long getEnergyMaxOutput(ItemStack stack) {
+        return 0;
+    }
+
+    // Keep no-param version for internal use
     public long getEnergyMaxOutput() {
         return 0;
     }
@@ -105,7 +111,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     public boolean isAllowedBlock(Block block) {
-        if(block.defaultBlockState().is(ConventionalBlockTags.MOVEMENT_RESTRICTED))
+        if(block.defaultBlockState().is(ConventionalBlockTags.RELOCATION_NOT_SUPPORTED))
             return false;
         if(!BuiltInRegistries.BLOCK.getTagOrEmpty(getWhiteList()).iterator().hasNext()) {
             return !block.defaultBlockState().is(getBlackList());
@@ -129,7 +135,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
             return true;
         }
 
-        return getEnergyCost(tool) <= SimpleEnergyItem.getStoredEnergyUnchecked(tool);
+        return getEnergyCost(tool) <= getStoredEnergy(tool);
     }
 
     public boolean useEnergy(ItemStack tool, ServerPlayer player) {
@@ -154,7 +160,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     public final void onRotate(ItemStack stack, Player player) {
         if (performRotate(stack, player)) {
-            player.displayClientMessage(MessageTranslation.ROTATED.componentTranslation().setStyle(Styles.AQUA), true);
+            player.sendSystemMessage(MessageTranslation.ROTATED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -164,7 +170,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     public final void onMirror(ItemStack stack, Player player) {
         if (performMirror(stack, player)) {
-            player.displayClientMessage(MessageTranslation.MIRRORED.componentTranslation().setStyle(Styles.AQUA), true);
+            player.sendSystemMessage(MessageTranslation.MIRRORED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -179,10 +185,10 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
                 return;
             }
             onAnchorSet(stack, player, lookingAt);
-            player.displayClientMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA), true);
+            player.sendSystemMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
         } else {
             onAnchorRemoved(stack, player);
-            player.displayClientMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA), true);
+            player.sendSystemMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -206,7 +212,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     public static void toggleFuzzy(Player player, ItemStack stack) {
         boolean current = getFuzzy(stack);
         stack.set(BGDataComponents.FUZZY, !current);
-        player.displayClientMessage(MessageTranslation.FUZZY_MODE.componentTranslation(!current).setStyle(Styles.AQUA), true);
+        player.sendSystemMessage(MessageTranslation.FUZZY_MODE.componentTranslation(!current).setStyle(Styles.AQUA));
     }
 
     public static boolean getConnectedArea(ItemStack stack) {
@@ -216,8 +222,8 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     public static void toggleConnectedArea(Player player, ItemStack stack) {
         boolean current = getConnectedArea(stack);
         stack.set(BGDataComponents.UNCONNECTED_AREA, current);
-        player.displayClientMessage((stack.getItem() instanceof GadgetDestruction ? MessageTranslation.CONNECTED_AREA : MessageTranslation.CONNECTED_SURFACE)
-                .componentTranslation(!current).setStyle(Styles.AQUA), true);
+        player.sendOverlayMessage((stack.getItem() instanceof GadgetDestruction ? MessageTranslation.CONNECTED_AREA : MessageTranslation.CONNECTED_SURFACE)
+                .componentTranslation(!current).setStyle(Styles.AQUA));
     }
 
     public static boolean shouldRayTraceFluid(ItemStack stack) {
@@ -227,7 +233,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     public static void toggleRayTraceFluid(ServerPlayer player, ItemStack stack) {
         boolean current = shouldRayTraceFluid(stack);
         stack.set(BGDataComponents.RAYTRACE_FLUID, !current);
-        player.displayClientMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA), true);
+        player.sendSystemMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA));
     }
 
     public static void addInformationRayTraceFluid(java.util.function.Consumer<Component> tooltipAdder, ItemStack stack) {
@@ -282,7 +288,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
                 ImmutableSortedSet<ChunkPos> unloadedChunks = undo.getBoundingBox().getUnloadedChunks(world);
                 if (!unloadedChunks.isEmpty()) {
                     pushUndo(stack, undo, world);
-                    player.displayClientMessage(MessageTranslation.UNDO_UNLOADED.componentTranslation().setStyle(Styles.RED), true);
+                    player.sendSystemMessage(MessageTranslation.UNDO_UNLOADED.componentTranslation().setStyle(Styles.RED));
                     BuildingGadgets.LOG.error("Player attempted to undo a Region missing {} unloaded chunks. Denied undo!", unloadedChunks.size());
                     BuildingGadgets.LOG.trace("The following chunks were detected as unloaded {}.", unloadedChunks);
                     return;
@@ -295,7 +301,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
             UndoScheduler.scheduleUndo(undo, index, buildContext, BuildingGadgets.getConfig().gadgets.placeSteps);
         } else {
-            player.displayClientMessage(MessageTranslation.NOTHING_TO_UNDO.componentTranslation().setStyle(Styles.RED), true);
+            player.sendSystemMessage(MessageTranslation.NOTHING_TO_UNDO.componentTranslation().setStyle(Styles.RED));
         }
     }
 
@@ -304,12 +310,10 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     }
 
     // Energy methods for SimpleEnergyItem
-    @Override
     public long getStoredEnergy(ItemStack itemStack) {
         return itemStack.getOrDefault(BGDataComponents.ENERGY, 0L);
     }
 
-    @Override
     public boolean tryUseEnergy(ItemStack itemStack, long amount) {
         long current = getStoredEnergy(itemStack);
         if (current >= amount) {

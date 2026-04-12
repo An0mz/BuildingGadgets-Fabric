@@ -36,32 +36,33 @@ public class PacketHandler {
     public static final Identifier PacketLookupResult = BuildingGadgets.id("packet_lookup_result");
 
     public static void registerMessages() {
-        // Register payload types (codecs) - C2S packets
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFuzzy.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFuzzy.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFluidOnly.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFluidOnly.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleConnectedArea.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleConnectedArea.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleRayTraceFluid.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleRayTraceFluid.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleBlockPlacement.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleBlockPlacement.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketRotateMirror.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketRotateMirror.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketCopyCoords.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketCopyCoords.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketDestructionGUI.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketDestructionGUI.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.CODEC);
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.CODEC);
 
-        // Register payload types (codecs) - Bidirectional packets (both C2S and S2C)
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.CODEC);
-        PayloadTypeRegistry.playS2C().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.CODEC);
+        // Register C2S payload types
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketBindTool.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFuzzy.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFuzzy.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFluidOnly.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleFluidOnly.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleConnectedArea.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleConnectedArea.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleRayTraceFluid.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleRayTraceFluid.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleBlockPlacement.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleBlockPlacement.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketRotateMirror.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketRotateMirror.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketCopyCoords.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketCopyCoords.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketDestructionGUI.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketDestructionGUI.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.CODEC);
 
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.CODEC);
-        PayloadTypeRegistry.playS2C().register(com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.CODEC);
+        // Register bidirectional payload types (both C2S and S2C)
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.CODEC);
 
-        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.CODEC);
-        PayloadTypeRegistry.playS2C().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.SplitPacketUpdateTemplate.CODEC);
+
+        PayloadTypeRegistry.serverboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketSetRemoteInventoryCache.CODEC);
 
         // Register server-side handlers (receives C2S packets)
         ServerPlayNetworking.registerGlobalReceiver(com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketAnchor::handle);
@@ -95,3 +96,4 @@ public class PacketHandler {
         );
     }
 }
+

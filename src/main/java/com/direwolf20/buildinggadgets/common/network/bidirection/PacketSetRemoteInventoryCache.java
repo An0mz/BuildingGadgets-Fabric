@@ -23,8 +23,8 @@ import net.minecraft.world.InteractionHand;
 
 public record PacketSetRemoteInventoryCache(Data data) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketSetRemoteInventoryCache> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketSetRemoteInventoryCache);
+    public static final Type<PacketSetRemoteInventoryCache> TYPE =
+            new Type<>(PacketHandler.PacketSetRemoteInventoryCache);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketSetRemoteInventoryCache> CODEC = StreamCodec.of(
             (buf, packet) -> packet.data.write(buf),

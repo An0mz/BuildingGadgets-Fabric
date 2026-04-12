@@ -86,7 +86,7 @@ public final class Additions {
             List<ITranslationProvider> list = player.getName().getContents().equals("Direwolf20") ? DireNineByNineTranslation.VALUES : NineByNineTranslation.VALUES;
             int pos = EASTER_RAND.nextInt(list.size());
             ITranslationProvider provider = list.get(pos);
-            player.displayClientMessage(provider.componentTranslation().setStyle(Styles.DK_GREEN), true);
+            player.sendSystemMessage(provider.componentTranslation().setStyle(Styles.DK_GREEN));
             return true;
         }
         return false;

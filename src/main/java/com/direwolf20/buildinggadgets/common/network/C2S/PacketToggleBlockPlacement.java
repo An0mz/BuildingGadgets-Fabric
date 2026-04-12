@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleBlockPlacement() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleBlockPlacement> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleBlockPlacement);
+    public static final Type<PacketToggleBlockPlacement> TYPE =
+            new Type<>(PacketHandler.PacketToggleBlockPlacement);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleBlockPlacement> CODEC = StreamCodec.of(
             (buf, packet) -> {},

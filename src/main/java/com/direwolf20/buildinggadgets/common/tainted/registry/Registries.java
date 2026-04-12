@@ -8,10 +8,14 @@ import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 
 public final class Registries {
 
-    private static final MappedRegistry<ITileDataSerializer> tileDataSerializers = FabricRegistryBuilder.createSimple(ITileDataSerializer.class, Reference.TileDataSerializerReference.REGISTRY_ID_TILE_DATA_SERIALIZER).attribute(RegistryAttribute.MODDED).buildAndRegister();
+    private static final MappedRegistry<ITileDataSerializer> tileDataSerializers =
+            FabricRegistryBuilder.<ITileDataSerializer>create(
+                    ResourceKey.<ITileDataSerializer>createRegistryKey(Reference.TileDataSerializerReference.REGISTRY_ID_TILE_DATA_SERIALIZER)
+            ).attribute(RegistryAttribute.MODDED).buildAndRegister();
 
     public static void registerTileDataSerializers() {
         BuildingGadgets.LOG.trace("Registering TemplateItem Serializers");

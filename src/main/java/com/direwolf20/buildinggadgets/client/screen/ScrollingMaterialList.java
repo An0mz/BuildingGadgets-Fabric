@@ -13,7 +13,7 @@ import com.google.common.collect.Multiset;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -105,11 +105,11 @@ class ScrollingMaterialList extends EntryList<Entry> {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (lastUpdate + UPDATE_MILLIS < System.currentTimeMillis())
             updateEntries();
 
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     public void reset() {
@@ -144,7 +144,12 @@ class ScrollingMaterialList extends EntryList<Entry> {
             this.widthAmount = Minecraft.getInstance().font.width(amount);
         }
 
-        public void renderContent(GuiGraphics guiGraphics, int topY, int leftX, boolean hovered, float particleTicks) {
+        @Override
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int top, int left, boolean hovering, float delta) {
+            renderContent(guiGraphics, top, left, hovering, delta);
+        }
+
+        public void renderContent(GuiGraphicsExtractor guiGraphics, int topY, int leftX, boolean hovered, float particleTicks) {
             int entryWidth = parent.getRowWidth();
             int entryHeight = ENTRY_HEIGHT;
             int right = leftX + entryWidth - MARGIN * 2;
@@ -154,14 +159,14 @@ class ScrollingMaterialList extends EntryList<Entry> {
             int slotX = leftX + MARGIN;
             int slotY = topY + MARGIN;
 
-            guiGraphics.renderItem(stack, slotX, slotY);
+            guiGraphics.item(stack, slotX, slotY);
             drawTextOverlay(guiGraphics, right, topY, bottom, slotX);
             int mouseX = (int)(Minecraft.getInstance().mouseHandler.xpos() / Minecraft.getInstance().getWindow().getGuiScale());
             int mouseY = (int)(Minecraft.getInstance().mouseHandler.ypos() / Minecraft.getInstance().getWindow().getGuiScale());
             drawHoveringText(stack, slotX, slotY, mouseX, mouseY);
         }
 
-        private void drawTextOverlay(GuiGraphics guiGraphics, int right, int top, int bottom, int slotX) {
+        private void drawTextOverlay(GuiGraphicsExtractor guiGraphics, int right, int top, int bottom, int slotX) {
             int itemNameX = slotX + SLOT_SIZE + MARGIN;
             renderTextVerticalCenter(guiGraphics, itemName, itemNameX, top, bottom, Color.WHITE.getRGB());
             int amountY = getYForAlignedCenter(top, bottom, Minecraft.getInstance().font.lineHeight);
@@ -170,7 +175,7 @@ class ScrollingMaterialList extends EntryList<Entry> {
         }
 
 
-        private void drawGuidingLine(GuiGraphics guiGraphics, int right, int top, int bottom, int itemNameX, int widthItemName, int widthAmount) {
+        private void drawGuidingLine(GuiGraphicsExtractor guiGraphics, int right, int top, int bottom, int itemNameX, int widthItemName, int widthAmount) {
             if (!isSelected()) {
                 int lineXStart = itemNameX + widthItemName + LINE_SIDE_MARGIN;
                 int lineXEnd = right - widthAmount - LINE_SIDE_MARGIN;

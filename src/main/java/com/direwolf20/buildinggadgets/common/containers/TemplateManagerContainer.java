@@ -20,7 +20,7 @@ public class TemplateManagerContainer extends BaseContainer {
 
     private final TemplateManagerTileEntity be;
 
-    // Client-side constructor (called from ExtendedScreenHandlerType)
+    // Client-side constructor (called from ExtendedMenuType)
     public TemplateManagerContainer(int windowId, Inventory playerInventory, BlockPos pos) {
         super(OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE, windowId);
         this.be = (TemplateManagerTileEntity) playerInventory.player.level().getBlockEntity(pos);

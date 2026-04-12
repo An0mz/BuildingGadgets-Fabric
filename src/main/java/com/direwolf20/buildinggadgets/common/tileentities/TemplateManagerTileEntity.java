@@ -6,7 +6,7 @@ import com.direwolf20.buildinggadgets.common.inventory.ImplContainer;
 import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference.ItemReference;
 import com.google.common.base.Preconditions;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -38,7 +38,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TemplateManagerTileEntity extends BlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, ImplContainer {
+public class TemplateManagerTileEntity extends BlockEntity implements ExtendedMenuProvider<BlockPos>, ImplContainer {
     public static final TagKey<Item> TEMPLATE_CONVERTIBLES = TagKey.create(Registries.ITEM, ItemReference.TAG_TEMPLATE_CONVERTIBLE);
 
     public static final int SIZE = 2;

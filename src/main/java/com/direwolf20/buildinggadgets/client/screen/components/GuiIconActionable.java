@@ -3,7 +3,7 @@ package com.direwolf20.buildinggadgets.client.screen.components;
 import com.direwolf20.buildinggadgets.client.OurSounds;
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -70,7 +70,7 @@ public class GuiIconActionable extends Button {
     }
 
     @Override
-    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!visible)
             return;
 
@@ -104,7 +104,7 @@ public class GuiIconActionable extends Button {
         // Tooltip on hover
         if (mouseX >= getX() && mouseY >= getY()
                 && mouseX < getX() + width && mouseY < getY() + height) {
-            guiGraphics.drawString(
+            guiGraphics.text(
                     Minecraft.getInstance().font,
                     this.getMessage(),
                     mouseX > (Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2)

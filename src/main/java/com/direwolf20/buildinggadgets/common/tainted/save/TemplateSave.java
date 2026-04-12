@@ -45,7 +45,7 @@ public final class TemplateSave extends TimedDataSave<TemplateInfo> {
         return super.save(tag, registries);
     }
 
-    static final class TemplateInfo extends TimedDataSave.TimedValue { //for reasons I don't understand it doesn't compile if you leave the TimedDataSave out!
+    static final class TemplateInfo extends TimedValue { //for reasons I don't understand it doesn't compile if you leave the TimedDataSave out!
         private Template template;
 
         private TemplateInfo(CompoundTag nbt) {

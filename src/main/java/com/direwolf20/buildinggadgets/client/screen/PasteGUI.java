@@ -11,7 +11,7 @@ import com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI;
 import com.direwolf20.buildinggadgets.common.util.lang.GuiTranslation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
@@ -95,25 +95,25 @@ public class PasteGUI extends Screen {
         return false;
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Labels
         drawLabel(guiGraphics, "X", -75);
         drawLabel(guiGraphics, "Y", 0);
         drawLabel(guiGraphics, "Z", 75);
 
         // Heading
-        guiGraphics.drawCenteredString(
+        guiGraphics.centeredText(
                 Minecraft.getInstance().font,
                 I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()),
                 width / 2,
                 height / 2 - 60,
                 0xFFFFFF
         );
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
-    private void drawLabel(GuiGraphics guiGraphics, String name, int xOffset) {
-        guiGraphics.drawString(
+    private void drawLabel(GuiGraphicsExtractor guiGraphics, String name, int xOffset) {
+        guiGraphics.text(
                 Minecraft.getInstance().font,
                 name,
                 (int) (width / 2f) + xOffset,

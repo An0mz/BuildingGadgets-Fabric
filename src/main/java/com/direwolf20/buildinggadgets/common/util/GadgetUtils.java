@@ -59,11 +59,11 @@ public class GadgetUtils {
         return LINK_STARTS.stream().anyMatch(s::startsWith);
     }
 
-    public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipAdder) {
+    public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, java.util.function.Consumer<Component> tooltipAdder) {
         if (world == null) return;
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent(provider -> {
-            ITemplateKey key = com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper.getTemplateKey(stack);
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent(provider -> {
+            ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key != null) {
                 Template template = provider.getTemplateForKey(key);
                 TemplateHeader header = template.getHeader();
@@ -154,7 +154,7 @@ public class GadgetUtils {
             return;
 
         InventoryLinker.Result result = InventoryLinker.linkInventory(player.level(), stack, lookingAt);
-        player.displayClientMessage(result.i18n().componentTranslation(), true);
+        player.sendSystemMessage(result.i18n().componentTranslation());
     }
 
     public static Optional<Block> selectBlock(ItemStack stack, Player player) {
@@ -197,7 +197,7 @@ public class GadgetUtils {
 
         if (anchorCoords.isPresent()) {
             setAnchor(stack);
-            player.displayClientMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA), true);
+            player.sendSystemMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
             return true;
         }
 
@@ -216,7 +216,7 @@ public class GadgetUtils {
                 : GadgetExchanger.getToolMode(stack).getMode().getCollection(context, player);
 
         setAnchor(stack, coords);
-        player.displayClientMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA), true);
+        player.sendSystemMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
 
         return true;
     }

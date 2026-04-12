@@ -40,7 +40,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.Item;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -54,7 +54,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -97,18 +96,16 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
     private final TemplateManagerTileEntity be;
     private final TemplateManagerContainer container;
-    private final Optional<ITemplateProvider> templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(getWorld());
+    private final Optional<ITemplateProvider> templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(getWorld().getLevelData());
 
     // It is so stupid I can't get the key from the template.
     private Template template;
 
     public TemplateManagerGUI(TemplateManagerContainer container, Inventory playerInventory, Component title) {
-        super(container, playerInventory, Component.literal(""));
+        super(container, playerInventory, Component.literal(""), 250, 192);
 
         this.container = container;
         this.be = container.getTe();
-        this.imageWidth = 250;
-        this.imageHeight = 192;
     }
 
     @Override
@@ -152,19 +149,19 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+        this.extractTooltip(guiGraphics, mouseX, mouseY);
 
-        guiGraphics.drawString(font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFF);
+        guiGraphics.text(font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFF);
         if (this.template != null) {
             renderRequirement(guiGraphics, mouseX, mouseY);
         }
     }
 
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+    private void doRenderBg(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        // renderBackground removed in 26.1 - background drawn via renderBg mechanism
         guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, leftPos, topPos, (float)0, (float)0, 176, 192, 256, 256);
         guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, leftPos + 176, topPos + 29, 176f, 28f, 76, 113, 256, 256);
 
@@ -178,9 +175,14 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                 guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, background, x, y, (float)193, (float)0, 16, 24, 256, 256);
         }
 
-        this.nameField.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.nameField.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         guiGraphics.fill(leftPos + panel.getX() - 1, topPos + panel.getY() - 1, leftPos + panel.getX() + panel.getWidth() + 1, topPos + panel.getY() + panel.getHeight() + 1, 0xFF8A8A8A);
+    }
 
+    @Override
+    public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        doRenderBg(guiGraphics, partialTicks, mouseX, mouseY);
+        super.extractContents(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     private void validateCache(float partialTicks) {
@@ -209,8 +211,6 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
     private void renderStructure(IBuildView view, float partialTicks) {
-        Random rand = new Random();
-        BlockRenderDispatcher dispatcher = getMinecraft().getBlockRenderer();
 
         for (PlacementTarget target : view) {
             target.placeIn(view.getContext());
@@ -237,7 +237,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         // end structure preview rendering
     }
 
-    private void renderRequirement(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderRequirement(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         MaterialList requirements = this.template.getHeaderAndForceMaterials(BuildContext.builder().build(getWorld())).getRequiredItems();
         if (requirements == null) return;
 
@@ -246,7 +246,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         guiGraphics.pose().scale(0.8f, 0.8f);
 
         String title = "Requirements";
-        guiGraphics.drawString(getMinecraft().font, title, 5 - getMinecraft().font.width(title), 0, Color.WHITE.getRGB());
+        guiGraphics.text(getMinecraft().font, title, 5 - getMinecraft().font.width(title), 0, Color.WHITE.getRGB());
 
         MatchResult list;
         try (Transaction transaction = Transaction.openOuter()) {
@@ -267,8 +267,8 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             int x = -20 - (column * 25);
             int y = 20 + (index * 25);
 
-            guiGraphics.renderItem(stack, x + 4, y + 4);
-            guiGraphics.renderItemDecorations(getMinecraft().font, stack, x + 4, y + 4, GadgetUtils.withSuffix(foundItems.count(e.getElement())));
+            guiGraphics.item(stack, x + 4, y + 4);
+            guiGraphics.itemDecorations(getMinecraft().font, stack, x + 4, y + 4, GadgetUtils.withSuffix(foundItems.count(e.getElement())));
 
             int space = (int) (25 - (.2f * 25));
             int zoneX = (leftPos - 32) + (-15 - (column * space));
@@ -292,21 +292,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         guiGraphics.pose().popMatrix();
 
         if (hoveredTooltip != null) {
-            guiGraphics.renderTooltip(
-                    getMinecraft().font,
-                    hoveredTooltip.stream()
-                            .map(c -> net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent.create(c.getVisualOrderText()))
-                            .toList(),
-                    mouseX, mouseY,
-                    net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner.INSTANCE,
-                    null
-            );
+            guiGraphics.setComponentTooltipForNextFrame(getMinecraft().font, hoveredTooltip, mouseX, mouseY);
         }
     }
 
 
     private void pasteTemplateToStack(Level world, ItemStack stack, Template newTemplate, boolean replaced) {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) ->
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) ->
                 pasteTemplateToStack(provider, stack, newTemplate, replaced && world.isClientSide()));
     }
 
@@ -479,7 +471,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         if (panelClicked) {
             if (clickButton == 0) {
                 float prevRotX = rotX;
@@ -501,7 +493,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         momentumY *= momentumDampening;
 
         if (!nameField.isFocused() && nameField.getValue().isEmpty()) {
-            guiGraphics.drawString(
+            guiGraphics.text(
                     getMinecraft().font,
                     GuiTranslation.TEMPLATE_PLACEHOLDER.format(),
                     nameField.getX() - leftPos + 4,
@@ -517,7 +509,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         }
     }
 
-    private void drawSlotOverlay(Slot slot, GuiGraphics guiGraphics) {
+    private void drawSlotOverlay(Slot slot, GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x9E000000);
     }
 
@@ -629,13 +621,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                             template = template.withName(nameField.getValue());
                         String json = TemplateIO.writeTemplateJson(template, buildContext);
                         getMinecraft().keyboardHandler.setClipboard(json);
-                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN), false);
+                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
                     } catch (DataCannotBeWrittenException e) {
                         BuildingGadgets.LOG.error("Failed to write Template.", e);
-                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED), false);
+                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED));
                     } catch (Exception e) {
                         BuildingGadgets.LOG.error("Failed to copy Template to clipboard.", e);
-                        player.displayClientMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED), false);
+                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED));
                     }
                 }
             });
@@ -647,7 +639,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
         String CBString = getMinecraft().keyboardHandler.getClipboard();
         if (GadgetUtils.mightBeLink(CBString)) {
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_LINK_COPIED.componentTranslation().setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_LINK_COPIED.componentTranslation().setStyle(Styles.RED));
             return;
         }
 
@@ -655,14 +647,14 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             CompoundTag tagFromJson = TagParser.parseCompoundFully(CBString);
             if (!tagFromJson.contains("header")) {
                 BuildingGadgets.LOG.error("Attempted to use a 1.12 compound on a newer MC version");
-                getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
-                        .componentTranslation("(1.12.x)", TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED), false);
+                getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
+                        .componentTranslation("(1.12.x)", TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED));
                 return;
             }
             if(!tagFromJson.contains("body")) {
                 BuildingGadgets.LOG.error("Attempted to paste Material List as a template");
-                getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_MATERIAL_LIST
-                        .componentTranslation().setStyle(Styles.RED), false);
+                getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_MATERIAL_LIST
+                        .componentTranslation().setStyle(Styles.RED));
                 return;
             }
         } catch (CommandSyntaxException ignored) {
@@ -676,33 +668,39 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             boolean replaced = replaceStack();
             ItemStack stack = container.getSlot(1).getItem();
             pasteTemplateToStack(getWorld(), stack, readTemplate, replaced);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
         } catch (CorruptJsonException e) {
             BuildingGadgets.LOG.error("Failed to parse json syntax.", e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_CORRUPT_JSON
-                    .componentTranslation().setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_CORRUPT_JSON
+                    .componentTranslation().setStyle(Styles.RED));
         } catch (IllegalMinecraftVersionException e) {
             BuildingGadgets.LOG.error("Attempted to parse Template for Minecraft version {} but expected between {} and {}.",
                     e.getMinecraftVersion(), TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION, e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
-                    .componentTranslation(e.getMinecraftVersion(), TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
+                    .componentTranslation(e.getMinecraftVersion(), TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED));
         } catch (UnknownTemplateVersionException e) {
             BuildingGadgets.LOG.error("Attempted to parse Template version {} but newest is {}.",
                     e.getTemplateVersion(), TemplateHeader.VERSION, e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_TOO_RECENT_VERSION
-                    .componentTranslation(e.getTemplateVersion(), TemplateHeader.VERSION).setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_TOO_RECENT_VERSION
+                    .componentTranslation(e.getTemplateVersion(), TemplateHeader.VERSION).setStyle(Styles.RED));
         } catch (JsonParseException e) {
             BuildingGadgets.LOG.error("Failed to parse Template json.", e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_INVALID_JSON
-                    .componentTranslation().setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_INVALID_JSON
+                    .componentTranslation().setStyle(Styles.RED));
         } catch (TemplateReadException e) {
             BuildingGadgets.LOG.error("Failed to read Template body.", e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED_CORRUPT_BODY
-                    .componentTranslation().setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_CORRUPT_BODY
+                    .componentTranslation().setStyle(Styles.RED));
         } catch (Exception e) {
             BuildingGadgets.LOG.error("Failed to paste Template.", e);
-            getMinecraft().player.displayClientMessage(MessageTranslation.PASTE_FAILED
-                    .componentTranslation().setStyle(Styles.RED), false);
+            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED
+                    .componentTranslation().setStyle(Styles.RED));
         }
     }
 }
+
+
+
+
+
+

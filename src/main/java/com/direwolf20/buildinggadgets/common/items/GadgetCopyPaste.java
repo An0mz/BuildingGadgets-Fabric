@@ -109,13 +109,8 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     @Override
-    public long getEnergyMaxOutput() {
-        return 10000;
-    }
-
-    @Override
     public boolean performRotate(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).map(provider -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key == null) return false;
 
@@ -128,7 +123,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performMirror(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).map(provider -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key == null) return false;
 
@@ -246,7 +241,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
         addEnergyInformation(tooltipAdder, stack);
 
@@ -327,7 +322,7 @@ public class GadgetCopyPaste extends AbstractGadget {
         Optional<Region> regionOpt = getSelectedRegion(stack);
 
         if (regionOpt.isEmpty()) {
-            player.displayClientMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN), true);
+            player.sendSystemMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN));
         } else {
             tryCopy(stack, world, player, regionOpt.get());
         }
@@ -348,7 +343,7 @@ public class GadgetCopyPaste extends AbstractGadget {
             ImmutableSortedSet<ChunkPos> unloaded = region.getUnloadedChunks(world);
 
             if (!unloaded.isEmpty()) {
-                player.displayClientMessage(MessageTranslation.COPY_UNLOADED.componentTranslation(unloaded.size()).setStyle(Styles.RED), true);
+                player.sendSystemMessage(MessageTranslation.COPY_UNLOADED.componentTranslation(unloaded.size()).setStyle(Styles.RED));
                 BuildingGadgets.LOG.debug("Prevented copy because {} chunks where detected as unloaded.", unloaded.size());
                 BuildingGadgets.LOG.trace("The following chunks were detected as unloaded {}.", CHUNK_JOINER.join(unloaded));
                 return false;
@@ -360,9 +355,9 @@ public class GadgetCopyPaste extends AbstractGadget {
         if (region.getXSize() > 0xFFFF || region.getYSize() > 255 || region.getZSize() > 0xFFFF ||
                 ((region.getXSize() > maxDimension || region.getYSize() > maxDimension || region.getZSize() > maxDimension) && !OverrideCopySizeCommand.mayPerformLargeCopy(player))) {
             BlockPos sizeVec = region.getMax().subtract(region.getMin());
-            player.displayClientMessage(MessageTranslation.COPY_TOO_LARGE
+            player.sendOverlayMessage(MessageTranslation.COPY_TOO_LARGE
                     .componentTranslation(sizeVec.getX(), sizeVec.getY(), sizeVec.getZ(), Math.min(maxDimension, 0xFFFF), Math.min(maxDimension, 255), Math.min(maxDimension, 0xFFFF))
-                    .setStyle(Styles.RED), true);
+                    .setStyle(Styles.RED));
             return false;
         }
 
@@ -395,7 +390,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
         ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
         if (key != null) {
-            BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
+            BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).ifPresent(provider -> {
                 provider.setTemplate(key, newTemplate);
                 provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
             });
@@ -403,7 +398,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     private void build(ItemStack stack, Level world, Player player, BlockPos pos, InteractionHand hand) {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key != null) {
                 Template template = provider.getTemplateForKey(key);
@@ -426,7 +421,7 @@ public class GadgetCopyPaste extends AbstractGadget {
             ImmutableSortedSet<ChunkPos> unloaded = region.getUnloadedChunks(world);
 
             if (!unloaded.isEmpty()) {
-                player.displayClientMessage(MessageTranslation.BUILD_UNLOADED.componentTranslation(unloaded.size()).setStyle(Styles.RED), true);
+                player.sendSystemMessage(MessageTranslation.BUILD_UNLOADED.componentTranslation(unloaded.size()).setStyle(Styles.RED));
                 BuildingGadgets.LOG.debug("Prevented build because {} chunks where detected as unloaded.", unloaded.size());
                 BuildingGadgets.LOG.trace("The following chunks were detected as unloaded {}.", CHUNK_JOINER.join(unloaded));
                 return false;
@@ -438,9 +433,9 @@ public class GadgetCopyPaste extends AbstractGadget {
         if ((region.getXSize() > maxDimension || region.getYSize() > maxDimension || region.getZSize() > maxDimension) &&
                 !OverrideBuildSizeCommand.mayPerformLargeBuild(player)) {
             BlockPos sizeVec = region.getMax().subtract(region.getMin());
-            player.displayClientMessage(MessageTranslation.BUILD_TOO_LARGE
+            player.sendOverlayMessage(MessageTranslation.BUILD_TOO_LARGE
                     .componentTranslation(sizeVec.getX(), sizeVec.getY(), sizeVec.getZ(), maxDimension, maxDimension, maxDimension)
-                    .setStyle(Styles.RED), true);
+                    .setStyle(Styles.RED));
             return false;
         }
 
@@ -472,7 +467,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     private void sendMessage(ItemStack stack, Player player, ITranslationProvider messageSource, Style style) {
-        player.displayClientMessage(messageSource.componentTranslation().setStyle(style), true);
+        player.sendSystemMessage(messageSource.componentTranslation().setStyle(style));
     }
 
     @Override
@@ -480,3 +475,5 @@ public class GadgetCopyPaste extends AbstractGadget {
         return Optional.of(new TemplateData(itemStack));
     }
 }
+
+

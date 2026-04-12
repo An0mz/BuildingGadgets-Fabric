@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketPasteGUI(BlockPos pos) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketPasteGUI> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketPasteGUI);
+    public static final Type<PacketPasteGUI> TYPE =
+            new Type<>(PacketHandler.PacketPasteGUI);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketPasteGUI> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeBlockPos(packet.pos),

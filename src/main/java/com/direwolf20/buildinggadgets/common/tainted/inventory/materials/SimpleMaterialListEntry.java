@@ -92,7 +92,7 @@ record SimpleMaterialListEntry(
                 itemData.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
 
                 // Write DataComponentPatch
-                DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+                DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.toStack().getComponentsPatch())
                         .resultOrPartial(error -> {})
                         .ifPresent(tag -> itemData.put("components", tag));
 
@@ -115,7 +115,7 @@ record SimpleMaterialListEntry(
                     // Serialize to NBT first, then convert to JSON
                     CompoundTag itemNbt = new CompoundTag();
                     itemNbt.putString("item", BuiltInRegistries.ITEM.getKey(variant.getItem()).toString());
-                    DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.getComponents())
+                    DataComponentPatch.CODEC.encodeStart(NbtOps.INSTANCE, variant.toStack().getComponentsPatch())
                             .resultOrPartial(error -> {})
                             .ifPresent(tag -> itemNbt.put("components", tag));
 

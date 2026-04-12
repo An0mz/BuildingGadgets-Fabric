@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketAnchor() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketAnchor> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketAnchor);
+    public static final Type<PacketAnchor> TYPE =
+            new Type<>(PacketHandler.PacketAnchor);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketAnchor> CODEC = StreamCodec.of(
             (buf, packet) -> {},

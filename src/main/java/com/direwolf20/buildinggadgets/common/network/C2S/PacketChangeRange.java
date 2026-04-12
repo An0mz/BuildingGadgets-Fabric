@@ -16,8 +16,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketChangeRange(int range) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketChangeRange> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketChangeRange);
+    public static final Type<PacketChangeRange> TYPE =
+            new Type<>(PacketHandler.PacketChangeRange);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketChangeRange> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeInt(packet.range),

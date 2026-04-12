@@ -16,8 +16,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -30,15 +30,16 @@ public class BuildingGadgetsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyBindings.initialize();
-        // World rendering uses Fabric API WorldRenderEvents.END_MAIN so the camera
+        // World rendering uses Fabric API LevelRenderEvents.END_MAIN so the camera
         // uniform GPU buffer is still bound when bufferSource.endBatch() is called.
         // (The old LevelRendererMixin fired at TAIL of renderLevel, after the frame
         // graph had already completed, so the camera UBO was no longer active and
         // all preview blocks appeared at the wrong position.)
-        WorldRenderEvents.END_MAIN.register(context -> {
+        LevelRenderEvents.END_MAIN.register(context -> {
             WorldRenderContextWrapper ctx = new WorldRenderContextWrapper(
                     Minecraft.getInstance().gameRenderer.getMainCamera(),
-                    new PoseStack()
+                    new PoseStack(),
+                    context.submitNodeCollector()
             );
             EventRenderWorldLast.renderAfterSetup(ctx);
             EventRenderWorldLast.renderWorldLastEvent(ctx);
@@ -51,7 +52,7 @@ public class BuildingGadgetsClient implements ClientModInitializer {
         CACHE_TEMPLATE_PROVIDER.registerUpdateListener(BGRenderers.COPY_PASTE);
         ClientPacketHandler.registerMessages();
 
-        TooltipComponentCallback.EVENT.register(data -> {
+        ClientTooltipComponentCallback.EVENT.register(data -> {
             if(data instanceof TemplateData) {
                 return ((TemplateData) data).clientTooltip();
             }

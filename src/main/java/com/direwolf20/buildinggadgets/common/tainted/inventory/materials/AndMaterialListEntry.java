@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * A {@link SubMaterialListEntry} using "and" as the connection between entries.
  */
 class AndMaterialListEntry extends SubMaterialListEntry {
-    static final MaterialListEntry.Serializer<SubMaterialListEntry> SERIALIZER = new SubMaterialListEntry.Serializer(NBTKeys.AND_SERIALIZER_ID) {
+    static final MaterialListEntry.Serializer<SubMaterialListEntry> SERIALIZER = new Serializer(NBTKeys.AND_SERIALIZER_ID) {
         @Override
         protected SubMaterialListEntry create(ImmutableList<MaterialListEntry<?>> subEntries, ImmutableList<SimpleMaterialListEntry> constantEntries) {
             return new AndMaterialListEntry(subEntries, constantEntries);

@@ -122,7 +122,7 @@ public class EffectBlock extends BaseEntityBlock {
         }
     }
 
-    public EffectBlock(Block.Properties properties) {
+    public EffectBlock(Properties properties) {
         super(properties);
     }
 
@@ -158,13 +158,6 @@ public class EffectBlock extends BaseEntityBlock {
     @Override
     public boolean skipRendering(BlockState p_200122_1_, BlockState p_200122_2_, Direction p_200122_3_) {
         return true;
-    }
-
-
-
-    @Override
-    public int getLightBlock(BlockState state) {
-        return 0;
     }
 
     @Override

@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleConnectedArea() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleConnectedArea> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleConnectedArea);
+    public static final Type<PacketToggleConnectedArea> TYPE =
+            new Type<>(PacketHandler.PacketToggleConnectedArea);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleConnectedArea> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing

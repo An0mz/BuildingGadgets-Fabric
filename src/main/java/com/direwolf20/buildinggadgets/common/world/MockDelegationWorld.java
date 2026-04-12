@@ -230,12 +230,12 @@ public class MockDelegationWorld implements LevelAccessor {
     }
 
     @Override
-    public @Nullable ChunkAccess getChunk(int x, int z, net.minecraft.world.level.chunk.status.ChunkStatus chunkStatus, boolean requireChunk) {
+    public @Nullable ChunkAccess getChunk(int x, int z, ChunkStatus chunkStatus, boolean requireChunk) {
         return delegate.getChunk(x, z, chunkStatus, requireChunk);  // Delegate like before
     }
 
     @Override
-    public int getHeight(Heightmap.Types heightmapType, int x, int z) {
+    public int getHeight(Types heightmapType, int x, int z) {
         return delegate.getHeight(heightmapType, x, z);
     }
 
@@ -244,7 +244,6 @@ public class MockDelegationWorld implements LevelAccessor {
         return delegate.getSkyDarken();
     }
 
-    @Override
     public int getBlockTint(BlockPos pos, ColorResolver resolver) {
         return 0;
     }
@@ -307,7 +306,9 @@ public class MockDelegationWorld implements LevelAccessor {
         if (this.delegate.isOutsideBuildHeight(pos))
             return Blocks.VOID_AIR.defaultBlockState();
         BlockState state = getOverriddenState(pos);
-        return state != null ? state : Blocks.AIR.defaultBlockState();
+        // Fall through to the real world for non-overridden positions so that
+        // adjacent-block queries (e.g. face-culling, state connections) work correctly.
+        return state != null ? state : delegate.getBlockState(pos);
     }
 
     @Override
@@ -399,7 +400,6 @@ public class MockDelegationWorld implements LevelAccessor {
         return new BlockInfo(pos, state);
     }
 
-    @Override
     public float getShade(Direction p_230487_1_, boolean p_230487_2_) {
         return 0;
     }

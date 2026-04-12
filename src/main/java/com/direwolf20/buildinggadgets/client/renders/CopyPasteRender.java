@@ -1,5 +1,6 @@
 package com.direwolf20.buildinggadgets.client.renders;
 
+import com.direwolf20.buildinggadgets.client.renderer.GhostBlockRenderUtil;
 import com.direwolf20.buildinggadgets.client.renderer.OurRenderTypes;
 import com.direwolf20.buildinggadgets.common.BuildingGadgets;
 import com.direwolf20.buildinggadgets.common.component.BGComponent;
@@ -16,13 +17,18 @@ import com.direwolf20.buildinggadgets.common.util.TemplateKeyHelper;
 import com.direwolf20.buildinggadgets.common.world.MockDelegationWorld;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.mojang.blaze3d.*;
 import com.mojang.blaze3d.vertex.*;
 import com.direwolf20.buildinggadgets.client.events.WorldRenderContextWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +77,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                 renderCopy(stack, region);
             });
         } else {
-            renderPaste(stack, cameraView, player, heldItem);
+            renderPaste(stack, cameraView, player, heldItem, context.submitNodeCollector());
         }
 
         stack.popPose();
@@ -100,7 +106,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         );
 
         // Draw AABB box manually - LevelRenderer.renderLineBox API keeps changing
-        com.mojang.blaze3d.vertex.VertexConsumer lineBuffer = buffer.getBuffer(OurRenderTypes.CopyGadgetLines);
+        VertexConsumer lineBuffer = buffer.getBuffer(OurRenderTypes.CopyGadgetLines);
         float r = R / 255f, g = G / 255f, b = B / 255f, a = 1f;
         double x0 = box.minX, y0 = box.minY, z0 = box.minZ;
         double x1 = box.maxX, y1 = box.maxY, z1 = box.maxZ;
@@ -133,10 +139,10 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
         buffer.endBatch();
     }
 
-    private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem) {
+    private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem, SubmitNodeCollector collector) {
         Level world = player.level();
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(heldItem);
             if (key != null) {
                 GadgetCopyPaste.getActivePos(player, heldItem).ifPresent(startPos -> {
@@ -158,21 +164,30 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
                         System.gc();
                     }
 
-                    renderTargets(matrices, cameraView, context, targets, startPos);
+                    renderTargets(matrices, cameraView, context, targets, startPos, collector);
                     lastRendered = id;
                 });
             }
         });
     }
 
-    private void renderTargets(PoseStack matrix, Vec3 projectedView, BuildContext context, List<PlacementTarget> targets, BlockPos startPos) {
+    private void renderTargets(PoseStack matrix, Vec3 projectedView, BuildContext context, List<PlacementTarget> targets, BlockPos startPos, SubmitNodeCollector collector) {
         tickTrack = 0;
 
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(
-                bufferSource, .7f);
+        BlockStateModelSet modelSet = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+        MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+        VertexConsumer ghostConsumer = buffer.getBuffer(OurRenderTypes.GhostBlock);
 
-        BlockRenderDispatcher dispatcher = getMc().getBlockRenderer();
+        // Blue-tinted semi-transparent ghost using camera-relative CPU rendering.
+        // The matrix already has translate(-cameraView) applied; we push+translate by targetPos
+        // to get camera-relative block position, same coordinate space as renderBoxSolid.
+        QuadInstance quadInstance = new QuadInstance();
+        quadInstance.setLightCoords(0xF000F0); // full-bright lightmap
+        quadInstance.setOverlayCoords(OverlayTexture.NO_OVERLAY);
+
+        // Pre-build ghost position set to cull shared faces between adjacent ghost blocks.
+        Set<BlockPos> ghostSet = new HashSet<>();
+        for (PlacementTarget t : targets) ghostSet.add(t.getPos());
 
         for (PlacementTarget target : targets) {
             BlockPos targetPos = target.getPos();
@@ -183,7 +198,17 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
 
             try {
                 if (state.getRenderShape() == RenderShape.MODEL) {
-                    dispatcher.renderSingleBlock(state, matrix, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                    BlockStateModel model = modelSet.get(state);
+                    List<BlockStateModelPart> parts = new ArrayList<>();
+                    // Use a stable seed from the block position to avoid per-frame flickering.
+                    model.collectParts(RandomSource.create(targetPos.asLong()), parts);
+                    // Cull faces adjacent to solid real-world blocks and adjacent ghost blocks.
+                    parts = GhostBlockRenderUtil.cullAgainstNeighbors(parts, context.getWorld(), targetPos, ghostSet);
+
+                    // Render quads with correct biome tint (e.g. grass green, leaf green).
+                    // 0x80 = 50% alpha so the preview is semi-transparent.
+                    GhostBlockRenderUtil.renderPartsWithTint(
+                            ghostConsumer, matrix.last(), parts, state, targetPos, 0x80, quadInstance);
                 }
             } catch (Exception e) {
                 BuildingGadgets.LOG.trace("Caught exception whilst rendering {}.", state, e);
@@ -191,8 +216,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
 
             matrix.popPose();
         }
-
-        bufferSource.endBatch();
+        buffer.endBatch();
     }
 
     @Override

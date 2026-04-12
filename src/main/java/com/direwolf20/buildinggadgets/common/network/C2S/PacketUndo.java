@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketUndo() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketUndo> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketUndo);
+    public static final Type<PacketUndo> TYPE =
+            new Type<>(PacketHandler.PacketUndo);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketUndo> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing

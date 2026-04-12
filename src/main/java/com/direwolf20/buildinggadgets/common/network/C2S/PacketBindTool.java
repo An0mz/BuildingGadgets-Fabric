@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketBindTool() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketBindTool> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketBindTool);
+    public static final Type<PacketBindTool> TYPE =
+            new Type<>(PacketHandler.PacketBindTool);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketBindTool> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing

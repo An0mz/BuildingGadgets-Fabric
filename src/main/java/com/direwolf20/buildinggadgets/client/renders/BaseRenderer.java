@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import team.reborn.energy.api.base.SimpleEnergyItem;
+import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 
 public abstract class BaseRenderer {
 
@@ -70,7 +70,7 @@ public abstract class BaseRenderer {
         // If energy system is disabled (capacity == 0), treat as unlimited
         if (gadget.getEnergyCapacity() == 0)
             return Integer.MAX_VALUE;
-        return SimpleEnergyItem.getStoredEnergyUnchecked(heldItem);
+        return ((AbstractGadget) heldItem.getItem()).getStoredEnergy(heldItem);
     }
 
     protected static void renderMissingBlock(Matrix4f matrix, VertexConsumer builder, BlockPos pos) {

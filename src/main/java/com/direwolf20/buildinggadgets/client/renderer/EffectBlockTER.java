@@ -8,25 +8,26 @@ import com.direwolf20.buildinggadgets.common.tileentities.EffectBlockTileEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
+
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity, EffectBlockTER.RenderState> {
@@ -36,7 +37,6 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         public EffectBlock.Mode mode;
         public int ticksExisted;
         public int maxLife;
-        // which faces to render (not adjacent to another EffectBlock): down, up, north, south, east, west
         public boolean renderDown, renderUp, renderNorth, renderSouth, renderEast, renderWest;
     }
 
@@ -50,9 +50,6 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
     @Override
     public void extractRenderState(EffectBlockTileEntity tile, RenderState state, float partialTick, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling) {
-        // MUST populate blockEntityType (and blockPos, lightCoords, etc.) via extractBase,
-        // otherwise BlockEntityRenderDispatcher.submit() looks up the renderer by state.blockEntityType
-        // which would be null, causing the renderer to be silently skipped.
         BlockEntityRenderState.extractBase(tile, state, crumbling);
         state.renderedBlock = tile.getRenderedBlock();
         state.mode = tile.getReplacementMode();
@@ -100,34 +97,18 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         BlockState renderBlockState = renderData.getState();
 
-        // --- Ghost block rendering via submitCustomGeometry ---
-        // Collect block model parts (using a fresh random for variant selection)
+        // Render the ghost block using submitBlockModel (MC 26.1.x API)
         try {
-            BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-            BlockStateModel model = dispatcher.getBlockModel(renderBlockState);
-            List<BlockModelPart> parts = model.collectParts(RandomSource.create());
-
-            collector.submitCustomGeometry(stack, OurRenderTypes.RenderBlock, (pose, consumer) -> {
-                for (BlockModelPart part : parts) {
-                    // Quads not belonging to any specific face
-                    for (BakedQuad quad : part.getQuads(null)) {
-                        consumer.putBulkData(pose, quad, 1f, 1f, 1f, 0.55f,
-                                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-                    }
-                    // Quads per face direction
-                    for (Direction dir : Direction.values()) {
-                        for (BakedQuad quad : part.getQuads(dir)) {
-                            consumer.putBulkData(pose, quad, 1f, 1f, 1f, 0.55f,
-                                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-                        }
-                    }
-                }
-            });
+            BlockStateModelSet modelSet = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+            BlockStateModel model = modelSet.get(renderBlockState);
+            List<BlockStateModelPart> parts = new ArrayList<>();
+            model.collectParts(RandomSource.create(), parts);
+            collector.submitBlockModel(stack, OurRenderTypes.RenderBlock, parts,
+                    BlockModelRenderState.EMPTY_TINTS, 0xF000F0, OverlayTexture.NO_OVERLAY, model.materialFlags());
         } catch (Exception e) {
-            BuildingGadgets.LOG.error("Failed to render effect block: {}", e.getMessage());
+            BuildingGadgets.LOG.error("Failed to render effect block state", e);
         }
 
-        // --- Colored overlay box rendering ---
         float red = 0f, green = 1f, blue = 1f;
         if (toolMode == EffectBlock.Mode.REMOVE || toolMode == EffectBlock.Mode.REPLACE) {
             red = 1f;

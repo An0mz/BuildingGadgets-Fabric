@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleRayTraceFluid() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleRayTraceFluid> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleRayTraceFluid);
+    public static final Type<PacketToggleRayTraceFluid> TYPE =
+            new Type<>(PacketHandler.PacketToggleRayTraceFluid);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleRayTraceFluid> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing

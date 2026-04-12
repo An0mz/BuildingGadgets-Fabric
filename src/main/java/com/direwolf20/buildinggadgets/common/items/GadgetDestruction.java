@@ -59,7 +59,7 @@ public class GadgetDestruction extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
         addEnergyInformation(tooltipAdder, stack);
 
@@ -138,8 +138,8 @@ public class GadgetDestruction extends AbstractGadget {
     public static void switchOverlay(Player player, ItemStack stack) {
         boolean newOverlay = !getOverlay(stack);
         setOverlay(stack, newOverlay);
-        player.displayClientMessage(TooltipTranslation.GADGET_DESTROYSHOWOVERLAY
-                .componentTranslation(newOverlay).setStyle(Styles.AQUA), true);
+        player.sendOverlayMessage(TooltipTranslation.GADGET_DESTROYSHOWOVERLAY
+                .componentTranslation(newOverlay).setStyle(Styles.AQUA));
     }
 
     public static boolean getIsFluidOnly(ItemStack stack) {

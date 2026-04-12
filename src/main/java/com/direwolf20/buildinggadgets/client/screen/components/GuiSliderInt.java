@@ -6,7 +6,7 @@ import com.direwolf20.buildinggadgets.common.network.C2S.PacketChangeRange;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -86,7 +86,7 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partial) {
         if (!visible) {
             return;
         }
@@ -100,7 +100,7 @@ public class GuiSliderInt extends AbstractSliderButton {
 
     }
 
-    private void renderText(GuiGraphics guiGraphics, Minecraft mc, AbstractWidget component) {
+    private void renderText(GuiGraphicsExtractor guiGraphics, Minecraft mc, AbstractWidget component) {
         int color = !active ? 10526880 : (isHovered ? 16777120 : -1);
         String buttonText = component.getMessage().getString();
         int strWidth = mc.font.width(buttonText);
@@ -110,14 +110,14 @@ public class GuiSliderInt extends AbstractSliderButton {
             buttonText = mc.font.plainSubstrByWidth(buttonText, component.getWidth() - 6 - ellipsisWidth).trim() + "...";
         }
 
-        guiGraphics.drawCenteredString(mc.font, buttonText, component.getX() + component.getWidth() / 2, component.getY() + (component.getHeight() - 8) / 2, color);
+        guiGraphics.centeredText(mc.font, buttonText, component.getX() + component.getWidth() / 2, component.getY() + (component.getHeight() - 8) / 2, color);
     }
 
     @Override
     public void playDownSound(SoundManager p_playDownSound_1_) {
     }
 
-    protected void renderBg(GuiGraphics guiGraphics, Minecraft mc, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphicsExtractor guiGraphics, Minecraft mc, int mouseX, int mouseY) {
         if (!visible) {
             return;
         }
@@ -125,7 +125,7 @@ public class GuiSliderInt extends AbstractSliderButton {
         drawBorderedRect(guiGraphics, (int) (getX() + (value * (width - 8))), getY(), 8, height);
     }
 
-    private void drawBorderedRect(GuiGraphics guiGraphics, int x, int y, int width, int height) {
+    private void drawBorderedRect(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height) {
         guiGraphics.fill(x, y, x + width, y + height, colorSliderBackground);
         guiGraphics.fill(++x, ++y, x + width - 2, y + height - 2, colorSlider);
     }
@@ -147,7 +147,7 @@ public class GuiSliderInt extends AbstractSliderButton {
         }
 
         @Override
-        protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+        protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partial) {
             if (!visible) {
                 return;
             }

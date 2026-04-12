@@ -65,7 +65,7 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
             if (VersionNumber.parse(version).compareTo(COMP_VERSION) > 0)
                 throw new UnknownTemplateVersionException(version);
 
-            TemplateHeader.Builder builder;
+            Builder builder;
             if (data.has(JsonKeys.HEADER_BOUNDING_BOX))
                 builder = TemplateHeader.builder(context.deserialize(data.get(JsonKeys.HEADER_BOUNDING_BOX), Region.class));
             else
@@ -157,12 +157,12 @@ public record TemplateHeader(@Nullable String name, @Nullable String author, @Nu
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .registerTypeAdapter(Identifier.class, new JsonBiDiSerializer<Identifier>() {
                     @Override
-                    public Identifier deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                    public Identifier deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
                         return Identifier.parse(json.getAsString());
                     }
                     @Override
-                    public JsonElement serialize(Identifier src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
-                        return new com.google.gson.JsonPrimitive(src.toString());
+                    public JsonElement serialize(Identifier src, Type typeOfSrc, JsonSerializationContext context) {
+                        return new JsonPrimitive(src.toString());
                     }
                 })
                 .registerTypeAdapter(MaterialList.class, new MaterialList.JsonSerializer())

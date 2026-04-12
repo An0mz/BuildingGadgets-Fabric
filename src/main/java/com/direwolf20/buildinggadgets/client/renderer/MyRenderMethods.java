@@ -1,26 +1,9 @@
 package com.direwolf20.buildinggadgets.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-
-import java.util.List;
-
+// MyRenderMethods: BakedQuad was removed in Minecraft 26.1's rendering rewrite.
+// The old renderModelBrightnessColorQuads was used for legacy quad-based rendering.
+// This class is kept as a stub; callers should use BlockRenderDispatcher.renderSingleBlock
+// or submitCustomGeometry on the SubmitNodeCollector instead.
 public class MyRenderMethods {
-    // TODO: Replace with native method
-    public static void renderModelBrightnessColorQuads(PoseStack.Pose matrixEntry, VertexConsumer builder, float red, float green, float blue, float alpha, List<BakedQuad> listQuads, int combinedLightsIn, int combinedOverlayIn) {
-        for (BakedQuad bakedquad : listQuads) {
-            float f = 1f;
-            float f1 = 1f;
-            float f2 = 1f;
-            float f3 = alpha;
-            if (bakedquad.isTinted()) {
-                f = red;
-                f1 = green;
-                f2 = blue;
-            }
-            builder.putBulkData(matrixEntry, bakedquad, f, f1, f2, f3, combinedLightsIn, combinedOverlayIn);
-        }
-    }
+    // Intentionally empty — BakedQuad no longer exists in 26.1.
 }

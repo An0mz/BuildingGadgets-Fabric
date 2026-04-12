@@ -1,4 +1,4 @@
-package com.direwolf20.buildinggadgets.common.tainted.template;
+package com.direwolf20.buildinggadgets.common.util;
 
 import com.direwolf20.buildinggadgets.common.component.BGDataComponents;
 import com.direwolf20.buildinggadgets.common.tainted.template.ITemplateKey;

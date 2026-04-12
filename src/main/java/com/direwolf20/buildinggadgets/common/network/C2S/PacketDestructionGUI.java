@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketDestructionGUI(int left, int right, int up, int down, int depth) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketDestructionGUI> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketDestructionGUI);
+    public static final Type<PacketDestructionGUI> TYPE =
+            new Type<>(PacketHandler.PacketDestructionGUI);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketDestructionGUI> CODEC = StreamCodec.of(
             (buf, packet) -> {

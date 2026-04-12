@@ -12,7 +12,7 @@ import java.util.List;
  * A {@link SubMaterialListEntry} using "or" as the connection between entries.
  */
 class OrMaterialListEntry extends SubMaterialListEntry {
-    static final MaterialListEntry.Serializer<SubMaterialListEntry> SERIALIZER = new SubMaterialListEntry.Serializer(NBTKeys.OR_SERIALIZER_ID) {
+    static final MaterialListEntry.Serializer<SubMaterialListEntry> SERIALIZER = new Serializer(NBTKeys.OR_SERIALIZER_ID) {
         @Override
         protected SubMaterialListEntry create(ImmutableList<MaterialListEntry<?>> subEntries, ImmutableList<SimpleMaterialListEntry> constantEntries) {
             return new OrMaterialListEntry(subEntries, constantEntries);

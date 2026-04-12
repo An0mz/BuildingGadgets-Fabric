@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleMode(int mode) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleMode> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleMode);
+    public static final Type<PacketToggleMode> TYPE =
+            new Type<>(PacketHandler.PacketToggleMode);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleMode> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeInt(packet.mode),

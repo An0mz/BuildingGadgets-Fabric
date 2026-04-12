@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 public class TemplateManager extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public TemplateManager(Block.Properties properties) {
+    public TemplateManager(Properties properties) {
         super(properties);
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.SOUTH));
     }

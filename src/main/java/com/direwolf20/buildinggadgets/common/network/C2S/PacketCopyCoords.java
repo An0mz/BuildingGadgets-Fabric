@@ -18,8 +18,8 @@ import java.util.Optional;
 
 public record PacketCopyCoords(BlockPos startPos, BlockPos endPos) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketCopyCoords> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketCopyCoords);
+    public static final Type<PacketCopyCoords> TYPE =
+            new Type<>(PacketHandler.PacketCopyCoords);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketCopyCoords> CODEC = StreamCodec.of(
             (buf, packet) -> {
@@ -45,14 +45,14 @@ public record PacketCopyCoords(BlockPos startPos, BlockPos endPos) implements Cu
 
             if (payload.startPos.equals(BlockPos.ZERO) && payload.endPos.equals(BlockPos.ZERO)) {
                 GadgetCopyPaste.setSelectedRegion(heldItem, null);
-                context.player().displayClientMessage(MessageTranslation.AREA_RESET.componentTranslation().setStyle(Styles.AQUA), true);
+                context.player().sendSystemMessage(MessageTranslation.AREA_RESET.componentTranslation().setStyle(Styles.AQUA));
             } else {
                 GadgetCopyPaste.setSelectedRegion(heldItem, new Region(payload.startPos, payload.endPos));
             }
 
             Optional<Region> regionOpt = GadgetCopyPaste.getSelectedRegion(heldItem);
             if (regionOpt.isEmpty()) {
-                context.player().displayClientMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN), true);
+                context.player().sendSystemMessage(MessageTranslation.FIRST_COPY.componentTranslation().setStyle(Styles.DK_GREEN));
             }
             regionOpt.ifPresent(region -> ((GadgetCopyPaste) heldItem.getItem()).tryCopy(heldItem, context.player().level(), context.player(), region));
         });

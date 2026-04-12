@@ -2,7 +2,7 @@ package com.direwolf20.buildinggadgets.client;
 
 import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -26,7 +26,7 @@ public class KeyBindings {
     }
 
     private static KeyMapping createBinding(String name, int key) {
-        return KeyBindingHelper.registerKeyBinding(new KeyMapping(getKey(name), InputConstants.Type.KEYSYM, key, BG_CATEGORY));
+        return KeyMappingHelper.registerKeyMapping(new KeyMapping(getKey(name), InputConstants.Type.KEYSYM, key, BG_CATEGORY));
     }
 
     private static String getKey(String name) {

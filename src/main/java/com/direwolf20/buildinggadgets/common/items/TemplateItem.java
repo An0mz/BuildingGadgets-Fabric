@@ -26,7 +26,7 @@ public class TemplateItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<net.minecraft.network.chat.Component> tooltipAdder, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flagIn) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flagIn);
         GadgetUtils.addTooltipNameAndAuthor(stack, null, tooltipAdder);
     }

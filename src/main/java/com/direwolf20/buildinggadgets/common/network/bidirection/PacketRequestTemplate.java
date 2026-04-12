@@ -21,8 +21,8 @@ import java.util.UUID;
 
 public record PacketRequestTemplate(UUID id) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketRequestTemplate> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketRequestTemplate);
+    public static final Type<PacketRequestTemplate> TYPE =
+            new Type<>(PacketHandler.PacketRequestTemplate);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketRequestTemplate> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeUUID(packet.id),
@@ -67,7 +67,7 @@ public record PacketRequestTemplate(UUID id) implements CustomPacketPayload {
 
         public static void handle(PacketRequestTemplate payload, ServerPlayNetworking.Context context) {
             context.server().execute(() -> {
-                BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
+                BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level().getLevelData()).ifPresent(provider -> {
                     provider.requestRemoteUpdate(new TemplateKey(payload.id), context.player().level());
                 });
             });

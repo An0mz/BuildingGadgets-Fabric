@@ -16,8 +16,8 @@ import net.minecraft.world.item.ItemStack;
 
 public record PacketToggleFuzzy() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketToggleFuzzy> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketToggleFuzzy);
+    public static final Type<PacketToggleFuzzy> TYPE =
+            new Type<>(PacketHandler.PacketToggleFuzzy);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketToggleFuzzy> CODEC = StreamCodec.of(
             (buf, packet) -> {}, // Write nothing

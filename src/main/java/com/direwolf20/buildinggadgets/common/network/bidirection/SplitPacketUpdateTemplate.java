@@ -31,8 +31,8 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
 
     public static final int PAYLOAD_LIMIT = Short.MAX_VALUE;
 
-    public static final CustomPacketPayload.Type<SplitPacketUpdateTemplate> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.SplitPacketUpdateTemplate);
+    public static final Type<SplitPacketUpdateTemplate> TYPE =
+            new Type<>(PacketHandler.SplitPacketUpdateTemplate);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SplitPacketUpdateTemplate> CODEC = StreamCodec.of(
             (buf, packet) -> buf.writeBytes(packet.data),
@@ -158,7 +158,7 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
             try {
                 Template template = readTemplate(accumulator);
 
-                context.server().execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
+                context.server().execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level().getLevelData()).ifPresent(provider -> {
                     provider.setTemplate(new TemplateKey(id), template);
                 }));
             } catch (TemplateReadException e) {

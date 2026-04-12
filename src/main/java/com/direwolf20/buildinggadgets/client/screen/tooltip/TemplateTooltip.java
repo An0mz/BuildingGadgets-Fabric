@@ -18,7 +18,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
@@ -42,7 +42,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public int getHeight(net.minecraft.client.gui.Font font) {
+    public int getHeight(Font font) {
         if(this.getCount() > 0 && isShiftDown()) {
             return (((count - 1) / EventUtil.STACKS_PER_LINE) + 1) * 21;
         }
@@ -58,7 +58,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     private int getCount() {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level.getLevelData()).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
             if (templateKey != null) {
                 Template template = provider.getTemplateForKey(templateKey);
@@ -86,7 +86,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public void renderImage(Font font, int xin, int yin, int width, int height, GuiGraphics guiGraphics) {
+    public void extractImage(Font font, int xin, int yin, int width, int height, GuiGraphicsExtractor guiGraphics) {
         if (!isShiftDown())
             return;
 
@@ -95,7 +95,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
         if (mc.level == null || mc.player == null)
             return;
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level.getLevelData()).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
             if (templateKey != null) {
                 Template template = provider.getTemplateForKey(templateKey);
@@ -138,7 +138,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     private int renderRequiredBlocks(
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             ItemStack itemStack,
             Font font,
             int x,
@@ -153,14 +153,14 @@ public class TemplateTooltip implements ClientTooltipComponent {
 
         boolean hasReq = req > 0;
 
-        guiGraphics.renderItem(itemStack, x, y);
-        guiGraphics.renderItemDecorations(font, itemStack, x, y);
+        guiGraphics.item(itemStack, x, y);
+        guiGraphics.itemDecorations(font, itemStack, x, y);
 
         // Draw count text at 0.5x scale using Matrix3x2fStack
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14));
         guiGraphics.pose().scale(0.5f, 0.5f);
-        guiGraphics.drawString(font, s1, 0, 0, 0xFFFFFF, true);
+        guiGraphics.text(font, s1, 0, 0, 0xFFFFFF, true);
         guiGraphics.pose().popMatrix();
 
         int missingCount = 0;
@@ -172,7 +172,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
             guiGraphics.pose().pushMatrix();
             guiGraphics.pose().translate(x + 8 - w2 / 2f, y + 17);
             guiGraphics.pose().scale(0.5f, 0.5f);
-            guiGraphics.drawString(font, s2, 0, 0, 0xFF0000, true);
+            guiGraphics.text(font, s2, 0, 0, 0xFF0000, true);
             guiGraphics.pose().popMatrix();
 
             missingCount = req - count;

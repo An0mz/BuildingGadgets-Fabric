@@ -8,7 +8,7 @@ import com.direwolf20.buildinggadgets.common.tainted.building.Region;
 import com.direwolf20.buildinggadgets.common.util.lang.GuiTranslation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -95,8 +95,8 @@ public class CopyGUI extends Screen {
         buttons.forEach(this::addRenderableWidget);
     }
 
-    private void drawFieldLabel(GuiGraphics guiGraphics, String name, int x, int y) {
-        guiGraphics.drawString(Minecraft.getInstance().font, name, this.x + x, this.y + y, 0xFFFFFF, true);
+    private void drawFieldLabel(GuiGraphicsExtractor guiGraphics, String name, int x, int y) {
+        guiGraphics.text(Minecraft.getInstance().font, name, this.x + x, this.y + y, 0xFFFFFF, true);
     }
 
     private void coordsModeSwitch() {
@@ -125,7 +125,7 @@ public class CopyGUI extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         drawFieldLabel(guiGraphics, GuiTranslation.FIELD_START.format() + " X", -175, -36);
         drawFieldLabel(guiGraphics, "Y", -45, -36);
         drawFieldLabel(guiGraphics, "Z", 55, -36);
@@ -133,10 +133,10 @@ public class CopyGUI extends Screen {
         drawFieldLabel(guiGraphics, "Y", -45, -11);
         drawFieldLabel(guiGraphics, "Z", 55, -11);
 
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()), this.x, this.y - 80, 0xFFFFFF);
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_SUBHEADING.getTranslationKey()), this.x, this.y - 68, 0xFFFFFF);
+        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()), this.x, this.y - 80, 0xFFFFFF);
+        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_SUBHEADING.getTranslationKey()), this.x, this.y - 68, 0xFFFFFF);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -162,9 +162,9 @@ public class CopyGUI extends Screen {
         }
 
         @Override
-        protected void renderContents(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
             int textColor = isActive() ? 0xFFFFFF : 0xA0A0A0;
-            guiGraphics.drawCenteredString(net.minecraft.client.Minecraft.getInstance().font,
+            guiGraphics.centeredText(Minecraft.getInstance().font,
                     getMessage(), getX() + width / 2, getY() + (height - 8) / 2, textColor);
         }
 

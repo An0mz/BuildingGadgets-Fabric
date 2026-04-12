@@ -4,18 +4,28 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 
 public class OurRenderTypes {
 
-    public static final RenderType RenderBlock          = RenderTypes.tripwireMovingBlock();
+    // translucentMovingBlock() is the correct 26.1 render type for ghost/preview blocks
+    public static final RenderType RenderBlock          = RenderTypes.translucentMovingBlock();
     public static final RenderType MissingBlockOverlay  = RenderTypes.lightning();
     public static final RenderType CopyGadgetLines      = RenderTypes.lines();
-    public static final RenderType CopyPasteRenderBlock = RenderTypes.tripwireMovingBlock();
+    public static final RenderType CopyPasteRenderBlock = RenderTypes.translucentMovingBlock();
     public static final RenderType BlockOverlay         = RenderTypes.lightning();
 
     /**
+     * Translucent render type using the block atlas texture.
+     * Used for rendering ghost block quads via the CPU MultiBufferSource path
+     * (putBakedQuad). This uses camera-relative coordinates correctly, unlike
+     * the deferred submitBlockModel pipeline.
+     */
+    public static final RenderType GhostBlock = RenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS);
+
+    /**
      * Wraps a MultiBufferSource so that:
-     * 1. All render types are replaced with RenderBlock (tripwire = translucent no-cull),
+     * 1. All render types are replaced with RenderBlock (translucent no-cull),
      *    giving the ghost blocks their characteristic tinted look.
      * 2. Alpha is multiplied by constantAlpha (55%) for transparency.
      */
@@ -30,9 +40,6 @@ public class OurRenderTypes {
 
         @Override
         public VertexConsumer getBuffer(RenderType type) {
-            // Force all block render types through RenderBlock (tripwire pipeline).
-            // This gives the translucent tinted appearance AND works with the block
-            // vertex format (position, UV, lightmap, overlay, normal).
             return new MultiplyAlphaVertexBuilder(inner.getBuffer(RenderBlock), constantAlpha);
         }
 

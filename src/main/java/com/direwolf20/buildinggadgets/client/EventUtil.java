@@ -18,8 +18,8 @@ import java.util.Comparator;
  */
 @Environment(EnvType.CLIENT)
 public class EventUtil {
-    public static final Comparator<Multiset.Entry<ItemVariant>> ENTRY_COMPARATOR = Comparator
-            .<Multiset.Entry<ItemVariant>, Integer>comparing(Entry::getCount)
+    public static final Comparator<Entry<ItemVariant>> ENTRY_COMPARATOR = Comparator
+            .<Entry<ItemVariant>, Integer>comparing(Entry::getCount)
             .reversed()
             .thenComparing(e -> BuiltInRegistries.ITEM.getKey(e.getElement().getItem()));
 

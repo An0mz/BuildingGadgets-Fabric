@@ -24,10 +24,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.*;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -70,9 +70,6 @@ public class ModeRadialMenu extends Screen {
             setSocketable(stack);
     }
 
-    @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-    }
 
     public void setSocketable(ItemStack stack) {
         if (stack.getItem() instanceof GadgetBuilding)
@@ -274,7 +271,7 @@ public class ModeRadialMenu extends Screen {
         return AbstractGadget.getGadget(Minecraft.getInstance().player);
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         float stime = 5F;
         float fract = Math.min(stime, timeIn + partialTicks) / stime;
         int x = width / 2;
@@ -296,7 +293,7 @@ public class ModeRadialMenu extends Screen {
         pose2d.pushMatrix();
         pose2d.translate((1 - fract) * x, (1 - fract) * y);
         pose2d.scale(fract, fract);
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         pose2d.popMatrix();
 
         if (segments == 0)
@@ -405,7 +402,7 @@ public class ModeRadialMenu extends Screen {
 
             Color color = i == modeIndex ? Color.GREEN : Color.WHITE;
             if (data.isSelected())
-                guiGraphics.drawString(font, name, xsp, ysp, color.getRGB(), true);
+                guiGraphics.text(font, name, xsp, ysp, color.getRGB(), true);
 
             double mod = 0.7;
             int xdp = (int) ((xp - x) * mod + x);
@@ -422,7 +419,7 @@ public class ModeRadialMenu extends Screen {
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(x - itemOffsetX * s, y - 8.0f * s);
         guiGraphics.pose().scale(s, s);
-        guiGraphics.renderItem(tool, 0, 0);
+        guiGraphics.item(tool, 0, 0);
         guiGraphics.pose().popMatrix();
     }
 
@@ -445,7 +442,7 @@ public class ModeRadialMenu extends Screen {
                 mode = GadgetCopyPaste.ToolMode.values()[slotSelected].getTranslation().format();
 
             assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.displayClientMessage(MessageTranslation.MODE_SET.componentTranslation(mode).setStyle(Styles.AQUA), true);
+            Minecraft.getInstance().player.sendSystemMessage(MessageTranslation.MODE_SET.componentTranslation(mode).setStyle(Styles.AQUA));
 
             PacketToggleMode.send(slotSelected);
             OurSounds.playSound();
@@ -460,14 +457,14 @@ public class ModeRadialMenu extends Screen {
 
     @Override
     public void tick() {
-        if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), KeyBindingHelper.getBoundKeyOf(KeyBindings.menuSettings).getValue())) {
+        if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), KeyMappingHelper.getBoundKeyOf(KeyBindings.menuSettings).getValue())) {
             onClose();
             changeMode();
         }
 
         ImmutableSet<KeyMapping> set = ImmutableSet.of(Minecraft.getInstance().options.keyUp, Minecraft.getInstance().options.keyLeft, Minecraft.getInstance().options.keyDown, Minecraft.getInstance().options.keyRight, Minecraft.getInstance().options.keyShift, Minecraft.getInstance().options.keySprint, Minecraft.getInstance().options.keyJump);
         for (KeyMapping k : set)
-            KeyMapping.set(KeyBindingHelper.getBoundKeyOf(k), k.isDown());
+            KeyMapping.set(KeyMappingHelper.getBoundKeyOf(k), k.isDown());
 
         timeIn++;
         ItemStack tool = getGadget();

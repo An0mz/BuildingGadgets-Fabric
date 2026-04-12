@@ -1,4 +1,4 @@
-/*package com.direwolf20.buildinggadgets.common.compat;
+package com.direwolf20.buildinggadgets.common.compat;/*package com.direwolf20.buildinggadgets.common.compat;
 
 import draylar.goml.api.ClaimUtils;
 import net.minecraft.core.BlockPos;

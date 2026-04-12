@@ -14,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 public record PacketRotateMirror(@Nullable Operation operation) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<PacketRotateMirror> TYPE =
-            new CustomPacketPayload.Type<>(PacketHandler.PacketRotateMirror);
+    public static final Type<PacketRotateMirror> TYPE =
+            new Type<>(PacketHandler.PacketRotateMirror);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PacketRotateMirror> CODEC = StreamCodec.of(
             (buf, packet) -> {

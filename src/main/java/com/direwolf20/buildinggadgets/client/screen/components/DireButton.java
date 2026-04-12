@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 
 public class DireButton extends Button {
@@ -18,7 +18,7 @@ public class DireButton extends Button {
     }
 
     @Override
-    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (!this.visible) return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -36,7 +36,7 @@ public class DireButton extends Button {
         int textColor = 14737632;
         if (!this.active) textColor = 10526880;
         else if (this.isHovered) textColor = 16777120;
-        guiGraphics.drawCenteredString(font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 7) / 2, textColor);
+        guiGraphics.centeredText(font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 7) / 2, textColor);
     }
 
 }

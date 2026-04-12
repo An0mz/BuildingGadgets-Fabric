@@ -90,7 +90,7 @@ public class GadgetExchanger extends AbstractGadget {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
         addEnergyInformation(tooltipAdder, stack);
 
@@ -127,7 +127,7 @@ public class GadgetExchanger extends AbstractGadget {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
-                    player.displayClientMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(net.minecraft.world.level.block.Blocks.AIR)).setStyle(Styles.AQUA), true);
+                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(Blocks.AIR)).setStyle(Styles.AQUA));
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
@@ -163,7 +163,7 @@ public class GadgetExchanger extends AbstractGadget {
             range = (range >= BuildingGadgets.getConfig().gadgets.maxRange) ? 1 : range + changeAmount;
         }
         setToolRange(heldItem, range);
-        player.displayClientMessage(MessageTranslation.RANGE_SET.componentTranslation(range).setStyle(Styles.AQUA), true);
+        player.sendSystemMessage(MessageTranslation.RANGE_SET.componentTranslation(range).setStyle(Styles.AQUA));
     }
 
     private void exchange(ServerPlayer player, ItemStack stack, TransactionContext transactionContext) {

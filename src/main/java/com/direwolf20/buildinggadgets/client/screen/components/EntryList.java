@@ -2,7 +2,7 @@ package com.direwolf20.buildinggadgets.client.screen.components;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.ObjectSelectionList.Entry;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -21,7 +21,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         glEnable(GL_SCISSOR_TEST);
         double guiScaleFactor = Minecraft.getInstance().getWindow().getGuiScale();
 
@@ -35,13 +35,13 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         glDisable(GL_SCISSOR_TEST);
     }
 
-    private void renderParts(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    private void renderParts(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         renderContentBackground(guiGraphics);
 
         int k = getRowLeft();
         int l = getY() + 4 - (int) scrollAmount();
 
-        this.renderListItems(guiGraphics, mouseX, mouseY, partialTicks);
+        this.extractListItems(guiGraphics, mouseX, mouseY, partialTicks);
 
         int j1 = maxScrollAmount();
         if (j1 > 0) {
@@ -60,7 +60,7 @@ public class EntryList<E extends Entry<E>> extends ObjectSelectionList<E> {
         }
     }
 
-    protected void renderContentBackground(GuiGraphics guiGraphics) {
+    protected void renderContentBackground(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fillGradient(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xC0101010, 0xD0101010);
     }
 

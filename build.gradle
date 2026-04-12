@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.13-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.15.5'
     id 'maven-publish'
 }
 
@@ -7,6 +7,7 @@ group = project.maven_group
 version = project.mod_version
 
 repositories {
+    // ParchmentMC kept for reference
     maven { name = "ParchmentMC"; url = "https://maven.parchmentmc.org/" }
     maven {
         url = "https://maven.shedaniel.me/"
@@ -38,72 +39,64 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    implementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
+    implementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
-    include modImplementation("teamreborn:energy:${project.energy_version}")
+    include implementation("teamreborn:energy:${project.energy_version}")
 
-    modRuntimeOnly("dev.architectury:architectury-fabric:${project.architectury_version}")
-    modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
+    // Architectury and REI: uncomment for runtime testing if needed
+    // runtimeOnly("dev.architectury:architectury-fabric:${project.architectury_version}")
+    // runtimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
 
-    modImplementation include("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}")
+    implementation include("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}")
 
-    modImplementation include("io.github.ladysnake:PlayerAbilityLib:${pal_version}")
+    compileOnly "curse.maven:IPN-495267:7746391"
+    compileOnly "curse.maven:ftb-chunks-472657:5415199"
+    compileOnly "curse.maven:ftb-teams-438497:5202948"
+    compileOnly "curse.maven:ftb-library-438495:5567592"
 
-    modCompileOnly "curse.maven:IPN-495267:7746391"
-    modCompileOnly "curse.maven:ftb-chunks-472657:5415199"
-    modCompileOnly "curse.maven:ftb-teams-438497:5202948"
-    modCompileOnly "curse.maven:ftb-library-438495:5567592"
+    implementation include("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}")
 
-    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}")
-    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}")
-    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-level:${project.cca_version}")
+    implementation include("org.ladysnake.cardinal-components-api:cardinal-components-level:${project.cca_version}")
 
     include('me.lucko:fabric-permissions-api:0.3.1')
 }
 
 base {}
 
-tasks.named('remapJar') {
+tasks.named('jar') {
     archiveBaseName.set("[${project.findProperty('minecraft_version')}] ${project.findProperty('archives_base_name')}")
     archiveVersion.set(project.findProperty('mod_version'))
     archiveClassifier.set("")
 }
 
-tasks.named('remapSourcesJar') {
-    archiveBaseName.set("[${project.findProperty('minecraft_version')}] ${project.findProperty('archives_base_name')}")
-    archiveVersion.set(project.findProperty('mod_version'))
-    archiveClassifier.set("sources")
-}
-
-java {
-    withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-loom {
-    accessWidenerPath.set(file("src/main/resources/buildinggadgets.accesswidener"))
-}
-
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 tasks.withType(AbstractArchiveTask) {
     from(project.file("LICENSE"))
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+java {
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+loom {
+    accessWidenerPath.set(file("src/main/resources/buildinggadgets.accesswidener"))
+}
+
 
 processResources {
     inputs.property("version", project.version)
