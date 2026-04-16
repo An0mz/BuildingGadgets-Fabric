@@ -332,9 +332,21 @@ public class ModeRadialMenu extends Screen {
             signs = signsCopyPaste;
         }
 
-        net.minecraft.client.renderer.MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        net.minecraft.client.renderer.RenderType guiRenderType = net.minecraft.client.renderer.RenderType.lightning();
-        VertexConsumer vc = bufSource.getBuffer(guiRenderType);
+        // Capture the guiRenderState from GuiGraphics via reflection for new 1.21.6 deferred GUI rendering
+        net.minecraft.client.gui.render.state.GuiRenderState guiRenderState = null;
+        try {
+            java.lang.reflect.Field field = guiGraphics.getClass().getDeclaredField("guiRenderState");
+            field.setAccessible(true);
+            guiRenderState = (net.minecraft.client.gui.render.state.GuiRenderState) field.get(guiGraphics);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        // Capture current 2D pose matrix snapshot
+        org.joml.Matrix3x2f capturePose = new org.joml.Matrix3x2f(guiGraphics.pose());
+
+        // Collect all quad vertex data: each entry is float[24] = 4 vertices * (x, y, r, g, b, a)
+        List<float[]> quadData = new ArrayList<>();
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
         int indexBottom = segments / 4;
@@ -342,7 +354,6 @@ public class ModeRadialMenu extends Screen {
         for (int seg = 0; seg < segments; seg++) {
             boolean mouseInSector = isCursorInSlice(angle, totalDeg, degPer, inRange);
             float radius = Math.max(0F, Math.min((timeIn + partialTicks - seg * 6F / segments) * 40F, radiusMax));
-
 
             float gs = 0.25F;
             if (seg % 2 == 0)
@@ -370,10 +381,13 @@ public class ModeRadialMenu extends Screen {
                     nameData.add(new NameDisplayData((int) xp, (int) yp, mouseInSector, shouldCenter && (seg == indexBottom || seg == indexTop)));
 
                 if (!firstVert) {
-                    vc.addVertex((float) xpInner, (float) ypInner, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) prevInnerX, (float) prevInnerY, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) prevOuterX, (float) prevOuterY, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) xp, (float) yp, 0).setColor(r, g, b, a);
+                    float[] quad = new float[]{
+                        (float) xpInner,  (float) ypInner,  r, g, b, a,
+                        (float) prevInnerX, (float) prevInnerY, r, g, b, a,
+                        (float) prevOuterX, (float) prevOuterY, r, g, b, a,
+                        (float) xp,       (float) yp,       r, g, b, a
+                    };
+                    quadData.add(quad);
                 }
                 prevInnerX = xpInner; prevInnerY = ypInner;
                 prevOuterX = xp; prevOuterY = yp;
@@ -382,7 +396,45 @@ public class ModeRadialMenu extends Screen {
 
             totalDeg += degPer;
         }
-        bufSource.endBatch(guiRenderType);
+
+        // Submit as a custom GuiElementRenderState using the GUI pipeline (proper 1.21.6 approach)
+        if (guiRenderState != null && !quadData.isEmpty()) {
+            final List<float[]> finalQuads = quadData;
+            final org.joml.Matrix3x2f finalPose = capturePose;
+            final int cx = x, cy = y, rMax = radiusMax;
+            guiRenderState.submitGuiElement(new net.minecraft.client.gui.render.state.GuiElementRenderState() {
+                @Override
+                public void buildVertices(VertexConsumer vc, float z) {
+                    for (float[] quad : finalQuads) {
+                        for (int v = 0; v < 4; v++) {
+                            int base = v * 6;
+                            vc.addVertexWith2DPose(finalPose, quad[base], quad[base + 1], z)
+                              .setColor(quad[base + 2], quad[base + 3], quad[base + 4], quad[base + 5]);
+                        }
+                    }
+                }
+
+                @Override
+                public com.mojang.blaze3d.pipeline.RenderPipeline pipeline() {
+                    return RenderPipelines.GUI;
+                }
+
+                @Override
+                public net.minecraft.client.gui.render.TextureSetup textureSetup() {
+                    return net.minecraft.client.gui.render.TextureSetup.noTexture();
+                }
+
+                @Override
+                public net.minecraft.client.gui.navigation.ScreenRectangle scissorArea() {
+                    return null;
+                }
+
+                @Override
+                public net.minecraft.client.gui.navigation.ScreenRectangle bounds() {
+                    return new net.minecraft.client.gui.navigation.ScreenRectangle(cx - rMax, cy - rMax, rMax * 2, rMax * 2);
+                }
+            });
+        }
 
         for (int i = 0; i < nameData.size(); i++) {
             pose2d.pushMatrix();
