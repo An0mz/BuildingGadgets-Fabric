@@ -1,9 +1,9 @@
 package com.direwolf20.buildinggadgets.client.screen.components;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -22,9 +22,9 @@ public class GuiIncrementer extends AbstractWidget {
     private int value;
     private final IIncrementerChanged onChange;
 
-    private final DireButton minusButton;
+    private final Button minusButton;
     private final GuiTextFieldBase field;
-    private final DireButton plusButton;
+    private final Button plusButton;
 
     public GuiIncrementer(int x, int y, int min, int max, @Nullable IIncrementerChanged onChange) {
         super(x, y, WIDTH, 20, Component.empty());
@@ -36,9 +36,9 @@ public class GuiIncrementer extends AbstractWidget {
         this.value = 0;
         this.onChange = onChange;
 
-        this.minusButton = new DireButton(this.x, this.y - 1, 12, 17, Component.literal("-"), (button) -> this.updateValue(true));
+        this.minusButton = Button.builder(Component.literal("-"), (button) -> this.updateValue(true)).bounds(this.x, this.y - 1, 12, 17).build();
         this.field = new GuiTextFieldBase(Minecraft.getInstance().font, x + 13, y, 40).setDefaultInt(this.value).restrictToNumeric();
-        this.plusButton = new DireButton(this.x + 40 + 14, this.y - 1, 12, 17, Component.literal("+"), (button) -> this.updateValue(false));
+        this.plusButton = Button.builder(Component.literal("+"), (button) -> this.updateValue(false)).bounds(this.x + 40 + 14, this.y - 1, 12, 17).build();
 
         this.field.setValue(String.valueOf(this.value));
     }
