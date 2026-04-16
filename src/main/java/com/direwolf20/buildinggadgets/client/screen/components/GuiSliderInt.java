@@ -31,7 +31,7 @@ public class GuiSliderInt extends AbstractSliderButton {
     public GuiSliderInt(int xPos, int yPos, int width, int height, Component prefix, int minVal, int maxVal,
                         int currentVal, Color color,
                         BiConsumer<GuiSliderInt, Integer> increment) {
-        super(xPos, yPos, width, height, prefix, (double) (currentVal - minVal) / (maxVal - minVal + 1));
+        super(xPos, yPos, width, height, prefix, (maxVal == minVal) ? 0.0 : (double) (currentVal - minVal) / (maxVal - minVal));
 
         this.colorBackground = GuiMod.getColor(color, 200).getRGB();
         this.colorSliderBackground = GuiMod.getColor(color.darker(), 200).getRGB();
@@ -45,11 +45,11 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     public int getValueInt() {
-        return (int) Mth.clamp(Math.round(minVal + value * (maxVal - minVal + 1)), minVal, maxVal);
+        return (int) Mth.clamp(Math.round(minVal + value * (maxVal - minVal)), minVal, maxVal);
     }
 
     public void setValueInt(int i) {
-        setValue((double) (i - minVal) / (maxVal - minVal + 1));
+        setValue((maxVal == minVal) ? 0.0 : (double) (i - minVal) / (maxVal - minVal));
     }
 
     @Override
@@ -73,7 +73,7 @@ public class GuiSliderInt extends AbstractSliderButton {
 
     @Override
     protected void onDrag(MouseButtonEvent event, double deltaX, double deltaY) {
-        this.setValue((Minecraft.getInstance().mouseHandler.xpos() - this.getX() - 4) / (this.width - 8));
+        this.setValue(this.value + deltaX / (this.width - 8));
     }
 
     @Override
