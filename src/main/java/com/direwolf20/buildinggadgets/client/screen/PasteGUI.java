@@ -94,6 +94,8 @@ public class PasteGUI extends Screen {
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
         // Labels
         drawLabel(guiGraphics, "X", -75);
         drawLabel(guiGraphics, "Y", 0);
@@ -105,9 +107,8 @@ public class PasteGUI extends Screen {
                 I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()),
                 width / 2,
                 height / 2 - 60,
-                0xFFFFFF
+                0xFFFFFFFF
         );
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     private void drawLabel(GuiGraphics guiGraphics, String name, int xOffset) {
@@ -116,7 +117,7 @@ public class PasteGUI extends Screen {
                 name,
                 (int) (width / 2f) + xOffset,
                 (int) (height / 2f) - 30,
-                0xFFFFFF,
+                0xFFFFFFFF,
                 true // shadow
         );
     }
