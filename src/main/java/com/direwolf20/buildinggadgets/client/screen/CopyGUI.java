@@ -96,7 +96,7 @@ public class CopyGUI extends Screen {
     }
 
     private void drawFieldLabel(GuiGraphicsExtractor guiGraphics, String name, int x, int y) {
-        guiGraphics.text(Minecraft.getInstance().font, name, this.x + x, this.y + y, 0xFFFFFF, true);
+        guiGraphics.text(Minecraft.getInstance().font, name, this.x + x, this.y + y, 0xFFFFFFFF, true);
     }
 
     private void coordsModeSwitch() {
@@ -133,8 +133,8 @@ public class CopyGUI extends Screen {
         drawFieldLabel(guiGraphics, "Y", -45, -11);
         drawFieldLabel(guiGraphics, "Z", 55, -11);
 
-        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()), this.x, this.y - 80, 0xFFFFFF);
-        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_SUBHEADING.getTranslationKey()), this.x, this.y - 68, 0xFFFFFF);
+        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()), this.x, this.y - 80, 0xFFFFFFFF);
+        guiGraphics.centeredText(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_SUBHEADING.getTranslationKey()), this.x, this.y - 68, 0xFFFFFFFF);
 
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
@@ -163,7 +163,18 @@ public class CopyGUI extends Screen {
 
         @Override
         protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-            int textColor = isActive() ? 0xFFFFFF : 0xA0A0A0;
+            this.isHovered = this.isMouseOver(mouseX, mouseY);
+
+            // Background
+            int bgColor = isActive() ? (isHovered ? 0xFF808080 : 0xFF606060) : 0xFF404040;
+            int borderColor = 0xFFA0A0A0;
+            guiGraphics.fill(getX(),              getY(),               getX() + width,     getY() + 1,          borderColor);
+            guiGraphics.fill(getX(),              getY() + height - 1,  getX() + width,     getY() + height,     borderColor);
+            guiGraphics.fill(getX(),              getY(),               getX() + 1,         getY() + height,     borderColor);
+            guiGraphics.fill(getX() + width - 1, getY(),               getX() + width,     getY() + height,     borderColor);
+            guiGraphics.fill(getX() + 1,          getY() + 1,           getX() + width - 1, getY() + height - 1, bgColor);
+
+            int textColor = isActive() ? 0xFFFFFFFF : 0xFFA0A0A0;
             guiGraphics.centeredText(Minecraft.getInstance().font,
                     getMessage(), getX() + width / 2, getY() + (height - 8) / 2, textColor);
         }

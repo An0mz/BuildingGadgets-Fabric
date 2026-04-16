@@ -120,9 +120,9 @@ public class DestructionGUI extends Screen {
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 
-        guiGraphics.centeredText(font, this.sizeString, width / 2, (height / 2) + 40, this.isValidSize ? 0x00FF00 : 0xFF2000);
+        guiGraphics.centeredText(font, this.sizeString, width / 2, (height / 2) + 40, this.isValidSize ? 0xFF00FF00 : 0xFFFF2000);
         if (!this.isValidSize) {
-            guiGraphics.centeredText(font, MessageTranslation.DESTRCUT_TOO_LARGE.format(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize), width / 2, (height / 2) + 50, 0xFF2000);
+            guiGraphics.centeredText(font, MessageTranslation.DESTRCUT_TOO_LARGE.format(BuildingGadgets.getConfig().gadgets.gadgetDestruction.destroySize), width / 2, (height / 2) + 50, 0xFFFF2000);
         }
     }
 

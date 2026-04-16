@@ -107,7 +107,7 @@ public class PasteGUI extends Screen {
                 I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()),
                 width / 2,
                 height / 2 - 60,
-                0xFFFFFF
+                0xFFFFFFFF
         );
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
@@ -118,7 +118,7 @@ public class PasteGUI extends Screen {
                 name,
                 (int) (width / 2f) + xOffset,
                 (int) (height / 2f) - 30,
-                0xFFFFFF,
+                0xFFFFFFFF,
                 true // shadow
         );
     }

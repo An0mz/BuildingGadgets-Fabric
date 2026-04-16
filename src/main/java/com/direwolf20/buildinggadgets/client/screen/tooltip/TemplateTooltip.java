@@ -160,7 +160,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(x + 8 - w1 / 2f, y + (hasReq ? 12 : 14));
         guiGraphics.pose().scale(0.5f, 0.5f);
-        guiGraphics.text(font, s1, 0, 0, 0xFFFFFF, true);
+        guiGraphics.text(font, s1, 0, 0, 0xFFFFFFFF, true);
         guiGraphics.pose().popMatrix();
 
         int missingCount = 0;
@@ -172,7 +172,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
             guiGraphics.pose().pushMatrix();
             guiGraphics.pose().translate(x + 8 - w2 / 2f, y + 17);
             guiGraphics.pose().scale(0.5f, 0.5f);
-            guiGraphics.text(font, s2, 0, 0, 0xFF0000, true);
+            guiGraphics.text(font, s2, 0, 0, 0xFFFF0000, true);
             guiGraphics.pose().popMatrix();
 
             missingCount = req - count;

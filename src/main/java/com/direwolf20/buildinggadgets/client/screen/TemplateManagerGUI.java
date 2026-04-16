@@ -154,7 +154,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         this.extractTooltip(guiGraphics, mouseX, mouseY);
 
-        guiGraphics.text(font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFF);
+        guiGraphics.text(font, "Preview disabled for now...", leftPos + 10, topPos + 56, 0xFFFFFFFF);
         if (this.template != null) {
             renderRequirement(guiGraphics, mouseX, mouseY);
         }
