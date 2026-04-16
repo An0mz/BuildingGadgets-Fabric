@@ -127,7 +127,7 @@ public class GadgetExchanger extends AbstractGadget {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
-                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(Blocks.AIR)).setStyle(Styles.AQUA));
+                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(Blocks.AIR).toString()).setStyle(Styles.AQUA));
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {

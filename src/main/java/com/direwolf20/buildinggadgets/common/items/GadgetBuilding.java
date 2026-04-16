@@ -135,7 +135,7 @@ public class GadgetBuilding extends AbstractGadget {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
-                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(Blocks.AIR.getName()).setStyle(Styles.AQUA));
+                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(Blocks.AIR.getName().getString()).setStyle(Styles.AQUA));
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
