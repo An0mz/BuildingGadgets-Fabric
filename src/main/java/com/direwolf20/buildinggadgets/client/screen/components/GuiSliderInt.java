@@ -101,7 +101,7 @@ public class GuiSliderInt extends AbstractSliderButton {
     }
 
     private void renderText(GuiGraphics guiGraphics, Minecraft mc, AbstractWidget component) {
-        int color = !active ? 10526880 : (isHovered ? 16777120 : -1);
+        int color = !active ? 10526880 : (isHovered ? 0xFFFFFFA0 : -1);
         String buttonText = component.getMessage().getString();
         int strWidth = mc.font.width(buttonText);
         int ellipsisWidth = mc.font.width("...");
