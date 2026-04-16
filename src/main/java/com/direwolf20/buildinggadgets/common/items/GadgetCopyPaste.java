@@ -467,7 +467,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     private void sendMessage(ItemStack stack, Player player, ITranslationProvider messageSource, Style style) {
-        player.sendSystemMessage(messageSource.componentTranslation().setStyle(style));
+        player.sendOverlayMessage(messageSource.componentTranslation().setStyle(style));
     }
 
     @Override
