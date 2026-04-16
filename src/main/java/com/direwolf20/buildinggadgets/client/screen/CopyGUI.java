@@ -124,6 +124,9 @@ public class CopyGUI extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
         drawFieldLabel(guiGraphics, GuiTranslation.FIELD_START.format() + " X", -175, -36);
         drawFieldLabel(guiGraphics, "Y", -45, -36);
         drawFieldLabel(guiGraphics, "Z", 55, -36);
@@ -133,8 +136,6 @@ public class CopyGUI extends Screen {
 
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()), this.x, this.y - 80, 0xFFFFFF);
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, I18n.get(GuiTranslation.COPY_LABEL_SUBHEADING.getTranslationKey()), this.x, this.y - 68, 0xFFFFFF);
-
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
