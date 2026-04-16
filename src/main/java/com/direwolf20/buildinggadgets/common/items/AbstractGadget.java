@@ -275,11 +275,11 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
             return;
         }
 
-        BGComponent.UNDO_COMPONENT.get(world.getLevelData()).insertUndo(getUUID(stack), undo);
+        BGComponent.UNDO_COMPONENT.get(world).insertUndo(getUUID(stack), undo);
     }
 
     public void undo(Level world, Player player, ItemStack stack) {
-        Optional<Undo> undoOptional = BGComponent.UNDO_COMPONENT.get(world.getLevelData()).getUndo(getUUID(stack));
+        Optional<Undo> undoOptional = BGComponent.UNDO_COMPONENT.get(world).getUndo(getUUID(stack));
 
         if (undoOptional.isPresent()) {
             Undo undo = undoOptional.get();

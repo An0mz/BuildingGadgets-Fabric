@@ -67,7 +67,7 @@ public record PacketRequestTemplate(UUID id) implements CustomPacketPayload {
 
         public static void handle(PacketRequestTemplate payload, ServerPlayNetworking.Context context) {
             context.server().execute(() -> {
-                BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level().getLevelData()).ifPresent(provider -> {
+                BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
                     provider.requestRemoteUpdate(new TemplateKey(payload.id), context.player().level());
                 });
             });

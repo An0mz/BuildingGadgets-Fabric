@@ -60,7 +60,7 @@ public record PacketTemplateManagerTemplateCreated(UUID id, BlockPos pos) implem
                     // Request update with the key
                     ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
                     if (key != null) {
-                        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(level.getLevelData()).ifPresent(provider ->
+                        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(level).ifPresent(provider ->
                                 provider.requestUpdate(key, new Target(PacketFlow.CLIENTBOUND, context.player()))
                         );
                     } else {

@@ -143,7 +143,7 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
     private void renderPaste(PoseStack matrices, Vec3 cameraView, Player player, ItemStack heldItem, SubmitNodeCollector collector) {
         Level world = player.level();
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(heldItem);
             if (key != null) {
                 GadgetCopyPaste.getActivePos(player, heldItem).ifPresent(startPos -> {

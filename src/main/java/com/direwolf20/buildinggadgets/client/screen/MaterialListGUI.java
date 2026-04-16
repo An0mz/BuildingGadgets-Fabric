@@ -189,7 +189,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
         if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null)
             return null;
 
-        Optional<ITemplateProvider> providerCap = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(minecraft.level.getLevelData());
+        Optional<ITemplateProvider> providerCap = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(minecraft.level);
         if (providerCap.isPresent()) {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(item);
             if (key != null) {

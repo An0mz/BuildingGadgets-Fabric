@@ -110,7 +110,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performRotate(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).map(provider -> {
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key == null) return false;
 
@@ -123,7 +123,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
     @Override
     public boolean performMirror(ItemStack stack, Player player) {
-        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).map(provider -> {
+        return BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).map(provider -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key == null) return false;
 
@@ -390,7 +390,7 @@ public class GadgetCopyPaste extends AbstractGadget {
 
         ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
         if (key != null) {
-            BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level().getLevelData()).ifPresent(provider -> {
+            BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(player.level()).ifPresent(provider -> {
                 provider.setTemplate(key, newTemplate);
                 provider.requestRemoteUpdate(key, new Target(PacketFlow.CLIENTBOUND, (ServerPlayer) player));
             });
@@ -398,7 +398,7 @@ public class GadgetCopyPaste extends AbstractGadget {
     }
 
     private void build(ItemStack stack, Level world, Player player, BlockPos pos, InteractionHand hand) {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key != null) {
                 Template template = provider.getTemplateForKey(key);

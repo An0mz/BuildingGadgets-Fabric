@@ -58,7 +58,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
     }
 
     private int getCount() {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level.getLevelData()).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
             if (templateKey != null) {
                 Template template = provider.getTemplateForKey(templateKey);
@@ -95,7 +95,7 @@ public class TemplateTooltip implements ClientTooltipComponent {
         if (mc.level == null || mc.player == null)
             return;
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level.getLevelData()).ifPresent((ITemplateProvider provider) -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(mc.level).ifPresent((ITemplateProvider provider) -> {
             ITemplateKey templateKey = TemplateKeyHelper.getTemplateKey(itemStack);
             if (templateKey != null) {
                 Template template = provider.getTemplateForKey(templateKey);

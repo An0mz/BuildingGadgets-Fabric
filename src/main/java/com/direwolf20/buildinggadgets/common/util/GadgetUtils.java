@@ -62,7 +62,7 @@ public class GadgetUtils {
     public static void addTooltipNameAndAuthor(ItemStack stack, @Nullable Level world, java.util.function.Consumer<Component> tooltipAdder) {
         if (world == null) return;
 
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent(provider -> {
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent(provider -> {
             ITemplateKey key = TemplateKeyHelper.getTemplateKey(stack);
             if (key != null) {
                 Template template = provider.getTemplateForKey(key);

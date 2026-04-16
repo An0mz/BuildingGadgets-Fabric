@@ -96,7 +96,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
     private final TemplateManagerTileEntity be;
     private final TemplateManagerContainer container;
-    private final Optional<ITemplateProvider> templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(getWorld().getLevelData());
+    private final Optional<ITemplateProvider> templateProvider = BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(getWorld());
 
     // It is so stupid I can't get the key from the template.
     private Template template;
@@ -298,7 +298,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
 
     private void pasteTemplateToStack(Level world, ItemStack stack, Template newTemplate, boolean replaced) {
-        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world.getLevelData()).ifPresent((ITemplateProvider provider) ->
+        BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(world).ifPresent((ITemplateProvider provider) ->
                 pasteTemplateToStack(provider, stack, newTemplate, replaced && world.isClientSide()));
     }
 

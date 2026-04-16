@@ -158,7 +158,7 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
             try {
                 Template template = readTemplate(accumulator);
 
-                context.server().execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level().getLevelData()).ifPresent(provider -> {
+                context.server().execute(() -> BGComponent.TEMPLATE_PROVIDER_COMPONENT.maybeGet(context.player().level()).ifPresent(provider -> {
                     provider.setTemplate(new TemplateKey(id), template);
                 }));
             } catch (TemplateReadException e) {
