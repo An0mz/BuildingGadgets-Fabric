@@ -119,6 +119,11 @@ public class BuildRender extends BaseRenderer {
             for (BlockPos coordinate : coordinates) {
                 matrix.pushPose();
                 matrix.translate(coordinate.getX(), coordinate.getY(), coordinate.getZ());
+                // Scale slightly outward from block center to avoid z-fighting with real blocks
+                final float ghostScale = 1.005f;
+                matrix.translate(0.5, 0.5, 0.5);
+                matrix.scale(ghostScale, ghostScale, ghostScale);
+                matrix.translate(-0.5, -0.5, -0.5);
 
                 try {
                     List<BlockStateModelPart> parts = new ArrayList<>();

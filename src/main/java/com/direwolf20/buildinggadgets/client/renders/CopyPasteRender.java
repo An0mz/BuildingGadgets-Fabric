@@ -196,6 +196,11 @@ public class CopyPasteRender extends BaseRenderer implements IUpdateListener {
 
             matrix.pushPose();
             matrix.translate(targetPos.getX(), targetPos.getY(), targetPos.getZ());
+            // Scale slightly outward from block center to avoid z-fighting with real blocks
+            final float ghostScale = 1.005f;
+            matrix.translate(0.5, 0.5, 0.5);
+            matrix.scale(ghostScale, ghostScale, ghostScale);
+            matrix.translate(-0.5, -0.5, -0.5);
 
             try {
                 if (state.getRenderShape() == RenderShape.MODEL) {
