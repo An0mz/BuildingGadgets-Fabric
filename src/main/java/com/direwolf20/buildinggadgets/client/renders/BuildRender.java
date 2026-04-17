@@ -71,13 +71,13 @@ public class BuildRender extends BaseRenderer {
         }
 
         // Get the coordinates from the anchor. If the anchor isn't present then build the collector.
-        List<BlockPos> coordinates = anchor.orElseGet(() -> {
+        List<BlockPos> coordinates = new ArrayList<>(anchor.orElseGet(() -> {
             AbstractMode mode = !this.isExchanger ? GadgetBuilding.getToolMode(heldItem).getMode() : GadgetExchanger.getToolMode(heldItem).getMode();
             return mode.getCollection(
                     new AbstractMode.UseContext(player.level(), renderBlockState, lookingAt.getBlockPos(), heldItem, lookingAt.getDirection(), !this.isExchanger && GadgetBuilding.shouldPlaceAtop(heldItem), GadgetBuilding.getConnectedArea(heldItem)),
                     player
             );
-        });
+        }));
 
         BlockPos targetPos = lookingAt.getBlockPos();
         coordinates.sort(Comparator.comparingDouble(pos -> pos.distSqr(targetPos)));
