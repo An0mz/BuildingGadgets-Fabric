@@ -167,7 +167,7 @@ dependencies {
 }
 
 base {
-    archivesName.set(project.archives_base_name)
+    archivesName.set("[${project.minecraft_version}] ${project.archives_base_name}")
 }
 
 java {
