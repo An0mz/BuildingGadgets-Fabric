@@ -21,17 +21,17 @@ public class OurRenderTypes extends RenderType {
     private static final LineStateShard THICK_LINES = new LineStateShard(OptionalDouble.of(3.0D));
 
     public static final RenderType RenderBlock = create("GadgetRenderBlock",
-            DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, false,
+            DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, true, // <-- sortOnUpload: false→true
             RenderType.CompositeState.builder()
-//                    .setShadeModelState(SMOOTH_SHADE)
-                    .setShaderState(RenderStateShard.RENDERTYPE_SOLID_SHADER)
+                    .setShaderState(RenderStateShard.RENDERTYPE_TRANSLUCENT_SHADER)
                     .setLightmapState(LIGHTMAP)
-                    .setTextureState(BLOCK_SHEET_MIPPED) //BLOCK_SHEET_MIPPED (mcp) = BLOCK_SHEET_MIPPED (yarn)
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING) // view_offset_z_layering
+                    .setTextureState(BLOCK_SHEET_MIPPED)
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                     .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setCullState(NO_CULL)
                     .setWriteMaskState(COLOR_DEPTH_WRITE)
+                    .setOutputState(RenderStateShard.TRANSLUCENT_TARGET)
                     .createCompositeState(false));
 
     public static final RenderType MissingBlockOverlay = create("GadgetMissingBlockOverlay",

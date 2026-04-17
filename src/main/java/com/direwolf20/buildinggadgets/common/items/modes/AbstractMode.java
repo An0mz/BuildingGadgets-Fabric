@@ -71,8 +71,8 @@ public abstract class AbstractMode {
     private boolean exchangingValidator(BlockPos pos, BlockState lookingAtState, UseContext context) {
         BlockState worldBlockState = context.getWorldState(pos);
         BlockEntity be = context.getWorld().getBlockEntity(pos);
-        // No air! or water
-        if (worldBlockState.isAir() || !worldBlockState.getFluidState().isEmpty())
+        // No air!
+        if (worldBlockState.isAir())
             return false;
 
         // No effect blocks and don't try with the same block as you're trying to exchange with
@@ -96,6 +96,7 @@ public abstract class AbstractMode {
             BlockPos offset = pos.relative(direction);
             BlockState state = context.getWorld().getBlockState(offset);
             if (state.isAir()
+                || !state.getFluidState().isEmpty()
                 || (state.getShape(context.getWorld(), offset) != Shapes.block() && !(state.getBlock() instanceof StairBlock))) {
                 hasSingeValid = true;
                 break;

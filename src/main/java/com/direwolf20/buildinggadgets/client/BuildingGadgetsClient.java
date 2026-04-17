@@ -25,6 +25,7 @@ import net.minecraft.sounds.SoundEvent;
 public class BuildingGadgetsClient implements ClientModInitializer {
 
     public static final CacheTemplateProvider CACHE_TEMPLATE_PROVIDER = new CacheTemplateProvider();
+    private static boolean pendingLevelRendererRefresh = false;
 
     @Override
     public void onInitializeClient() {
@@ -34,6 +35,17 @@ public class BuildingGadgetsClient implements ClientModInitializer {
         MenuScreens.register(OurContainers.TEMPLATE_MANAGER_CONTAINER_TYPE, TemplateManagerGUI::new);
         ClientTickEvents.END_CLIENT_TICK.register(EventKeyInput::handleEventInput);
         BlockEntityRendererRegistry.register(OurTileEntities.EFFECT_BLOCK_TILE_ENTITY, EffectBlockTER::new);
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            pendingLevelRendererRefresh = true;
+        });
+
+        ClientTickEvents.START_CLIENT_TICK.register(mc -> {
+            if (pendingLevelRendererRefresh && mc.levelRenderer != null && mc.player != null) {
+                mc.levelRenderer.allChanged();
+                pendingLevelRendererRefresh = false;
+            }
+        });
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> CACHE_TEMPLATE_PROVIDER.clear());
         CACHE_TEMPLATE_PROVIDER.registerUpdateListener(BGRenderers.COPY_PASTE);
