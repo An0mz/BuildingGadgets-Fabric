@@ -30,8 +30,8 @@ public class EffectBlockTileEntity extends BlockEntity {
     private BlockData sourceBlock;
 
     private Mode mode = null;
-
     private int ticks;
+    private boolean completed = false;
 
     public EffectBlockTileEntity(BlockPos pos, BlockState state) {
         super(OurTileEntities.EFFECT_BLOCK_TILE_ENTITY, pos, state);
@@ -41,6 +41,7 @@ public class EffectBlockTileEntity extends BlockEntity {
         // Minecraft will reuse a tile entity object at a location where the block got removed, but the modification is still buffered, and the block got restored again
         // If we don't reset this here, the 2nd phase of REPLACE will simply finish immediately because the tile entity object is reused
         this.ticks = 0;
+        this.completed = false;
         // Again we don't check if the data has been set or not because there is a chance that this tile object gets reused
         this.sourceBlock = replacementBlock;
 
@@ -63,8 +64,19 @@ public class EffectBlockTileEntity extends BlockEntity {
         if (level == null || level.isClientSide || mode == null || getRenderedBlock() == null) {
             return;
         }
-
+        if (completed) return;
+        completed = true;
         mode.onBuilderRemoved(this);
+    }
+
+    public void forceComplete() {
+        complete();
+    }
+
+    @Override
+    public void setRemoved() {
+        forceComplete();
+        super.setRemoved();
     }
 
     public BlockData getRenderedBlock() {
