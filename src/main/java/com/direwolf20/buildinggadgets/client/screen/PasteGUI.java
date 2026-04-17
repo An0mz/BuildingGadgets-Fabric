@@ -9,10 +9,10 @@ import com.direwolf20.buildinggadgets.client.screen.components.GuiIncrementer;
 import com.direwolf20.buildinggadgets.common.items.GadgetCopyPaste;
 import com.direwolf20.buildinggadgets.common.network.C2S.PacketPasteGUI;
 import com.direwolf20.buildinggadgets.common.util.lang.GuiTranslation;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -51,20 +51,20 @@ public class PasteGUI extends Screen {
         Z.setValue(currentOffset.getZ());
 
         List<AbstractButton> buttons = new ArrayList<>() {{
-            add(new CopyGUI.CenteredButton(y + 20, 70, GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
+            add(Button.builder(GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
                 PacketPasteGUI.send(X.getValue(), Y.getValue(), Z.getValue());
                 onClose();
-            }));
+            }).pos(0, y + 20).size(70, 20).build());
 
-            add(new CopyGUI.CenteredButton(y + 20, 40, GuiTranslation.SINGLE_RESET.componentTranslation(), (button) -> {
+            add(Button.builder(GuiTranslation.SINGLE_RESET.componentTranslation(), (button) -> {
                 X.setValue(0);
                 Y.setValue(0);
                 Z.setValue(0);
                 sendPacket();
-            }));
+            }).pos(0, y + 20).size(40, 20).build());
         }};
 
-        CopyGUI.CenteredButton.centerButtonList(buttons, x);
+        centerButtonList(buttons, x);
 
         buttons.forEach(this::addRenderableWidget);
         fields.forEach(this::addRenderableWidget);
@@ -95,6 +95,10 @@ public class PasteGUI extends Screen {
         return false;
     }
 
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    }
+
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Labels
         drawLabel(guiGraphics, "X", -75);
@@ -107,7 +111,7 @@ public class PasteGUI extends Screen {
                 I18n.get(GuiTranslation.COPY_LABEL_HEADING.getTranslationKey()),
                 width / 2,
                 height / 2 - 60,
-                0xFFFFFF
+                0xFFFFFFFF
         );
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
@@ -118,9 +122,18 @@ public class PasteGUI extends Screen {
                 name,
                 (int) (width / 2f) + xOffset,
                 (int) (height / 2f) - 30,
-                0xFFFFFF,
+                0xFFFFFFFF,
                 true // shadow
         );
+    }
+
+    private static void centerButtonList(List<AbstractButton> buttons, int startX) {
+        int collectiveWidth = buttons.stream().mapToInt(AbstractButton::getWidth).sum() + (buttons.size() - 1) * 5;
+        int nextX = startX - collectiveWidth / 2;
+        for (AbstractButton button : buttons) {
+            button.setX(nextX);
+            nextX += button.getWidth() + 5;
+        }
     }
 
 }
