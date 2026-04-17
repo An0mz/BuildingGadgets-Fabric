@@ -36,6 +36,7 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         public BlockData renderedBlock;
         public EffectBlock.Mode mode;
         public int ticksExisted;
+        public float partialTick;
         public int maxLife;
         public boolean renderDown, renderUp, renderNorth, renderSouth, renderEast, renderWest;
     }
@@ -54,6 +55,7 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         state.renderedBlock = tile.getRenderedBlock();
         state.mode = tile.getReplacementMode();
         state.ticksExisted = tile.getTicksExisted();
+        state.partialTick = partialTick;
         state.maxLife = tile.getLifespan();
 
         Level level = tile.getLevel();
@@ -81,13 +83,15 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         int teCounter = state.ticksExisted;
         int maxLife = state.maxLife;
-        teCounter = Math.min(teCounter, maxLife);
 
-        float scale = (float) teCounter / (float) maxLife;
+        // Use partial ticks for smooth sub-tick interpolation
+        float smoothCounter = Math.min(teCounter + state.partialTick, maxLife);
+
+        float scale = smoothCounter / (float) maxLife;
         if (scale >= 1.0f)
             scale = 0.99f;
         if (toolMode == EffectBlock.Mode.REMOVE || toolMode == EffectBlock.Mode.REPLACE)
-            scale = (float) (maxLife - teCounter) / maxLife;
+            scale = (maxLife - smoothCounter) / maxLife;
 
         float trans = (1 - scale) / 2;
 

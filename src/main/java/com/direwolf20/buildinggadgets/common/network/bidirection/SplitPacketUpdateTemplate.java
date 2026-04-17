@@ -85,7 +85,7 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
             write(buf, id, template);
 
             while (buf.isReadable(PAYLOAD_LIMIT)) {
-                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer());
+                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer(PAYLOAD_LIMIT));
                 buf.readBytes(chunk, PAYLOAD_LIMIT);
                 ClientPlayNetworking.send(new SplitPacketUpdateTemplate(chunk));
             }
@@ -132,7 +132,7 @@ public record SplitPacketUpdateTemplate(FriendlyByteBuf data) implements CustomP
             write(buf, id, template);
 
             while (buf.isReadable(PAYLOAD_LIMIT)) {
-                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer());
+                FriendlyByteBuf chunk = new FriendlyByteBuf(Unpooled.buffer(PAYLOAD_LIMIT));
                 buf.readBytes(chunk, PAYLOAD_LIMIT);
                 ServerPlayNetworking.send(player, new SplitPacketUpdateTemplate(chunk));
             }

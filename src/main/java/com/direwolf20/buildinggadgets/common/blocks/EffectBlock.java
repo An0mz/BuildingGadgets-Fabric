@@ -11,7 +11,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -20,6 +20,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -164,5 +167,43 @@ public class EffectBlock extends BaseEntityBlock {
     @Environment(EnvType.CLIENT)
     public float getShadeBrightness(BlockState state, BlockGetter worldIn, BlockPos pos) {
         return 1.0f;
+    }
+
+    /**
+     * Prevent fluids (water, lava) from replacing the EffectBlock during its animation.
+     * Without this, water flowing into a position where an EffectBlock sits will displace it
+     * before the 20-tick timer fires, causing the target block to never be placed.
+     */
+    @Override
+    protected boolean canBeReplaced(BlockState state, Fluid fluid) {
+        return false;
+    }
+
+    /**
+     * Prevent block placement (including fluid placement via BlockPlaceContext) from
+     * replacing the EffectBlock.
+     */
+    @Override
+    protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+        return false;
+    }
+
+    /**
+     * Return an empty fluid state so the block is not considered to hold any fluid.
+     * This prevents waterlogging checks from treating the EffectBlock as passable.
+     */
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return Fluids.EMPTY.defaultFluidState();
+    }
+
+    /**
+     * Override the collision shape for fluid-spread checks. Even though .noCollision() is set
+     * in block properties (so players/entities can walk through), we return a full block shape
+     * here so that FlowingFluid considers the face sturdy and won't flow into or through this block.
+     */
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
+        return Shapes.block();
     }
 }
