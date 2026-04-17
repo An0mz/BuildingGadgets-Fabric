@@ -12,6 +12,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -20,6 +21,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -171,5 +175,40 @@ public class EffectBlock extends BaseEntityBlock {
     @Environment(EnvType.CLIENT)
     public float getShadeBrightness(BlockState state, BlockGetter worldIn, BlockPos pos) {
         return 1.0f;
+    }
+
+    /**
+     * Prevent fluids (water, lava) from replacing the EffectBlock during its animation.
+     */
+    @Override
+    public boolean canBeReplaced(BlockState state, Fluid fluid) {
+        return false;
+    }
+
+    /**
+     * Prevent block placement (including fluid placement via BlockPlaceContext) from
+     * replacing the EffectBlock.
+     */
+    @Override
+    public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+        return false;
+    }
+
+    /**
+     * Return an empty fluid state so the block is not considered to hold any fluid.
+     */
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return Fluids.EMPTY.defaultFluidState();
+    }
+
+    /**
+     * Override collision shape so fluid spreading treats the EffectBlock as a solid obstacle.
+     * noCollission() in properties allows entity walk-through; this override only affects
+     * the fluid spreading (isFaceSturdy) check.
+     */
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
+        return Shapes.block();
     }
 }

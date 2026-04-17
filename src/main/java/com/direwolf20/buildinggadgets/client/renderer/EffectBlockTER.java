@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
 public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity> {
 
@@ -52,15 +54,61 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         stack.scale(scale, scale, scale);
 
         BlockState renderBlockState = renderData.getState();
+        FluidState fluidState = renderBlockState.getFluidState();
 
-        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(Minecraft.getInstance().renderBuffers().bufferSource(), .55f);
-        try {
-            dispatcher.renderSingleBlock(
-                    renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
-            );
-        } catch (Exception ignored) {
-            BuildingGadgets.LOG.error("Failed to render block.");
-        } // if it fails to render then we'll get a bug report I'm sure.
+        if (!fluidState.isEmpty()) {
+            // Fluid blocks (water, lava) have RenderShape.INVISIBLE — renderSingleBlock skips them.
+            // Render a filled translucent colored box so the fluid visually shrinks/grows.
+            float fr, fg, fb;
+            if (fluidState.getType() == Fluids.WATER || fluidState.getType() == Fluids.FLOWING_WATER) {
+                fr = 0.24f; fg = 0.46f; fb = 1.0f; // water blue
+            } else {
+                fr = 1.0f; fg = 0.40f; fb = 0.0f; // lava orange
+            }
+            float fa = 0.65f;
+            VertexConsumer fc = buffer.getBuffer(OurRenderTypes.MissingBlockOverlay);
+            Matrix4f m = stack.last().pose();
+            float x0 = 0, y0 = 0, z0 = 0, x1 = 1, y1 = 1, z1 = 1;
+            // Down
+            fc.vertex(m, x0, y0, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y0, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y0, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y0, z1).color(fr, fg, fb, fa).endVertex();
+            // Up
+            fc.vertex(m, x0, y1, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y1, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z0).color(fr, fg, fb, fa).endVertex();
+            // North
+            fc.vertex(m, x0, y0, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y1, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y0, z0).color(fr, fg, fb, fa).endVertex();
+            // South
+            fc.vertex(m, x0, y0, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y0, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y1, z1).color(fr, fg, fb, fa).endVertex();
+            // East
+            fc.vertex(m, x1, y0, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y1, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x1, y0, z1).color(fr, fg, fb, fa).endVertex();
+            // West
+            fc.vertex(m, x0, y0, z0).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y0, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y1, z1).color(fr, fg, fb, fa).endVertex();
+            fc.vertex(m, x0, y1, z0).color(fr, fg, fb, fa).endVertex();
+        } else {
+            OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(Minecraft.getInstance().renderBuffers().bufferSource(), .55f);
+            try {
+                dispatcher.renderSingleBlock(
+                        renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
+                );
+            } catch (Exception ignored) {
+                BuildingGadgets.LOG.error("Failed to render block.");
+            }
+        }
 
         stack.popPose();
         stack.pushPose();

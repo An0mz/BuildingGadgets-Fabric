@@ -31,6 +31,7 @@ public class EffectBlockTileEntity extends BlockEntity {
     private Mode mode = null;
 
     private int ticks;
+    private boolean completed = false;
 
     public EffectBlockTileEntity(BlockPos pos, BlockState state) {
         super(OurTileEntities.EFFECT_BLOCK_TILE_ENTITY, pos, state);
@@ -40,6 +41,7 @@ public class EffectBlockTileEntity extends BlockEntity {
         // Minecraft will reuse a tile entity object at a location where the block got removed, but the modification is still buffered, and the block got restored again
         // If we don't reset this here, the 2nd phase of REPLACE will simply finish immediately because the tile entity object is reused
         this.ticks = 0;
+        this.completed = false; // reset so a reused tile entity can complete again
         // Again we don't check if the data has been set or not because there is a chance that this tile object gets reused
         this.sourceBlock = replacementBlock;
 
@@ -62,8 +64,28 @@ public class EffectBlockTileEntity extends BlockEntity {
         if (level == null || level.isClientSide || mode == null || getRenderedBlock() == null) {
             return;
         }
-
+        if (completed) return;
+        completed = true;
         mode.onBuilderRemoved(this);
+    }
+
+    /**
+     * Forces completion even if the normal ticker hasn't fired yet.
+     * Used when the EffectBlock is prematurely removed (e.g., by fluid flow).
+     */
+    public void forceComplete() {
+        complete();
+    }
+
+    /**
+     * Called when this block entity's block is replaced (including by fluid flow).
+     * Fires while {@code this.level} is still valid — before the entity is evicted —
+     * so we can still place the real block.
+     */
+    @Override
+    public void setRemoved() {
+        forceComplete();
+        super.setRemoved();
     }
 
     public BlockData getRenderedBlock() {
