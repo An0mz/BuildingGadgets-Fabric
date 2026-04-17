@@ -29,11 +29,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.Level;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.getAnchor;
 import static com.direwolf20.buildinggadgets.common.util.GadgetUtils.getToolBlock;
