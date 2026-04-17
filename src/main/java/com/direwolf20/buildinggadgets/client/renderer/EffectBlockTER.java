@@ -25,6 +25,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -38,6 +40,9 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         public int maxLife;
         // which faces to render (not adjacent to another EffectBlock): down, up, north, south, east, west
         public boolean renderDown, renderUp, renderNorth, renderSouth, renderEast, renderWest;
+        // fluid rendering
+        public boolean isFluid;
+        public float fluidR, fluidG, fluidB;
     }
 
     public EffectBlockTER(BlockEntityRendererProvider.Context ctx) {
@@ -58,6 +63,19 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         state.mode = tile.getReplacementMode();
         state.ticksExisted = tile.getTicksExisted();
         state.maxLife = tile.getLifespan();
+
+        // Fluid detection
+        if (state.renderedBlock != null) {
+            FluidState fluidState = state.renderedBlock.getState().getFluidState();
+            state.isFluid = !fluidState.isEmpty();
+            if (state.isFluid) {
+                if (fluidState.getType() == Fluids.WATER || fluidState.getType() == Fluids.FLOWING_WATER) {
+                    state.fluidR = 0.24f; state.fluidG = 0.46f; state.fluidB = 1.0f;
+                } else {
+                    state.fluidR = 1.0f; state.fluidG = 0.40f; state.fluidB = 0.0f;
+                }
+            }
+        }
 
         Level level = tile.getLevel();
         BlockPos pos = tile.getBlockPos();
@@ -100,6 +118,38 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
 
         BlockState renderBlockState = renderData.getState();
 
+        // --- Ghost block or fluid box rendering ---
+        if (state.isFluid) {
+            final float fr = state.fluidR, fg = state.fluidG, fb = state.fluidB, fa = 0.65f;
+            collector.submitCustomGeometry(stack, OurRenderTypes.MissingBlockOverlay, (pose, builder) -> {
+                Matrix4f m = pose.pose();
+                float x0 = 0, y0 = 0, z0 = 0, x1 = 1, y1 = 1, z1 = 1;
+                builder.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+                builder.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+            });
+        } else {
         // --- Ghost block rendering via submitCustomGeometry ---
         // Collect block model parts (using a fresh random for variant selection)
         try {
@@ -126,6 +176,7 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         } catch (Exception e) {
             BuildingGadgets.LOG.error("Failed to render effect block: {}", e.getMessage());
         }
+        } // end else (non-fluid)
 
         // --- Colored overlay box rendering ---
         float red = 0f, green = 1f, blue = 1f;
