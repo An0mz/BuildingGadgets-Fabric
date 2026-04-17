@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity> {
@@ -53,14 +55,52 @@ public class EffectBlockTER implements BlockEntityRenderer<EffectBlockTileEntity
         stack.scale(scale, scale, scale);
 
         BlockState renderBlockState = renderData.getState();
+        FluidState fluidState = renderBlockState.getFluidState();
 
-        OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(buffer2, .55f);
-        try {
-            dispatcher.renderSingleBlock(
-                    renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
-            );
-        } catch (Exception ignored) {
-            BuildingGadgets.LOG.error("Failed to render block.");
+        if (!fluidState.isEmpty()) {
+            float fr, fg, fb;
+            if (fluidState.getType() == Fluids.WATER || fluidState.getType() == Fluids.FLOWING_WATER) {
+                fr = 0.24f; fg = 0.46f; fb = 1.0f;
+            } else {
+                fr = 1.0f; fg = 0.40f; fb = 0.0f;
+            }
+            float fa = 0.65f;
+            VertexConsumer fc = buffer2.getBuffer(OurRenderTypes.MissingBlockOverlay);
+            Matrix4f m = stack.last().pose();
+            float x0 = 0, y0 = 0, z0 = 0, x1 = 1, y1 = 1, z1 = 1;
+            fc.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x1, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y0, z0).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y0, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z1).setColor(fr, fg, fb, fa);
+            fc.addVertex(m, x0, y1, z0).setColor(fr, fg, fb, fa);
+        } else {
+            OurRenderTypes.MultiplyAlphaRenderTypeBuffer mutatedBuffer = new OurRenderTypes.MultiplyAlphaRenderTypeBuffer(buffer2, .55f);
+            try {
+                dispatcher.renderSingleBlock(
+                        renderBlockState, stack, mutatedBuffer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY
+                );
+            } catch (Exception ignored) {
+                BuildingGadgets.LOG.error("Failed to render block.");
+            }
         }
 
         // Draw the colored overlay in the SAME pose (scaled + translated)
