@@ -23,7 +23,7 @@ import com.direwolf20.buildinggadgets.common.util.ref.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -33,6 +33,8 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
+import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -325,9 +327,14 @@ public class ModeRadialMenu extends Screen {
             signs = signsCopyPaste;
         }
 
-        net.minecraft.client.renderer.MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        net.minecraft.client.renderer.rendertype.RenderType guiRenderType = net.minecraft.client.renderer.rendertype.RenderTypes.lightning();
-        VertexConsumer vc = bufSource.getBuffer(guiRenderType);
+        // Access the public guiRenderState field directly for deferred GUI rendering
+        GuiRenderState guiRenderState = guiGraphics.guiRenderState;
+
+        // Snapshot current 2D pose matrix
+        org.joml.Matrix3x2f capturePose = new org.joml.Matrix3x2f(guiGraphics.pose());
+
+        // Collect all quad vertex data: each entry is float[24] = 4 vertices * (x, y, r, g, b, a)
+        List<float[]> quadData = new ArrayList<>();
 
         boolean shouldCenter = (segments + 2) % 4 == 0;
         int indexBottom = segments / 4;
@@ -335,7 +342,6 @@ public class ModeRadialMenu extends Screen {
         for (int seg = 0; seg < segments; seg++) {
             boolean mouseInSector = isCursorInSlice(angle, totalDeg, degPer, inRange);
             float radius = Math.max(0F, Math.min((timeIn + partialTicks - seg * 6F / segments) * 40F, radiusMax));
-
 
             float gs = 0.25F;
             if (seg % 2 == 0)
@@ -363,10 +369,13 @@ public class ModeRadialMenu extends Screen {
                     nameData.add(new NameDisplayData((int) xp, (int) yp, mouseInSector, shouldCenter && (seg == indexBottom || seg == indexTop)));
 
                 if (!firstVert) {
-                    vc.addVertex((float) xpInner, (float) ypInner, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) prevInnerX, (float) prevInnerY, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) prevOuterX, (float) prevOuterY, 0).setColor(r, g, b, a);
-                    vc.addVertex((float) xp, (float) yp, 0).setColor(r, g, b, a);
+                    float[] quad = new float[]{
+                        (float) xpInner,  (float) ypInner,  r, g, b, a,
+                        (float) prevInnerX, (float) prevInnerY, r, g, b, a,
+                        (float) prevOuterX, (float) prevOuterY, r, g, b, a,
+                        (float) xp,       (float) yp,       r, g, b, a
+                    };
+                    quadData.add(quad);
                 }
                 prevInnerX = xpInner; prevInnerY = ypInner;
                 prevOuterX = xp; prevOuterY = yp;
@@ -375,7 +384,45 @@ public class ModeRadialMenu extends Screen {
 
             totalDeg += degPer;
         }
-        bufSource.endBatch(guiRenderType);
+
+        // Submit quads via the deferred GUI render state
+        if (!quadData.isEmpty()) {
+            final List<float[]> finalQuads = quadData;
+            final org.joml.Matrix3x2f finalPose = capturePose;
+            final int cx = x, cy = y, rMax = radiusMax;
+            guiRenderState.addGuiElement(new GuiElementRenderState() {
+                @Override
+                public void buildVertices(VertexConsumer vc) {
+                    for (float[] quad : finalQuads) {
+                        for (int v = 0; v < 4; v++) {
+                            int base = v * 6;
+                            vc.addVertexWith2DPose(finalPose, quad[base], quad[base + 1])
+                              .setColor(quad[base + 2], quad[base + 3], quad[base + 4], quad[base + 5]);
+                        }
+                    }
+                }
+
+                @Override
+                public com.mojang.blaze3d.pipeline.RenderPipeline pipeline() {
+                    return RenderPipelines.GUI;
+                }
+
+                @Override
+                public net.minecraft.client.gui.render.TextureSetup textureSetup() {
+                    return net.minecraft.client.gui.render.TextureSetup.noTexture();
+                }
+
+                @Override
+                public net.minecraft.client.gui.navigation.ScreenRectangle scissorArea() {
+                    return null;
+                }
+
+                @Override
+                public net.minecraft.client.gui.navigation.ScreenRectangle bounds() {
+                    return new net.minecraft.client.gui.navigation.ScreenRectangle(cx - rMax, cy - rMax, rMax * 2, rMax * 2);
+                }
+            });
+        }
 
         for (int i = 0; i < nameData.size(); i++) {
             pose2d.pushMatrix();
@@ -442,7 +489,7 @@ public class ModeRadialMenu extends Screen {
                 mode = GadgetCopyPaste.ToolMode.values()[slotSelected].getTranslation().format();
 
             assert Minecraft.getInstance().player != null;
-            Minecraft.getInstance().player.sendSystemMessage(MessageTranslation.MODE_SET.componentTranslation(mode).setStyle(Styles.AQUA));
+            Minecraft.getInstance().player.sendOverlayMessage(MessageTranslation.MODE_SET.componentTranslation(mode).setStyle(Styles.AQUA));
 
             PacketToggleMode.send(slotSelected);
             OurSounds.playSound();

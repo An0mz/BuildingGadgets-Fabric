@@ -67,7 +67,7 @@ public class CopyGUI extends Screen {
         updateTextFields();
 
         List<AbstractButton> buttons = new ArrayList<>() {{
-            add(new CenteredButton(y + 20, 50, GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
+            add(createCenteredButton(y + 20, 50, GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
                 if (absoluteCoords) {
                     startPos = new BlockPos(startX.getValue(), startY.getValue(), startZ.getValue());
                     endPos = new BlockPos(endX.getValue(), endY.getValue(), endZ.getValue());
@@ -77,21 +77,21 @@ public class CopyGUI extends Screen {
                 }
                 PacketCopyCoords.send(startPos, endPos);
             }));
-            add(new CenteredButton(y + 20, 50, GuiTranslation.SINGLE_CLOSE.componentTranslation(), (button) -> onClose()));
-            add(new CenteredButton(y + 20, 50, GuiTranslation.SINGLE_CLEAR.componentTranslation(), (button) -> {
+            add(createCenteredButton(y + 20, 50, GuiTranslation.SINGLE_CLOSE.componentTranslation(), (button) -> onClose()));
+            add(createCenteredButton(y + 20, 50, GuiTranslation.SINGLE_CLEAR.componentTranslation(), (button) -> {
                 PacketCopyCoords.send(BlockPos.ZERO, BlockPos.ZERO);
                 onClose();
             }));
 
             if (BuildingGadgets.getConfig().general.allowAbsoluteCoords) {
-                add(new CenteredButton(y + 20, 120, GuiTranslation.COPY_BUTTON_ABSOLUTE.componentTranslation(), (button) -> {
+                add(createCenteredButton(y + 20, 120, GuiTranslation.COPY_BUTTON_ABSOLUTE.componentTranslation(), (button) -> {
                     coordsModeSwitch();
                     updateTextFields();
                 }));
             }
         }};
 
-        CenteredButton.centerButtonList(buttons, x);
+        centerButtonList(buttons, x);
         buttons.forEach(this::addRenderableWidget);
     }
 
@@ -156,37 +156,17 @@ public class CopyGUI extends Screen {
         return false;
     }
 
-    static class CenteredButton extends Button {
-        CenteredButton(int y, int width, Component text, OnPress onPress) {
-            super(0, y, width, 20, text, onPress, DEFAULT_NARRATION);
-        }
+    static Button createCenteredButton(int y, int width, Component text, Button.OnPress onPress) {
+        return Button.builder(text, onPress).bounds(0, y, width, 20).build();
+    }
 
-        @Override
-        protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-            this.isHovered = this.isMouseOver(mouseX, mouseY);
+    static void centerButtonList(List<AbstractButton> buttons, int startX) {
+        int collectiveWidth = buttons.stream().mapToInt(AbstractButton::getWidth).sum() + (buttons.size() - 1) * 5;
 
-            // Background
-            int bgColor = isActive() ? (isHovered ? 0xFF808080 : 0xFF606060) : 0xFF404040;
-            int borderColor = 0xFFA0A0A0;
-            guiGraphics.fill(getX(),              getY(),               getX() + width,     getY() + 1,          borderColor);
-            guiGraphics.fill(getX(),              getY() + height - 1,  getX() + width,     getY() + height,     borderColor);
-            guiGraphics.fill(getX(),              getY(),               getX() + 1,         getY() + height,     borderColor);
-            guiGraphics.fill(getX() + width - 1, getY(),               getX() + width,     getY() + height,     borderColor);
-            guiGraphics.fill(getX() + 1,          getY() + 1,           getX() + width - 1, getY() + height - 1, bgColor);
-
-            int textColor = isActive() ? 0xFFFFFFFF : 0xFFA0A0A0;
-            guiGraphics.centeredText(Minecraft.getInstance().font,
-                    getMessage(), getX() + width / 2, getY() + (height - 8) / 2, textColor);
-        }
-
-        static void centerButtonList(List<AbstractButton> buttons, int startX) {
-            int collectiveWidth = buttons.stream().mapToInt(AbstractButton::getWidth).sum() + (buttons.size() - 1) * 5;
-
-            int nextX = startX - collectiveWidth / 2;
-            for (AbstractButton button : buttons) {
-                button.setX(nextX);
-                nextX += button.getWidth() + 5;
-            }
+        int nextX = startX - collectiveWidth / 2;
+        for (AbstractButton button : buttons) {
+            button.setX(nextX);
+            nextX += button.getWidth() + 5;
         }
     }
 }

@@ -127,7 +127,7 @@ public class GadgetExchanger extends AbstractGadget {
             if (player.isShiftKeyDown()) {
                 Optional<Block> result = selectBlock(itemstack, player);
                 if (result.isEmpty()) {
-                    player.sendSystemMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(Blocks.AIR).toString()).setStyle(Styles.AQUA));
+                    player.sendOverlayMessage(MessageTranslation.INVALID_BLOCK.componentTranslation(BuiltInRegistries.BLOCK.getKey(Blocks.AIR).toString()).setStyle(Styles.AQUA));
                     return super.use(world, player, hand);
                 }
             } else if (player instanceof ServerPlayer) {
@@ -163,7 +163,7 @@ public class GadgetExchanger extends AbstractGadget {
             range = (range >= BuildingGadgets.getConfig().gadgets.maxRange) ? 1 : range + changeAmount;
         }
         setToolRange(heldItem, range);
-        player.sendSystemMessage(MessageTranslation.RANGE_SET.componentTranslation(range).setStyle(Styles.AQUA));
+        player.sendOverlayMessage(MessageTranslation.RANGE_SET.componentTranslation(range).setStyle(Styles.AQUA));
     }
 
     private void exchange(ServerPlayer player, ItemStack stack, TransactionContext transactionContext) {

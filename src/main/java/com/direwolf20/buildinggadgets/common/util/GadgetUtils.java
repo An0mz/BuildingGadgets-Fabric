@@ -154,7 +154,7 @@ public class GadgetUtils {
             return;
 
         InventoryLinker.Result result = InventoryLinker.linkInventory(player.level(), stack, lookingAt);
-        player.sendSystemMessage(result.i18n().componentTranslation());
+        player.sendOverlayMessage(result.i18n().componentTranslation());
     }
 
     public static Optional<Block> selectBlock(ItemStack stack, Player player) {
@@ -197,7 +197,7 @@ public class GadgetUtils {
 
         if (anchorCoords.isPresent()) {
             setAnchor(stack);
-            player.sendSystemMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
+            player.sendOverlayMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
             return true;
         }
 
@@ -216,7 +216,7 @@ public class GadgetUtils {
                 : GadgetExchanger.getToolMode(stack).getMode().getCollection(context, player);
 
         setAnchor(stack, coords);
-        player.sendSystemMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
+        player.sendOverlayMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
 
         return true;
     }

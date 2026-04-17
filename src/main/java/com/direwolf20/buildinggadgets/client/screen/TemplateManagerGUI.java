@@ -621,13 +621,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
                             template = template.withName(nameField.getValue());
                         String json = TemplateIO.writeTemplateJson(template, buildContext);
                         getMinecraft().keyboardHandler.setClipboard(json);
-                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
+                        player.sendOverlayMessage(MessageTranslation.CLIPBOARD_COPY_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
                     } catch (DataCannotBeWrittenException e) {
                         BuildingGadgets.LOG.error("Failed to write Template.", e);
-                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED));
+                        player.sendOverlayMessage(MessageTranslation.CLIPBOARD_COPY_ERROR_TEMPLATE.componentTranslation().setStyle(Styles.RED));
                     } catch (Exception e) {
                         BuildingGadgets.LOG.error("Failed to copy Template to clipboard.", e);
-                        player.sendSystemMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED));
+                        player.sendOverlayMessage(MessageTranslation.CLIPBOARD_COPY_ERROR.componentTranslation().setStyle(Styles.RED));
                     }
                 }
             });
@@ -639,7 +639,7 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
 
         String CBString = getMinecraft().keyboardHandler.getClipboard();
         if (GadgetUtils.mightBeLink(CBString)) {
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_LINK_COPIED.componentTranslation().setStyle(Styles.RED));
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_LINK_COPIED.componentTranslation().setStyle(Styles.RED));
             return;
         }
 
@@ -647,13 +647,13 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             CompoundTag tagFromJson = TagParser.parseCompoundFully(CBString);
             if (!tagFromJson.contains("header")) {
                 BuildingGadgets.LOG.error("Attempted to use a 1.12 compound on a newer MC version");
-                getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
+                getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
                         .componentTranslation("(1.12.x)", TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED));
                 return;
             }
             if(!tagFromJson.contains("body")) {
                 BuildingGadgets.LOG.error("Attempted to paste Material List as a template");
-                getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_MATERIAL_LIST
+                getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_MATERIAL_LIST
                         .componentTranslation().setStyle(Styles.RED));
                 return;
             }
@@ -668,32 +668,32 @@ public class TemplateManagerGUI extends AbstractContainerScreen<TemplateManagerC
             boolean replaced = replaceStack();
             ItemStack stack = container.getSlot(1).getItem();
             pasteTemplateToStack(getWorld(), stack, readTemplate, replaced);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_SUCCESS.componentTranslation().setStyle(Styles.DK_GREEN));
         } catch (CorruptJsonException e) {
             BuildingGadgets.LOG.error("Failed to parse json syntax.", e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_CORRUPT_JSON
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_CORRUPT_JSON
                     .componentTranslation().setStyle(Styles.RED));
         } catch (IllegalMinecraftVersionException e) {
             BuildingGadgets.LOG.error("Attempted to parse Template for Minecraft version {} but expected between {} and {}.",
                     e.getMinecraftVersion(), TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION, e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_WRONG_MC_VERSION
                     .componentTranslation(e.getMinecraftVersion(), TemplateHeader.LOWEST_MC_VERSION, TemplateHeader.HIGHEST_MC_VERSION).setStyle(Styles.RED));
         } catch (UnknownTemplateVersionException e) {
             BuildingGadgets.LOG.error("Attempted to parse Template version {} but newest is {}.",
                     e.getTemplateVersion(), TemplateHeader.VERSION, e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_TOO_RECENT_VERSION
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_TOO_RECENT_VERSION
                     .componentTranslation(e.getTemplateVersion(), TemplateHeader.VERSION).setStyle(Styles.RED));
         } catch (JsonParseException e) {
             BuildingGadgets.LOG.error("Failed to parse Template json.", e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_INVALID_JSON
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_INVALID_JSON
                     .componentTranslation().setStyle(Styles.RED));
         } catch (TemplateReadException e) {
             BuildingGadgets.LOG.error("Failed to read Template body.", e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED_CORRUPT_BODY
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED_CORRUPT_BODY
                     .componentTranslation().setStyle(Styles.RED));
         } catch (Exception e) {
             BuildingGadgets.LOG.error("Failed to paste Template.", e);
-            getMinecraft().player.sendSystemMessage(MessageTranslation.PASTE_FAILED
+            getMinecraft().player.sendOverlayMessage(MessageTranslation.PASTE_FAILED
                     .componentTranslation().setStyle(Styles.RED));
         }
     }

@@ -100,7 +100,7 @@ public class MaterialListGUI extends Screen implements ITemplateProvider.IUpdate
                         b -> {
                             Minecraft.getInstance().keyboardHandler.setClipboard(getJson());
                             if (Minecraft.getInstance().player != null) {
-                                Minecraft.getInstance().player.sendSystemMessage(
+                                Minecraft.getInstance().player.sendOverlayMessage(
                                         Component.translatable(MaterialListTranslation.MESSAGE_COPY_SUCCESS.getTranslationKey())
                                 );
                             }

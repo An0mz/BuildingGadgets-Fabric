@@ -51,12 +51,12 @@ public class PasteGUI extends Screen {
         Z.setValue(currentOffset.getZ());
 
         List<AbstractButton> buttons = new ArrayList<>() {{
-            add(new CopyGUI.CenteredButton(y + 20, 70, GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
+            add(CopyGUI.createCenteredButton(y + 20, 70, GuiTranslation.SINGLE_CONFIRM.componentTranslation(), (button) -> {
                 PacketPasteGUI.send(X.getValue(), Y.getValue(), Z.getValue());
                 onClose();
             }));
 
-            add(new CopyGUI.CenteredButton(y + 20, 40, GuiTranslation.SINGLE_RESET.componentTranslation(), (button) -> {
+            add(CopyGUI.createCenteredButton(y + 20, 40, GuiTranslation.SINGLE_RESET.componentTranslation(), (button) -> {
                 X.setValue(0);
                 Y.setValue(0);
                 Z.setValue(0);
@@ -64,7 +64,7 @@ public class PasteGUI extends Screen {
             }));
         }};
 
-        CopyGUI.CenteredButton.centerButtonList(buttons, x);
+        CopyGUI.centerButtonList(buttons, x);
 
         buttons.forEach(this::addRenderableWidget);
         fields.forEach(this::addRenderableWidget);

@@ -160,7 +160,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     public final void onRotate(ItemStack stack, Player player) {
         if (performRotate(stack, player)) {
-            player.sendSystemMessage(MessageTranslation.ROTATED.componentTranslation().setStyle(Styles.AQUA));
+            player.sendOverlayMessage(MessageTranslation.ROTATED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -170,7 +170,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
     public final void onMirror(ItemStack stack, Player player) {
         if (performMirror(stack, player)) {
-            player.sendSystemMessage(MessageTranslation.MIRRORED.componentTranslation().setStyle(Styles.AQUA));
+            player.sendOverlayMessage(MessageTranslation.MIRRORED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -185,10 +185,10 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
                 return;
             }
             onAnchorSet(stack, player, lookingAt);
-            player.sendSystemMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
+            player.sendOverlayMessage(MessageTranslation.ANCHOR_SET.componentTranslation().setStyle(Styles.AQUA));
         } else {
             onAnchorRemoved(stack, player);
-            player.sendSystemMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
+            player.sendOverlayMessage(MessageTranslation.ANCHOR_REMOVED.componentTranslation().setStyle(Styles.AQUA));
         }
     }
 
@@ -212,7 +212,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     public static void toggleFuzzy(Player player, ItemStack stack) {
         boolean current = getFuzzy(stack);
         stack.set(BGDataComponents.FUZZY, !current);
-        player.sendSystemMessage(MessageTranslation.FUZZY_MODE.componentTranslation(!current).setStyle(Styles.AQUA));
+        player.sendOverlayMessage(MessageTranslation.FUZZY_MODE.componentTranslation(!current).setStyle(Styles.AQUA));
     }
 
     public static boolean getConnectedArea(ItemStack stack) {
@@ -233,7 +233,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
     public static void toggleRayTraceFluid(ServerPlayer player, ItemStack stack) {
         boolean current = shouldRayTraceFluid(stack);
         stack.set(BGDataComponents.RAYTRACE_FLUID, !current);
-        player.sendSystemMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA));
+        player.sendOverlayMessage(MessageTranslation.RAYTRACE_FLUID.componentTranslation(!current).setStyle(Styles.AQUA));
     }
 
     public static void addInformationRayTraceFluid(java.util.function.Consumer<Component> tooltipAdder, ItemStack stack) {
@@ -288,7 +288,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
                 ImmutableSortedSet<ChunkPos> unloadedChunks = undo.getBoundingBox().getUnloadedChunks(world);
                 if (!unloadedChunks.isEmpty()) {
                     pushUndo(stack, undo, world);
-                    player.sendSystemMessage(MessageTranslation.UNDO_UNLOADED.componentTranslation().setStyle(Styles.RED));
+                    player.sendOverlayMessage(MessageTranslation.UNDO_UNLOADED.componentTranslation().setStyle(Styles.RED));
                     BuildingGadgets.LOG.error("Player attempted to undo a Region missing {} unloaded chunks. Denied undo!", unloadedChunks.size());
                     BuildingGadgets.LOG.trace("The following chunks were detected as unloaded {}.", unloadedChunks);
                     return;
@@ -301,7 +301,7 @@ public abstract class AbstractGadget extends Item implements SimpleEnergyItem {
 
             UndoScheduler.scheduleUndo(undo, index, buildContext, BuildingGadgets.getConfig().gadgets.placeSteps);
         } else {
-            player.sendSystemMessage(MessageTranslation.NOTHING_TO_UNDO.componentTranslation().setStyle(Styles.RED));
+            player.sendOverlayMessage(MessageTranslation.NOTHING_TO_UNDO.componentTranslation().setStyle(Styles.RED));
         }
     }
 
