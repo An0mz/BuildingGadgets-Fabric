@@ -8,12 +8,19 @@ import java.util.function.BooleanSupplier;
 
 public final class ServerTickingScheduler {
     private static final List<BooleanSupplier> TASKS = new ArrayList<>();
+    private static final List<BooleanSupplier> PENDING = new ArrayList<>();
 
     public static void runTicked(BooleanSupplier runUntilFalse) {
-        TASKS.add(runUntilFalse);
+        // Add to pending so we never modify TASKS while it is being iterated
+        PENDING.add(runUntilFalse);
     }
 
     static {
-        ServerTickEvents.START_SERVER_TICK.register(server -> TASKS.removeIf(BooleanSupplier::getAsBoolean));
+        ServerTickEvents.START_SERVER_TICK.register(server -> {
+            // Merge any newly-registered tasks first, then tick all active ones
+            TASKS.addAll(PENDING);
+            PENDING.clear();
+            TASKS.removeIf(BooleanSupplier::getAsBoolean);
+        });
     }
 }

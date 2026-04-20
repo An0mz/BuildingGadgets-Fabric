@@ -62,6 +62,10 @@ public class ModeRadialMenu extends Screen {
             ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/copy.png"),
             ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/paste.png")
     );
+    private static final ImmutableList<ResourceLocation> signsCutPaste = ImmutableList.of(
+            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/cut.png"),
+            ResourceLocation.fromNamespaceAndPath(Reference.MODID, "textures/gui/mode/paste.png")
+    );
 
     private int timeIn = 0;
     private int slotSelected = -1;
@@ -86,6 +90,8 @@ public class ModeRadialMenu extends Screen {
             segments = ExchangingModes.values().length;
         else if (stack.getItem() instanceof GadgetCopyPaste)
             segments = GadgetCopyPaste.ToolMode.values().length;
+        else if (stack.getItem() instanceof GadgetCutPaste)
+            segments = GadgetCutPaste.ToolMode.values().length;
     }
 
     @Override
@@ -112,6 +118,39 @@ public class ModeRadialMenu extends Screen {
 
                 return GadgetDestruction.getIsFluidOnly(getGadget());
             }));
+        } else if (tool.getItem() instanceof GadgetCutPaste) {
+            // Cut-Paste specific buttons
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.CUT, "cut", left, false, send -> {
+                if (send) PacketCutAction.send();
+                return false;
+            }));
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.ROTATE, "rotate", left, false, send -> {
+                if (send) PacketRotateMirror.send(PacketRotateMirror.Operation.ROTATE);
+                return false;
+            }));
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.MIRROR, "mirror", left, false, send -> {
+                if (send) PacketRotateMirror.send(PacketRotateMirror.Operation.MIRROR);
+                return false;
+            }));
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.OPEN_GUI, "copypaste_opengui", right, false, send -> {
+                if (!send) return false;
+                assert Minecraft.getInstance().player != null;
+                Minecraft.getInstance().player.closeContainer();
+                if (GadgetCutPaste.getToolMode(tool) == GadgetCutPaste.ToolMode.CUT)
+                    Minecraft.getInstance().setScreen(new CopyGUI(tool));
+                else
+                    Minecraft.getInstance().setScreen(new PasteGUI(tool));
+                return true;
+            }));
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.RAYTRACE_FLUID, "raytrace_fluid", right, send -> {
+                if (send) PacketToggleRayTraceFluid.send();
+                return AbstractGadget.shouldRayTraceFluid(getGadget());
+            }));
+            addRenderableWidget(new PositionedIconActionable(RadialTranslation.ANCHOR, "anchor", left, send -> {
+                if (send) PacketAnchor.send();
+                ItemStack s = getGadget();
+                return ((AbstractGadget) s.getItem()).getAnchor(s) != null;
+            }));
         } else {
             addRenderableWidget(new PositionedIconActionable(RadialTranslation.ROTATE, "rotate", left, false, send -> {
                 if (send) {
@@ -128,7 +167,7 @@ public class ModeRadialMenu extends Screen {
                 return false;
             }));
         }
-        if (!(tool.getItem() instanceof GadgetCopyPaste)) {
+        if (!(tool.getItem() instanceof GadgetCopyPaste) && !(tool.getItem() instanceof GadgetCutPaste)) {
             if (!isDestruction || BuildingGadgets.getConfig().gadgets.gadgetDestruction.nonFuzzyEnabled) {
                 Button button = new PositionedIconActionable(RadialTranslation.FUZZY, "fuzzy", right, send -> {
                     if (send)
@@ -158,7 +197,7 @@ public class ModeRadialMenu extends Screen {
                 //sliderRange.precision = 1;
                 sliderRange.getComponents().forEach(this::addRenderableWidget);
             }
-        } else {
+        } else if (tool.getItem() instanceof GadgetCopyPaste) {
             // Copy Paste specific
             addRenderableWidget(new PositionedIconActionable(RadialTranslation.OPEN_GUI, "copypaste_opengui", right, send -> {
                 if (!send)
@@ -184,6 +223,7 @@ public class ModeRadialMenu extends Screen {
                 return true;
             }));
         }
+        if (!(tool.getItem() instanceof GadgetCutPaste)) {
         addRenderableWidget(new PositionedIconActionable(RadialTranslation.RAYTRACE_FLUID, "raytrace_fluid", right, send -> {
             if (send)
                 PacketToggleRayTraceFluid.send();
@@ -216,6 +256,7 @@ public class ModeRadialMenu extends Screen {
                 return false;
             }));
         }
+        } // end if (!(tool.getItem() instanceof GadgetCutPaste))
 
         updateButtons(tool);
     }
@@ -330,6 +371,9 @@ public class ModeRadialMenu extends Screen {
         } else if (tool.getItem() instanceof GadgetExchanger) {
             modeIndex = GadgetExchanger.getToolMode(tool).ordinal();
             signs = Arrays.stream(ExchangingModes.values()).map(e -> ResourceLocation.fromNamespaceAndPath(Reference.MODID, e.getIcon())).collect(Collectors.toList());
+        } else if (tool.getItem() instanceof GadgetCutPaste) {
+            modeIndex = GadgetCutPaste.getToolMode(tool).ordinal();
+            signs = signsCutPaste;
         } else {
             modeIndex = GadgetCopyPaste.getToolMode(tool).ordinal();
             signs = signsCopyPaste;
@@ -399,6 +443,8 @@ public class ModeRadialMenu extends Screen {
                 name = I18n.get(BuildingModes.values()[i].getTranslationKey());
             else if (tool.getItem() instanceof GadgetExchanger)
                 name = I18n.get(ExchangingModes.values()[i].getTranslationKey());
+            else if (tool.getItem() instanceof GadgetCutPaste)
+                name = GadgetCutPaste.ToolMode.values()[i].getTranslation().format();
             else
                 name = GadgetCopyPaste.ToolMode.values()[i].getTranslation().format();
 
@@ -466,6 +512,8 @@ public class ModeRadialMenu extends Screen {
                 mode = I18n.get(BuildingModes.values()[slotSelected].getTranslationKey());
             else if (gadget instanceof GadgetExchanger)
                 mode = I18n.get(ExchangingModes.values()[slotSelected].getTranslationKey());
+            else if (gadget instanceof GadgetCutPaste)
+                mode = GadgetCutPaste.ToolMode.values()[slotSelected].getTranslation().format();
             else
                 mode = GadgetCopyPaste.ToolMode.values()[slotSelected].getTranslation().format();
 

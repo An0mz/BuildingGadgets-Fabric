@@ -5,7 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum ModeTranslation implements ITranslationProvider {
     COPY("copy"),
-    PASTE("paste");
+    PASTE("paste"),
+    CUT("cut");
 
     private static final String PREFIX = Reference.MODID + ".modes.";
     private final String key;

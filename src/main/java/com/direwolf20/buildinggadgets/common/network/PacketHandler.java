@@ -26,6 +26,7 @@ public class PacketHandler {
     public static final ResourceLocation PacketPasteGUI = BuildingGadgets.id("packet_paste_gui");
     public static final ResourceLocation PacketToggleMode = BuildingGadgets.id("packet_toggle_mode");
     public static final ResourceLocation PacketUndo = BuildingGadgets.id("packet_undo");
+    public static final ResourceLocation PacketCutAction = BuildingGadgets.id("packet_cut_action");
 
     public static final ResourceLocation PacketTemplateManagerTemplateCreated = BuildingGadgets.id("packet_template_manager_template_created");
     public static final ResourceLocation SplitPacketUpdateTemplate = BuildingGadgets.id("split_packet_update_template");
@@ -52,6 +53,7 @@ public class PacketHandler {
         PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.CODEC);
         PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.CODEC);
         PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.CODEC);
+        PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.C2S.PacketCutAction.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketCutAction.CODEC);
 
         // Register payload types (codecs) - Bidirectional packets (both C2S and S2C)
         PayloadTypeRegistry.playC2S().register(com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.TYPE, com.direwolf20.buildinggadgets.common.network.bidirection.PacketRequestTemplate.CODEC);
@@ -79,6 +81,7 @@ public class PacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketToggleMode::handle);
         ServerPlayNetworking.registerGlobalReceiver(com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketUndo::handle);
         ServerPlayNetworking.registerGlobalReceiver(com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketTemplateManagerTemplateCreated::handle);
+        ServerPlayNetworking.registerGlobalReceiver(com.direwolf20.buildinggadgets.common.network.C2S.PacketCutAction.TYPE, com.direwolf20.buildinggadgets.common.network.C2S.PacketCutAction::handle);
 
         // Register server-side handlers for bidirectional packets (receives C2S)
         ServerPlayNetworking.registerGlobalReceiver(

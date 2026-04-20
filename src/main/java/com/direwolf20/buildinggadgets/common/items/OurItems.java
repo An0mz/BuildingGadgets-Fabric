@@ -14,6 +14,7 @@ public final class OurItems {
     public static final Item BUILDING_GADGET_ITEM = new GadgetBuilding(itemProperties().stacksTo(1));
     public static final Item EXCHANGING_GADGET_ITEM = new GadgetExchanger(itemProperties().stacksTo(1));
     public static final Item COPY_PASTE_GADGET_ITEM = new GadgetCopyPaste(itemProperties().stacksTo(1));
+    public static final Item CUT_PASTE_GADGET_ITEM = new GadgetCutPaste(itemProperties().stacksTo(1));
     public static final Item DESTRUCTION_GADGET_ITEM = new GadgetDestruction(itemProperties().stacksTo(1));
 
     // Template
@@ -30,6 +31,7 @@ public final class OurItems {
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_building"), BUILDING_GADGET_ITEM);
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_exchanging"), EXCHANGING_GADGET_ITEM);
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_copy_paste"), COPY_PASTE_GADGET_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_cut_paste"), CUT_PASTE_GADGET_ITEM);
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("gadget_destruction"), DESTRUCTION_GADGET_ITEM);
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("template"), TEMPLATE_ITEM);
         Registry.register(BuiltInRegistries.ITEM, BuildingGadgets.id("template_manager"), TEMPLATE_MANGER_ITEM);

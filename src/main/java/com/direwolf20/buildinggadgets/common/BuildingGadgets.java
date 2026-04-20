@@ -88,6 +88,13 @@ public final class BuildingGadgets implements ModInitializer {
             TemplateKeyHelper.initializeTemplateKey(copyPasteGadgetCharged);
             entries.accept(copyPasteGadgetCharged);
 
+            // Cut Paste Gadget - empty and charged
+            entries.accept(OurItems.CUT_PASTE_GADGET_ITEM);
+            ItemStack cutPasteGadgetCharged = new ItemStack(OurItems.CUT_PASTE_GADGET_ITEM);
+            cutPasteGadgetCharged.set(BGDataComponents.ENERGY, getConfig().gadgets.gadgetCutPaste.maxEnergy);
+            TemplateKeyHelper.initializeTemplateKey(cutPasteGadgetCharged);
+            entries.accept(cutPasteGadgetCharged);
+
             // Destruction Gadget - empty and charged
             entries.accept(OurItems.DESTRUCTION_GADGET_ITEM);
             ItemStack destructionGadgetCharged = new ItemStack(OurItems.DESTRUCTION_GADGET_ITEM);

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "result": {
+    "id": "buildinggadgets:gadget_cut_paste",
+    "count": "1"
+  },
+  "pattern": [
+    "igi",
+    "ese",
+    "ili"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "g": {
+      "item": "minecraft:gold_ingot"
+    },
+    "e": {
+      "item": "minecraft:emerald"
+    },
+    "s": {
+      "item": "minecraft:shears"
+    },
+    "l": {
+      "item": "minecraft:lapis_lazuli"
+    }
+  }
+}
+

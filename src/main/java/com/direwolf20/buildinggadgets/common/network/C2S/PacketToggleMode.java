@@ -3,6 +3,7 @@ package com.direwolf20.buildinggadgets.common.network.C2S;
 import com.direwolf20.buildinggadgets.common.items.AbstractGadget;
 import com.direwolf20.buildinggadgets.common.items.GadgetBuilding;
 import com.direwolf20.buildinggadgets.common.items.GadgetCopyPaste;
+import com.direwolf20.buildinggadgets.common.items.GadgetCutPaste;
 import com.direwolf20.buildinggadgets.common.items.GadgetExchanger;
 import com.direwolf20.buildinggadgets.common.network.PacketHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -44,6 +45,8 @@ public record PacketToggleMode(int mode) implements CustomPacketPayload {
                 gadgetExchanger.setMode(heldItem, payload.mode);
             } else if (heldItem.getItem() instanceof GadgetCopyPaste gadgetCopyPaste) {
                 gadgetCopyPaste.setMode(heldItem, payload.mode);
+            } else if (heldItem.getItem() instanceof GadgetCutPaste gadgetCutPaste) {
+                gadgetCutPaste.setMode(heldItem, payload.mode);
             }
         });
     }

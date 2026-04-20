@@ -61,6 +61,10 @@ public class Config implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject
         public CategoryGadgetCopyPaste gadgetCopyPaste = new CategoryGadgetCopyPaste();
 
+        @Comment("Energy Cost, Durability & Settings of the Cut-Paste Gadget")
+        @ConfigEntry.Gui.CollapsibleObject
+        public CategoryGadgetCutPaste gadgetCutPaste = new CategoryGadgetCutPaste();
+
         @Comment("Gadget Max Undo size (Note, the exchanger does not support undo)")
         @ConfigEntry.BoundedDiscrete(min = 0, max = 128)
         public int undoSize = 128;
@@ -136,6 +140,29 @@ public class Config implements ConfigData {
 
             @Comment("Maximum dimensions (x, y and z) that can be build by a Template without requiring special permission.\n" +
                      "Permission can be granted using the '/buildinggadgets OverrideBuildSize [<Player>]' command.")
+            @ConfigEntry.BoundedDiscrete(min = -1, max = 256)
+            public int maxBuildSize = 256;
+        }
+
+        public static class CategoryGadgetCutPaste {
+
+            @Comment("The max energy of the Cut-Paste Gadget, set to 0 to disable energy usage")
+            @ConfigEntry.BoundedDiscrete(min = 0, max = 4000000)
+            public long maxEnergy = 500000;
+
+            @Comment("The Gadget's Energy cost per Operation")
+            @ConfigEntry.BoundedDiscrete(min = 0, max = 4000000)
+            public long energyCost = 50;
+
+            @Comment("Maximum amount of Blocks to be processed per Tick during a cut/paste operation.")
+            @ConfigEntry.BoundedDiscrete(min = 1, max = 65536)
+            public int copySteps = 32768;
+
+            @Comment("Maximum dimensions (x, y and z) that can be cut without requiring special permission.")
+            @ConfigEntry.BoundedDiscrete(min = -1, max = 2048)
+            public int maxCopySize = 256;
+
+            @Comment("Maximum dimensions (x, y and z) that can be pasted without requiring special permission.")
             @ConfigEntry.BoundedDiscrete(min = -1, max = 256)
             public int maxBuildSize = 256;
         }

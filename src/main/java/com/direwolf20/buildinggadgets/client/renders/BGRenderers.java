@@ -2,6 +2,7 @@ package com.direwolf20.buildinggadgets.client.renders;
 
 import com.direwolf20.buildinggadgets.common.items.GadgetBuilding;
 import com.direwolf20.buildinggadgets.common.items.GadgetCopyPaste;
+import com.direwolf20.buildinggadgets.common.items.GadgetCutPaste;
 import com.direwolf20.buildinggadgets.common.items.GadgetDestruction;
 import com.direwolf20.buildinggadgets.common.items.GadgetExchanger;
 import net.minecraft.world.item.Item;
@@ -12,6 +13,7 @@ public class BGRenderers {
     public static final BuildRender BUILD = new BuildRender(false);
     public static final BuildRender EXCHANGE = new BuildRender(true);
     public static final CopyPasteRender COPY_PASTE = new CopyPasteRender();
+    public static final CutPasteRender CUT_PASTE = new CutPasteRender();
     public static final DestructionRender DESTRUCTION = new DestructionRender();
 
     @Nullable
@@ -22,6 +24,8 @@ public class BGRenderers {
             return EXCHANGE;
         } else if (item instanceof GadgetCopyPaste) {
             return COPY_PASTE;
+        } else if (item instanceof GadgetCutPaste) {
+            return CUT_PASTE;
         } else if (item instanceof GadgetDestruction) {
             return DESTRUCTION;
         } else {

@@ -122,6 +122,23 @@ public class BGDataComponents {
             builder -> builder.persistent(Codec.STRING.xmap(UUID::fromString, UUID::toString))
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8.map(UUID::fromString, UUID::toString)));
 
+    // --- Cut-Paste Gadget specific components ---
+
+    // Cut/Paste mode
+    public static final DataComponentType<String> CUT_PASTE_MODE = register("cut_paste_mode",
+            builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
+    // Cut region bounds
+    public static final DataComponentType<BlockPos> CUT_UPPER_REGION_BOUND = register("cut_upper_region_bound",
+            builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
+
+    public static final DataComponentType<BlockPos> CUT_LOWER_REGION_BOUND = register("cut_lower_region_bound",
+            builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
+
+    // Cut-paste relative paste offset
+    public static final DataComponentType<BlockPos> CUT_RELATIVE_VECTOR = register("cut_relative_vector",
+            builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
+
     private static <T> DataComponentType<T> register(String name, UnaryOperator<DataComponentType.Builder<T>> builder) {
         return Registry.register(
                 BuiltInRegistries.DATA_COMPONENT_TYPE,

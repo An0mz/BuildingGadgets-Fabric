@@ -25,5 +25,7 @@ public final class Reference {
         public static final ResourceLocation WHITELIST_BUILDING = ResourceLocation.fromNamespaceAndPath(MODID, "whitelist/building");
         public static final ResourceLocation WHITELIST_EXCHANGING = ResourceLocation.fromNamespaceAndPath(MODID, "whitelist/exchanging");
         public static final ResourceLocation WHITELIST_DESTRUCTION = ResourceLocation.fromNamespaceAndPath(MODID, "whitelist/destruction");
+        public static final ResourceLocation WHITELIST_CUT_PASTE = ResourceLocation.fromNamespaceAndPath(MODID, "whitelist/cut_paste");
+        public static final ResourceLocation BLACKLIST_CUT_PASTE = ResourceLocation.fromNamespaceAndPath(MODID, "blacklist/cut_paste");
     }
 }

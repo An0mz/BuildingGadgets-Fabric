@@ -36,6 +36,7 @@ public class BuildingGadgetsClient implements ClientModInitializer {
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> CACHE_TEMPLATE_PROVIDER.clear());
         CACHE_TEMPLATE_PROVIDER.registerUpdateListener(BGRenderers.COPY_PASTE);
+        CACHE_TEMPLATE_PROVIDER.registerUpdateListener(BGRenderers.CUT_PASTE);
         ClientPacketHandler.registerMessages();
 
         TooltipComponentCallback.EVENT.register(data -> {

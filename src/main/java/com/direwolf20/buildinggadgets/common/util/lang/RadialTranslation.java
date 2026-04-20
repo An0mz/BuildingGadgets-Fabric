@@ -15,7 +15,8 @@ public enum RadialTranslation implements ITranslationProvider {
     RAYTRACE_FLUID("raytrace_fluid"),
     PLACE_ON_TOP("place_on_top"),
     ANCHOR("anchor"),
-    UNDO("undo");
+    UNDO("undo"),
+    CUT("cut");
 
     private final String key;
 
