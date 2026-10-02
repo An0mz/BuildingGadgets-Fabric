@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "iri",
+    "ere",
+    "ili"
+  ],
+  "key": {
+    "i": "minecraft:gold_ingot",
+    "r": "minecraft:redstone",
+    "l": "minecraft:lapis_lazuli",
+    "e": "minecraft:emerald"
+  },
+  "result": {
+    "id": "buildinggadgets:template_manager",
+    "count": 1
+  }
+}

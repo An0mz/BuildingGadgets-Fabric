@@ -1,4 +1,4 @@
-<p align="center"><img width="100" src="https://github.com/An0mz/BuildingGadgets-Fabric/blob/1.20-fabric/src/main/resources/assets/buildinggadgets/icon.png?raw=true" /></p>
+    <p align="center"><img width="100" src="https://github.com/An0mz/BuildingGadgets-Fabric/blob/1.20-fabric/src/main/resources/assets/buildinggadgets/icon.png?raw=true" /></p>
 <h1 align="center" style="margin-top: 20px; border-bottom: 0;">St'ructure Tools Continued</h1>
 <p align="center">Sometimes, building large st'ructures can be a little tedious, and take a lot of effort. Not all of us are great builders you know!
 </p>

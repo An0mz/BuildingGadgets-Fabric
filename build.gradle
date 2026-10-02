@@ -67,6 +67,7 @@ dependencies {
     implementation include("org.ladysnake.cardinal-components-api:cardinal-components-level:${project.cca_version}")
 
     include('me.lucko:fabric-permissions-api:0.3.1')
+    runtimeOnly "curse.maven:jei-238222:9009839"
 }
 
 base {}

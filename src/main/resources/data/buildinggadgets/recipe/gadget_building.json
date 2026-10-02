@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "iri",
+    "drd",
+    "ili"
+  ],
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "r": "minecraft:redstone",
+    "l": "minecraft:lapis_lazuli",
+    "d": "minecraft:diamond"
+  },
+  "result": {
+    "id": "buildinggadgets:gadget_building",
+    "count": 1
+  }
+}
